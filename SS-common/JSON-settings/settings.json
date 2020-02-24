@@ -1,0 +1,74 @@
+{
+    "board": "Kromek",
+    "boardID": 3,
+    "measurements": [
+        {
+            "id": 0,
+            "name": "chamber-pressure",
+            "aCoefficient": 1234.341,
+            "bCoefficient": 241.123
+        },
+        {
+            "id": 1,
+            "name": "press1",
+            "bCoefficient": 241.123,
+            "aCoefficient": 1234.341
+        },
+        {
+            "id": 2,
+            "name": "press2",
+            "bCoefficient": 241.123,
+            "aCoefficient": 1234.341
+        }
+    ],
+    "servos": [
+        {
+            "id": 0,
+            "name": "main-oxidizer-valve",
+            "openedPos": 10,
+            "closedPos": 98
+        },
+        {
+            "id": 1,
+            "name": "servo1",
+            "openedPos": 0,
+            "closedPos": 100
+        },
+        {
+            "id": 2,
+            "name": "servo2",
+            "openedPos": 12,
+            "closedPos": 66
+        },
+        {
+            "id": 3,
+            "name": "servo3",
+            "openedPos": 0,
+            "closedPos": 100
+        },
+        {
+            "id": 4,
+            "name": "servo4",
+            "openedPos": 0,
+            "closedPos": 100
+        },
+        {
+            "id": 5,
+            "name": "servo4",
+            "openedPos": 0,
+            "closedPos": 100
+        },
+        {
+            "id": 6,
+            "name": "servo6",
+            "openedPos": 0,
+            "closedPos": 100
+        },
+        {
+            "id": 7,
+            "name": "servo7",
+            "openedPos": 83,
+            "closedPos": 33
+        }
+    ]
+}

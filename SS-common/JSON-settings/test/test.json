@@ -1,0 +1,14 @@
+{ 
+    "parameters": {
+        "x": 13,
+        "y": 11,
+        "z": {"a": 17}
+    },
+    "array_float": [ 1.1, 2.1, 3.1, 4.1 ],
+    "board": "Kromek",
+    "boardID": 3,
+    "array": [ 1, 2, 3, 4 ],
+    "value": 145.2134,
+    "array_object": [ { "a": 1 }, { "b": 2 }, { "c": 3 } ],
+    "array_string": [ "abc", "xyz", "c" ]
+}
