@@ -429,3 +429,5 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
+.mxproject
+.project
