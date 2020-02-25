@@ -3,9 +3,9 @@ include(../CMakeLists.txt)
 PROJECT(Kromek C CXX ASM)
 cmake_minimum_required(VERSION 3.15)
 
-file(GLOB_RECURSE SOURCES "Drivers/*.*" "Inc/*.*" "Libraries/SS-common_ADS1258/*.*" "../SS-common/*.*" "Src/*.*" "Test/*.*" "Unity/extras/fixture/src/*.*" "../Unity/extras/memory/src/*.*" "../Unity/src/*.*" "startup/*.*")
+file(GLOB_RECURSE SOURCES "Drivers/*.*" "Inc/*.*" "Src/*.*" "Test/*.*" "Unity/extras/fixture/src/*.*" "../Unity/extras/memory/src/*.*" "../Unity/src/*.*" "startup/*.*")
 
-include_libraries(Inc
+include_directories(Inc
                     ../SS-common/JSON-settings/test
                     ../SS-common/JSON-settings
                     ../SS-common/JSON-settings/jsmn
@@ -16,20 +16,21 @@ include_libraries(Inc
                     Drivers/STM32F4xx_HAL_Driver/Inc
                     Drivers/STM32F4xx_HAL_Driver/Inc/Legacy
                     Drivers/CMSIS/Device/ST/STM32F4xx/Include
-                    Drivers/CMSIS/Include
-                    ../SS-common/adc
-                    ../SS-common/com
-                    ../SS-common/dynamixel
-        ../SS-common/ADS1258
-        ../SS-common/grazyna
-                    ../SS-common/mutex
-                    ../SS-common/relays
-                    ../SS-common/S25FL
-                    ../SS-common/sequence
-                    ../SS-common/servos
-                    ../SS-common/supply
-                    ../SS-common/support
-        ../SS-common/fifo
+                    Drivers/CMSIS/Include)
+        include_libraries(
+                    adc
+                    com
+                    dynamixel
+        ADS1258
+        grazyna
+                    mutex
+                    relays
+                    S25FL
+                    sequence
+                    servos
+                    supply
+                    support
+        fifo
                     )
 
 add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
