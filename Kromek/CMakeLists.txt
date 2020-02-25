@@ -1,6 +1,6 @@
 set(ENV{LIBRARIES} ../SS-common/fifo)
 include(../CMakeLists.txt)
-PROJECT(Kromek_v2 C CXX ASM)
+PROJECT(Kromek C CXX ASM)
 cmake_minimum_required(VERSION 3.15)
 
 file(GLOB_RECURSE SOURCES "Drivers/*.*" "Inc/*.*" "Libraries/SS-common_ADS1258/*.*" "../SS-common/*.*" "Src/*.*" "Test/*.*" "Unity/extras/fixture/src/*.*" "../Unity/extras/memory/src/*.*" "../Unity/src/*.*" "startup/*.*")

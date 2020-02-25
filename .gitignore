@@ -363,5 +363,6 @@ fabric.properties
 
 .mxproject
 .project
+.cproject
 *.xml
 .idea
