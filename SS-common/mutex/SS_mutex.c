@@ -13,9 +13,9 @@ bool SS_mutex_lock(Mutex *mutex) {
     if(status == 0) {
         status =__STREXW(1, &mutex->flag);
     }
-    return (bool) !status;
     __DMB();        // Do not start any other memory access
-                    // until memory barrier is completed
+    // until memory barrier is completed
+    return (bool) !status;
 }
 
 void SS_mutex_unlock(Mutex *mutex) {

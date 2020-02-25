@@ -8,10 +8,11 @@ file(GLOB_RECURSE SOURCES
         "Inc/*.*"
         "Src/*.*"
         "Test/*.*"
-        "Unity/extras/fixture/src/*.*"
+        "../Unity/extras/fixture/src/*.*"
         "../Unity/extras/memory/src/*.*"
         "../Unity/src/*.*"
-        "startup/*.*")
+        "startup/*.*"
+        "../SS-common/JSON-settings/*.*")
 
 include_directories(Inc
                     ../SS-common/JSON-settings/test

@@ -30,7 +30,7 @@ TEST_GROUP_RUNNER(dynamixel_logic) {
     RUN_TEST_CASE(dynamixel_logic, create_packet);
     RUN_TEST_CASE(dynamixel_logic, crc_check);
     RUN_TEST_CASE(dynamixel_logic, crc_check_error);
-    RUN_TEST_CASE(dynamixel_logic, fifo);
+    RUN_TEST_CASE(dynamixel_logic, Fifo);
 }
 
 TEST_GROUP_RUNNER(dynamixel) {
@@ -350,9 +350,9 @@ TEST(dynamixel, disable_torque_status) {
     TEST_ASSERT_FALSE(dynamixel.torque_enabled);
 }
 
-extern fifo dynamixel_fifo;
+extern Fifo dynamixel_fifo;
 
-TEST(dynamixel_logic, fifo) {
+TEST(dynamixel_logic, Fifo) {
     Dynamixel_fifo_bufor buff = { { 0 }, 0 };
     Dynamixel_fifo_bufor packet = { { 33 }, 0 };
     while(SS_fifo_get_data(&dynamixel_fifo, &buff));

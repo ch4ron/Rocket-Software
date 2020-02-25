@@ -9,7 +9,7 @@
 /*
  *	declare struct with volatile prefix
  */
-bool SS_fifo_put_data(volatile fifo *q, void *data) {
+bool SS_fifo_put_data(volatile Fifo *q, void *data) {
 
 	uint8_t head_temp = q->head + 1;
 
@@ -26,7 +26,7 @@ bool SS_fifo_put_data(volatile fifo *q, void *data) {
 	return true;
 }
 
-bool SS_fifo_get_data(volatile fifo *q, void *data) {
+bool SS_fifo_get_data(volatile Fifo *q, void *data) {
 	//if empty
 	if (q->head == q->tail)
 		return false;

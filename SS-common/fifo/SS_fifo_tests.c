@@ -25,7 +25,7 @@ TEST_TEAR_DOWN(fifo) {}
 TEST(fifo, put_get) {
     int LENGTH = 5;
     uint8_t array[LENGTH][sizeof(int)];
-    volatile fifo test_fifo = { (uint8_t*) array, 0, 0, LENGTH, sizeof(int) };
+    volatile Fifo test_fifo = {(uint8_t*) array, 0, 0, LENGTH, sizeof(int) };
     int output, input = 420;
     SS_fifo_put_data(&test_fifo, &input);
     SS_fifo_get_data(&test_fifo, &output);
