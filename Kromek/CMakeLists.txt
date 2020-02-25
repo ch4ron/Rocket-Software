@@ -3,7 +3,15 @@ include(../CMakeLists.txt)
 PROJECT(Kromek C CXX ASM)
 cmake_minimum_required(VERSION 3.15)
 
-file(GLOB_RECURSE SOURCES "Drivers/*.*" "Inc/*.*" "Src/*.*" "Test/*.*" "Unity/extras/fixture/src/*.*" "../Unity/extras/memory/src/*.*" "../Unity/src/*.*" "startup/*.*")
+file(GLOB_RECURSE SOURCES
+        "Drivers/*.*"
+        "Inc/*.*"
+        "Src/*.*"
+        "Test/*.*"
+        "Unity/extras/fixture/src/*.*"
+        "../Unity/extras/memory/src/*.*"
+        "../Unity/src/*.*"
+        "startup/*.*")
 
 include_directories(Inc
                     ../SS-common/JSON-settings/test
@@ -17,12 +25,12 @@ include_directories(Inc
                     Drivers/STM32F4xx_HAL_Driver/Inc/Legacy
                     Drivers/CMSIS/Device/ST/STM32F4xx/Include
                     Drivers/CMSIS/Include)
-        include_libraries(
-                    adc
+
+include_libraries(  adc
                     com
                     dynamixel
-        ADS1258
-        grazyna
+                    ADS1258
+                    grazyna
                     mutex
                     relays
                     S25FL
@@ -30,8 +38,7 @@ include_directories(Inc
                     servos
                     supply
                     support
-        fifo
-                    )
+                    fifo)
 
 add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
 SET(CMAKE_EXE_LINKER_FLAGS_INIT "-Wl,-gc-sections,--print-memory-usage -T ${LINKER_SCRIPT}")
@@ -47,8 +54,5 @@ add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
         COMMAND ${CMAKE_OBJCOPY} -Oihex $<TARGET_FILE:${PROJECT_NAME}.elf> ${HEX_FILE}
         COMMAND ${CMAKE_OBJCOPY} -Obinary $<TARGET_FILE:${PROJECT_NAME}.elf> ${BIN_FILE}
         COMMENT "Building ${HEX_FILE}
-Building ${BIN_FILE}")
+        Building ${BIN_FILE}")
 
-#build(${PROJECT_NAME} ${SOURCES})
-#add_subdirectory(../SS-common/fifo fifo)
-#target_link_libraries(${PROJECT_NAME}.elf fifo)
