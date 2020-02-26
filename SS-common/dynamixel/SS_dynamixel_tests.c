@@ -11,7 +11,7 @@
 
 #include "SS_dynamixel.h"
 #include "unity_fixture.h"
-#include "SS_supply_control.h"
+#include "SS_supply.h"
 #include "SS_fifo.h"
 
 extern uint8_t tx_packet_buff[MAX_PACKET_LENGTH];

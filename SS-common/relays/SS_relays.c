@@ -6,7 +6,7 @@
  */
 
 #include "SS_relays.h"
-#include "SS_supply_control.h"
+#include "SS_supply.h"
 
 Relay relays[9] = {
     { .GPIO_Port = RELAY1_GPIO_Port, .Pin = RELAY1_Pin },

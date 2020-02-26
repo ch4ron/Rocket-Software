@@ -36,6 +36,7 @@ set(CMAKE_CXX_STANDARD 11)
 
 #add_definitions(-DARM_MATH_CM4 -DARM_MATH_MATRIX_CHECK -DARM_MATH_ROUNDING -D__FPU_PRESENT=1)
 add_definitions(-D__weak=__attribute__\(\(weak\)\) -D__packed=__attribute__\(\(__packed__\)\) -DUSE_HAL_DRIVER -DSTM32F446xx)
+
 file(GLOB_RECURSE SOURCES
                 "Drivers/*.*"
                 "Inc/*.*"
@@ -59,23 +60,32 @@ include_directories(Inc
                     Drivers/STM32F4xx_HAL_Driver/Inc/Legacy
                     Drivers/CMSIS/Device/ST/STM32F4xx/Include
                     Drivers/CMSIS/Include)
+
 include(../CMakeLists.txt)
-include_libraries(  adc
-                    com
-                    dynamixel
-                    ADS1258
-                    grazyna
-                    mutex
-                    relays
+include_libraries(
                     S25FL
                     sequence
-                    servos
-                    supply
                     support
-                    fifo)
-
+        )
 
 add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
+
+#target_link_libraries(${PROJECT_NAME}.elf PUBLIC dynamixel)
+#include(../SS-common/CMakeLists.txt)
+add_compile_definitions(SS_USE_DYNAMIXEL)
+add_compile_definitions(SS_USE_SERVOS)
+add_compile_definitions(SS_USE_FIFO)
+add_compile_definitions(SS_USE_COM)
+add_compile_definitions(SS_USE_ADS1258)
+add_compile_definitions(SS_USE_ADC)
+add_compile_definitions(SS_USE_GRAZYNA)
+add_compile_definitions(SS_USE_SUPPLY)
+add_compile_definitions(SS_USE_RELAYS)
+
+#get_target_property(TEMP ${COMPILE} COMPILE_FLAGS)
+add_subdirectory(../SS-common common)
+
+target_link_libraries(${PROJECT_NAME}.elf common)
 
 set(CMAKE_EXE_LINKER_FLAGS
     "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Map=${PROJECT_BINARY_DIR}/${PROJECT_NAME}.map")

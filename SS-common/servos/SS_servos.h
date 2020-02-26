@@ -10,7 +10,7 @@
 
 #include "SS_com_protocol.h"
 #include "stm32f4xx_hal.h"
-#include "SS_supply_control.h"
+#include "SS_supply.h"
 #include "tim.h"
 #include "SS_json_parser.h"
 

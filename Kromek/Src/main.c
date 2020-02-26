@@ -33,7 +33,7 @@
 /* USER CODE BEGIN Includes */
 #include "stdio.h"
 #include "SS_Kromek_adc.h"
-#include "SS_supply_control.h"
+#include "SS_supply.h"
 #include "SS_Kromek_tests.h"
 #include "SS_servos.h"
 #include "SS_relays.h"

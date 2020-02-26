@@ -1,11 +1,11 @@
 /*
- * SS_supply_control.c
+ * SS_supply.c
  *
  *  Created on: Dec 24, 2019
  *      Author: maciek
  */
 
-#include "SS_supply_control.h"
+#include "SS_supply.h"
 #include "SS_Kromek_adc.h"
 
 Supply relay_supply = {

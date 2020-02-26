@@ -9,7 +9,7 @@
 
 #ifdef RUN_TESTS
 
-#include "SS_supply_control.h"
+#include "SS_supply.h"
 #include "unity_fixture.h"
 
 uint8_t relay_supply_status;

@@ -1,12 +1,12 @@
 /*
- * SS_supply_control.h
+ * SS_supply.h
  *
  *  Created on: Dec 24, 2019
  *      Author: maciek
  */
 
-#ifndef SS_SUPPLY_CONTROL_H_
-#define SS_SUPPLY_CONTROL_H_
+#ifndef SS_SUPPLY_H_
+#define SS_SUPPLY_H_
 
 #include "gpio.h"
 

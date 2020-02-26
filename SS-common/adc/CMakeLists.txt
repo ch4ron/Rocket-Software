@@ -1,0 +1,13 @@
+cmake_minimum_required(VERSION 3.11.1)
+
+project(adc C)
+
+list(APPEND SRC SS_Kromek_adc.c)
+
+#get_directory_property(MYDEFS COMPILE_DEFINITIONS)
+#if(MYDEFS MATCHES RUN_TESTS)
+#    list(APPEND SRC SS_fifo_tests.c)
+#endif()
+
+add_library(${PROJECT_NAME} ${SRC})
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
