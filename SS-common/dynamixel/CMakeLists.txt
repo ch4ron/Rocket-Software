@@ -10,10 +10,13 @@ if(MYDEFS MATCHES RUN_TESTS)
 endif()
 
 add_library(${PROJECT_NAME} ${SRCC})
-target_include_directories(${PROJECT_NAME}
-                            PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
-                            PRIVATE ${SS_COMMON_DIR}/fifo
-                                    ${SS_COMMON_DIR}/supply)
+target_include_directories(
+        ${PROJECT_NAME}
+        PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+include_directories(
+        ${SS_COMMON_DIR}/fifo
+        ${SS_COMMON_DIR}/supply)
 
 add_subdirectory(${SS_COMMON_DIR}/mutex mutex)
 target_link_libraries(${PROJECT_NAME} mutex)

@@ -10,8 +10,10 @@ list(APPEND SRC SS_grazyna_com.c)
 #endif()
 
 add_library(${PROJECT_NAME} ${SRC})
-target_include_directories(${PROJECT_NAME}
-                            PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
-                            PRIVATE ${SS_COMMON_DIR}/com
-                                    ${SS_COMMON_DIR}/fifo)
+target_include_directories(
+        ${PROJECT_NAME}
+        PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
+include_directories(
+        ${SS_COMMON_DIR}/com
+        ${SS_COMMON_DIR}/fifo)

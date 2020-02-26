@@ -34,7 +34,6 @@
 #define UNIT_TESTS_H_
 
 // Includes
-#include "SS_config.h"
 
 #ifdef RUN_TESTS
 

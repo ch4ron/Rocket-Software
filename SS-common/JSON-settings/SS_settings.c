@@ -9,7 +9,6 @@
 #include "SS_settings.h"
 #include "SS_json_parser.h"
 #include "string.h"
-#include "SS_servos.h"
 #include "stdio.h"
 
 static jsmn_parser p;

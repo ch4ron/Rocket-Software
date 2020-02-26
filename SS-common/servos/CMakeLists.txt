@@ -10,7 +10,14 @@ if(MYDEFS MATCHES RUN_TESTS)
 endif()
 
 add_library(${PROJECT_NAME} ${SRC})
-target_include_directories(${PROJECT_NAME}
-                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}
-                                    ${SS_COMMON_DIR}/supply
-                            PRIVATE ${SS_COMMON_DIR}/com)
+target_include_directories(
+        ${PROJECT_NAME}
+        PUBLIC
+            ${CMAKE_CURRENT_SOURCE_DIR}
+            ${json-settings_INCLUDE_DIRS})
+
+include_directories(
+        ${SS_COMMON_DIR}/com
+        ${SS_COMMON_DIR}/supply
+        ${SS_COMMON_DIR}/JSON-settings
+        ${SS_COMMON_DIR}/JSON-settings/jsmn)

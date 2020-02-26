@@ -6,7 +6,6 @@
  */
 
 #include "SS_servos.h"
-#include "SS_config.h"
 #include "stdio.h"
 #include "stdbool.h"
 

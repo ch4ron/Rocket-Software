@@ -12,9 +12,14 @@ endif()
 add_library(${PROJECT_NAME} ${SRC})
 
 if(MYDEFS MATCHES RUN_TESTS)
-    target_include_directories(${PROJECT_NAME} PRIVATE ${SS_COMMON_DIR}/grazyna)
+    include_directories(${SS_COMMON_DIR}/grazyna)
 endif()
-target_include_directories(${PROJECT_NAME}
-                            PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
-                                   ${SS_COMMON_DIR}/supply
-                                   ${SS_COMMON_DIR}/servos)
+
+target_include_directories(
+        ${PROJECT_NAME}
+        PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+include_directories(
+        ${SS_COMMON_DIR}/supply
+        ${SS_COMMON_DIR}/servos)
+

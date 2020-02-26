@@ -10,8 +10,9 @@ if(MYDEFS MATCHES RUN_TESTS)
 endif()
 
 add_library(${PROJECT_NAME} ${SRC})
-#add_subdirectory("../../Unity" unity)
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(
+        ${PROJECT_NAME}
+        PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 #include(CTest)
 #enable_testing()

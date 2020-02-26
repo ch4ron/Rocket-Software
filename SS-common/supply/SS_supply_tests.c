@@ -5,8 +5,6 @@
  *      Author: maciek
  */
 
-#include "SS_config.h"
-
 #ifdef RUN_TESTS
 
 #include "SS_supply.h"

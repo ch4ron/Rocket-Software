@@ -45,8 +45,7 @@ file(GLOB_RECURSE SOURCES
                 "../Unity/extras/fixture/src/*.*"
                 "../Unity/extras/memory/src/*.*"
                 "../Unity/src/*.*"
-                "startup/*.*"
-                "../SS-common/JSON-settings/*.*")
+                "startup/*.*")
 
 include_directories(Inc
                     ../SS-common/JSON-settings/test
@@ -62,16 +61,9 @@ include_directories(Inc
                     Drivers/CMSIS/Include)
 
 include(../CMakeLists.txt)
-include_libraries(
-                    S25FL
-                    sequence
-                    support
-        )
 
 add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
 
-#target_link_libraries(${PROJECT_NAME}.elf PUBLIC dynamixel)
-#include(../SS-common/CMakeLists.txt)
 add_compile_definitions(SS_USE_DYNAMIXEL)
 add_compile_definitions(SS_USE_SERVOS)
 add_compile_definitions(SS_USE_FIFO)
@@ -81,6 +73,8 @@ add_compile_definitions(SS_USE_ADC)
 add_compile_definitions(SS_USE_GRAZYNA)
 add_compile_definitions(SS_USE_SUPPLY)
 add_compile_definitions(SS_USE_RELAYS)
+add_compile_definitions(SS_USE_SEQUENCE)
+add_compile_definitions(SS_USE_JSON_SETTINGS)
 
 #get_target_property(TEMP ${COMPILE} COMPILE_FLAGS)
 add_subdirectory(../SS-common common)

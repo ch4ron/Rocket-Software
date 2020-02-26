@@ -10,7 +10,9 @@ if(MYDEFS MATCHES RUN_TESTS)
 endif()
 
 add_library(${PROJECT_NAME} ${SRC})
-target_include_directories(${PROJECT_NAME}
-                            PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
-                            PRIVATE ${SS_COMMON_DIR}/adc)
+target_include_directories(
+        ${PROJECT_NAME}
+        PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+include_directories(PRIVATE ${SS_COMMON_DIR}/adc)
 
