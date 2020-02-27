@@ -46,10 +46,15 @@ void SS_grazyna_main() {
     }
 }
 
-uint32_t SS_grazyna_CRC_calculate(GrazynaFrame *frame) {
-    frame_crc = frame->crc;
-    frame->crc = 0;
-    return HAL_CRC_Calculate(&hcrc, (uint32_t*) frame, 3);
+uint32_t SS_grazyna_CRC_calculate(GrazynaFrame *grazyna_frame) {
+    frame_crc = grazyna_frame->crc;
+    grazyna_frame->crc = 0;
+    return HAL_CRC_Calculate(&hcrc, (uint32_t*) grazyna_frame, 3);
+    /* TODO Change to:
+    static uint32_t buff[3];
+    memcpy(buff, grazyna_frame, sizeof(GrazynaFrame) - sizeof(grazyna_frame->crc));
+    return HAL_CRC_Calculate(&hcrc, buff, 3);
+     */
 }
 
 void SS_grazyna_prepare_tx_frame(ComFrame *com_frame, GrazynaFrame *grazyna_frame) {

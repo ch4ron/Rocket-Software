@@ -32,15 +32,10 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stdio.h"
-#include "SS_Kromek_adc.h"
-#include "SS_supply.h"
+#include "SS_adc.h"
 #include "SS_Kromek_tests.h"
-#include "SS_servos.h"
-#include "SS_relays.h"
-#include "SS_dynamixel.h"
 #include "SS_Grazyna_com.h"
-#include "SS_settings.h"
-#include "SS_ADS1258.h"
+#include "SS_common.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -122,21 +117,16 @@ int main(void)
 
 #ifndef SIMULATE
     MX_CAN1_Init();
-  MX_TIM1_Init();
-  MX_TIM3_Init();
-  MX_TIM8_Init();
-  MX_CRC_Init();
+    MX_TIM1_Init();
+    MX_TIM3_Init();
+    MX_TIM8_Init();
+    MX_CRC_Init();
 #endif
 
 #ifdef RUN_TESTS
     SS_Kromek_run_all_tests();
 #endif
-
-//  SS_supply_init();
-//  SS_adc_init();
-//  SS_servos_init();
-    SS_grazyna_init();
-//  SS_measurements_init();
+    SS_init();
     printf("Elon!\r\n");
 //  SS_settings_read_json(settings_json);
     /* USER CODE END 2 */

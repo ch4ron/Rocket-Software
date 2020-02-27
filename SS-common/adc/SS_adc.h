@@ -1,13 +1,14 @@
 /*
- * SS_Kromek_adc.h
+ * SS_adc.h
  *
  *  Created on: Dec 24, 2019
  *      Author: maciek
  */
 
-#ifndef SS_KROMEK_ADC_H_
-#define SS_KROMEK_ADC_H_
+#ifndef SS_ADC_H_
+#define SS_ADC_H_
 
+#include "stdint.h"
 
 void SS_adc_init();
 /* Note that channelId is equal to channel's rank, counting from 1 (dependent on CubeMX configuration) not ADC Channel */

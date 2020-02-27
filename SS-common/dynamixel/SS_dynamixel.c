@@ -378,7 +378,7 @@ void SS_dynamixel_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
                 }
                 break;
             case DYNAMIXEL_PING:
-                printf("Ping\r\n");
+//                printf("Ping\r\n");
                 break;
             default:
                 break;

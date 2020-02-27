@@ -6,7 +6,7 @@ file(GLOB_RECURSE UNITY_SOURCES
         ../Unity/extras/fixture/src/unity_fixture.c
         ../Unity/extras/memory/src/unity_memory.c)
 
-add_library(${PROJECT_NAME} SS_common.c ${UNITY_SOURCES})
+add_library(${PROJECT_NAME}  ${UNITY_SOURCES})
 
 target_include_directories(
         ${PROJECT_NAME}
@@ -72,9 +72,17 @@ if(COMPILE_DEFS MATCHES SS_USE_JSON_SETTINGS)
     target_link_libraries(${PROJECT_NAME} PUBLIC json-settings)
 endif()
 
+target_include_directories(
+        ${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_sources(${PROJECT_NAME} PRIVATE SS_common.c)
+
 # Mandatory
 add_subdirectory(support)
 target_link_libraries(${PROJECT_NAME} PUBLIC support)
+
+add_subdirectory(callbacks)
+target_link_libraries(${PROJECT_NAME} PUBLIC callbacks)
 
 add_subdirectory(../Unity unity)
 target_link_libraries(${PROJECT_NAME} PUBLIC unity)

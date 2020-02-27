@@ -36,7 +36,7 @@ static void tests() {
 
 #ifdef SIMULATE
 /* Enable verbose output */
-char* args[] = { "unity", "-v" };
+const char* args[] = { "unity", "-v" };
 int SS_Kromek_run_all_tests() {
     int unity_code =  UnityMain(2, args, tests);
     /* Exit with status code */

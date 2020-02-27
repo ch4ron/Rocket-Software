@@ -1,5 +1,5 @@
 /*
- * SS_Kromek_adc.c
+ * SS_adc.c
  *
  *  Created on: Dec 24, 2019
  *      Author: maciek
@@ -14,8 +14,10 @@
  */
 #include "adc.h"
 #include "stm32f4xx_hal.h"
-#include "SS_Kromek_adc.h"
+#include "SS_adc.h"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wfor-loop-analysis"
 #define ADC1_NUMBER_OF_CHANNELS 6
 #define ADC2_NUMBER_OF_CHANNELS 6
 #define ADC3_NUMBER_OF_CHANNELS 6
@@ -80,3 +82,5 @@ void SS_adc_add_measurement(float *value, float (*fun)(uint16_t, float), int ran
     meas[rankId - 1].fun = fun;
     meas[rankId - 1].value = value;
 }
+
+#pragma clang diagnostic pop

@@ -10,6 +10,7 @@
 #include "SS_json_parser.h"
 #include "string.h"
 #include "stdio.h"
+#include "SS_servos.h"
 
 static jsmn_parser p;
 static jsmntok_t t[128];

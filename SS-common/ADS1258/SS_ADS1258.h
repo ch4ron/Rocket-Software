@@ -468,6 +468,7 @@ void SS_ADS1258_parse_data();
 void SS_ADS1258_readDataDMA(readMode mode);
 int32_t SS_ADS1258_getData(uint8_t *status);
 void SS_ADS1258_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi);
+void SS_ADS1258_EXTI_Callback(uint16_t GPIO_Pin);
 
 // Internal variable getters
 uint8_t SS_ADS1258_getRegisterValue(uint8_t address);

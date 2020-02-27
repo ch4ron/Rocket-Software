@@ -28,7 +28,7 @@ TEST_GROUP_RUNNER(com) {
 TEST_SETUP(com) {}
 TEST_TEAR_DOWN(com) {}
 
-extern uint32_t SS_grazyna_CRC_calculate(GrazynaFrame *frame);
+extern uint32_t SS_grazyna_CRC_calculate(GrazynaFrame *grazyna_frame);
 
 TEST(com, crc) {
     GrazynaFrame received;

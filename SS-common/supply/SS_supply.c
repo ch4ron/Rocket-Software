@@ -6,7 +6,7 @@
  */
 
 #include "SS_supply.h"
-#include "SS_Kromek_adc.h"
+#include "SS_adc.h"
 
 Supply relay_supply = {
         .ENABLE_Port = ENABLE1_GPIO_Port,
