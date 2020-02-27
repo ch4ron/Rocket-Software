@@ -26,7 +26,7 @@ static ComFrameContent frame_content;
 static uint32_t frame_crc, calculated_crc;
 
 void SS_grazyna_receive(uint8_t *data, uint16_t length) {
-#ifndef SIMULATOR
+#ifndef SIMULATE
     HAL_UART_Receive_DMA(&GRAZYNA_UART, data, length);
 #else
     HAL_UART_Receive_IT(&GRAZYNA_UART, data, length);
@@ -77,7 +77,7 @@ void SS_grazyna_transmit(ComFrame *frame) {
         printf("0x%02x, ", p[i]);
     }
     */
-#ifndef SIMULATOR
+#ifndef SIMULATE
     HAL_UART_Transmit_DMA(&GRAZYNA_UART, (uint8_t*) &tx_frame, sizeof(tx_frame));
 #else
     HAL_UART_Transmit_IT(&GRAZYNA_UART, (uint8_t*) &tx_frame, sizeof(tx_frame));

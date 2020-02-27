@@ -358,12 +358,13 @@ void ADS1258_test_read_dataDMA(uint8_t mode) {
     SS_ADS1258_writeMultipleRegisters(REG_ADDR_CONFIG0, 7, writeValues);
 
     SS_ADS1258_startConversions();
+    HAL_Delay(50);
     // Read all data monitor channels
     for (i = 0; i < 5; i++) {
         // Wait and check that /DRDY interrupt occurred
-        TEST_ASSERT_TRUE(SS_ADS1258_waitForDRDYinterrupt(10));
+        TEST_ASSERT_TRUE(SS_ADS1258_waitForDRDYinterrupt(500));
         SS_ADS1258_readDataDMA(mode);
-        TEST_ASSERT_TRUE(SS_ADS1258_waitForDataInterrupt(10));
+        TEST_ASSERT_TRUE(SS_ADS1258_waitForDataInterrupt(500));
         dataValues[i] = SS_ADS1258_getData(&statusBytes[i]);
     }
     ADS1258_read_data_check(statusBytes, dataValues);

@@ -21,9 +21,11 @@ TEST_GROUP(mutex);
 TEST_GROUP_RUNNER(mutex) {
     HAL_TIM_Base_Start_IT(&htim13);
     HAL_TIM_Base_Start_IT(&htim14);
-    HAL_Delay(1000);
+    HAL_Delay(10);
     RUN_TEST_CASE(mutex, no_critical_section);
     RUN_TEST_CASE(mutex, critical_section);
+    HAL_TIM_Base_Stop_IT(&htim13);
+    HAL_TIM_Base_Stop_IT(&htim14);
 }
 
 TEST_SETUP(mutex) {}

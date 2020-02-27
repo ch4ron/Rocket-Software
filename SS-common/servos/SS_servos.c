@@ -84,7 +84,7 @@ void SS_servo_set_position(Servo *servo, uint16_t position) {
     uint16_t width = SS_servo_get_width(position);
     SS_servo_set_pulse_width(servo, width);
     servo->position = position;
-#ifdef SERVOS_TIMEOUT
+#ifndef SERVOS_NO_TIMEOUT
     servo->timeout = SERVO_TIMEOUT;
     SS_supply_set_timeout(servo->supply, SERVO_TIMEOUT);
 #endif
@@ -124,7 +124,7 @@ void SS_servo_SYSTICK(Servo *servo) {
 }
 
 void SS_servos_SYSTICK() {
-#ifdef SERVOS_TIMEOUT
+#ifndef SERVOS_NO_TIMEOUT
     for(uint8_t i = 0; i < sizeof(servos) / sizeof(servos[0]); i++) {
         SS_servo_SYSTICK(&servos[i]);
     }

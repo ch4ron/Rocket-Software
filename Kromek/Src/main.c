@@ -33,7 +33,6 @@
 /* USER CODE BEGIN Includes */
 #include "stdio.h"
 #include "SS_adc.h"
-#include "SS_Kromek_tests.h"
 #include "SS_Grazyna_com.h"
 #include "SS_common.h"
 /* USER CODE END Includes */
@@ -123,9 +122,7 @@ int main(void)
     MX_CRC_Init();
 #endif
 
-#ifdef RUN_TESTS
-    SS_Kromek_run_all_tests();
-#endif
+
     SS_init();
     printf("Elon!\r\n");
 //  SS_settings_read_json(settings_json);
@@ -135,7 +132,7 @@ int main(void)
     /* USER CODE BEGIN WHILE */
     while (1)
     {
-        SS_grazyna_main();
+//        SS_grazyna_main();
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */

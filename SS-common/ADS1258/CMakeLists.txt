@@ -10,4 +10,5 @@ target_include_directories(
 target_sources(${PROJECT_NAME} INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/SS_ADS1258_unit_tests.c
         ${CMAKE_CURRENT_SOURCE_DIR}/SS_measurements.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/SS_measurements_tests.c
         ${CMAKE_CURRENT_SOURCE_DIR}/SS_ADS1258.c)

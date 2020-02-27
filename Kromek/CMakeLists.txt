@@ -37,13 +37,11 @@ set(CMAKE_CXX_STANDARD 11)
 #add_definitions(-DARM_MATH_CM4 -DARM_MATH_MATRIX_CHECK -DARM_MATH_ROUNDING -D__FPU_PRESENT=1)
 add_definitions(-D__weak=__attribute__\(\(weak\)\) -D__packed=__attribute__\(\(__packed__\)\) -DUSE_HAL_DRIVER -DSTM32F446xx)
 
-if(${CMAKE_BUILD_TYPE} STREQUAL Debug)
-    message(Debug)
-    add_definitions(-DSIMULATE -DRUN_TESTS)
+if(${CMAKE_BUILD_TYPE} STREQUAL Test_on_hardware)
+    add_compile_definitions(RUN_TESTS)
 endif()
 if(${CMAKE_BUILD_TYPE} STREQUAL Test)
-    message(Debug)
-    add_definitions(-DSIMULATE -DRUN_TESTS)
+    add_compile_definitions(SIMULATE RUN_TESTS)
 endif()
 
 file(GLOB_RECURSE SOURCES
@@ -87,8 +85,15 @@ set(CMAKE_EXE_LINKER_FLAGS
 set(HEX_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.hex)
 set(BIN_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.bin)
 
+
 add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
         COMMAND ${CMAKE_OBJCOPY} -Oihex $<TARGET_FILE:${PROJECT_NAME}.elf> ${HEX_FILE}
         COMMAND ${CMAKE_OBJCOPY} -Obinary $<TARGET_FILE:${PROJECT_NAME}.elf> ${BIN_FILE}
         COMMENT "Building ${HEX_FILE}
 Building ${BIN_FILE}")
+
+if(${CMAKE_BUILD_TYPE} STREQUAL Test)
+    #    add_compile_definitions(RUN_TESTS)
+    add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
+            COMMAND ../../.venv/bin/jumper run --fw ${PROJECT_NAME}.bin -u UART5 --platform stm32f446)
+endif()

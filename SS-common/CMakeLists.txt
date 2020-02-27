@@ -72,6 +72,12 @@ if(COMPILE_DEFS MATCHES SS_USE_JSON_SETTINGS)
     target_link_libraries(${PROJECT_NAME} PUBLIC json-settings)
 endif()
 
+
+if(COMPILE_DEFS MATCHES RUN_TESTS)
+    add_subdirectory(test)
+    target_link_libraries(${PROJECT_NAME} PUBLIC SS_test)
+endif()
+
 target_include_directories(
         ${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
