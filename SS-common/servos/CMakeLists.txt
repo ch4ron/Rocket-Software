@@ -2,22 +2,11 @@ cmake_minimum_required(VERSION 3.11.1)
 
 project(servos C)
 
-list(APPEND SRC SS_servos.c)
-
-get_directory_property(MYDEFS COMPILE_DEFINITIONS)
-if(MYDEFS MATCHES RUN_TESTS)
-    list(APPEND SRC SS_servos_test.c)
-endif()
-
-add_library(${PROJECT_NAME} ${SRC})
+add_library(${PROJECT_NAME} INTERFACE)
 target_include_directories(
-        ${PROJECT_NAME}
-        PUBLIC
-            ${CMAKE_CURRENT_SOURCE_DIR}
-            ${json-settings_INCLUDE_DIRS})
+        ${PROJECT_NAME} INTERFACE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 
-include_directories(
-        ${SS_COMMON_DIR}/com
-        ${SS_COMMON_DIR}/supply
-        ${SS_COMMON_DIR}/JSON-settings
-        ${SS_COMMON_DIR}/JSON-settings/jsmn)
+target_sources(${PROJECT_NAME} INTERFACE
+        ${CMAKE_CURRENT_SOURCE_DIR}/SS_servos.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/SS_servos_test.c)

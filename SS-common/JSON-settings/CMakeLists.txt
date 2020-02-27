@@ -2,20 +2,17 @@ cmake_minimum_required(VERSION 3.11.1)
 
 project(json-settings C)
 
-list(APPEND SRC SS_json_parser.c jsmn/jsmn.c settings_json.c SS_settings.c)
-
-get_directory_property(MYDEFS COMPILE_DEFINITIONS)
-if(MYDEFS MATCHES RUN_TESTS)
-    list(APPEND SRC test/SS_json_tests.c test/test_json.c)
-endif()
-
-add_library(${PROJECT_NAME} ${SRC})
+add_library(${PROJECT_NAME} INTERFACE)
 target_include_directories(
-        ${PROJECT_NAME}
-        PUBLIC
-            ${CMAKE_CURRENT_SOURCE_DIR}
-            ${CMAKE_CURRENT_SOURCE_DIR}/test
-        PRIVATE
-            ${CMAKE_CURRENT_SOURCE_DIR}/jsmn
-            ${SS_COMMON_DIR}/servos)
+        ${PROJECT_NAME} INTERFACE
+        $<BUILD_INTERFACE:
+        ${CMAKE_CURRENT_SOURCE_DIR};
+        ${CMAKE_CURRENT_SOURCE_DIR}/jsmn>)
 
+target_sources(${PROJECT_NAME} INTERFACE
+        ${CMAKE_CURRENT_SOURCE_DIR}/settings_json.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/SS_json_parser.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/jsmn/jsmn.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/SS_settings.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/test/SS_json_tests.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/test/test_json.c)

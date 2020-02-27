@@ -37,6 +37,15 @@ set(CMAKE_CXX_STANDARD 11)
 #add_definitions(-DARM_MATH_CM4 -DARM_MATH_MATRIX_CHECK -DARM_MATH_ROUNDING -D__FPU_PRESENT=1)
 add_definitions(-D__weak=__attribute__\(\(weak\)\) -D__packed=__attribute__\(\(__packed__\)\) -DUSE_HAL_DRIVER -DSTM32F446xx)
 
+if(${CMAKE_BUILD_TYPE} STREQUAL Debug)
+    message(Debug)
+    add_definitions(-DSIMULATE -DRUN_TESTS)
+endif()
+if(${CMAKE_BUILD_TYPE} STREQUAL Test)
+    message(Debug)
+    add_definitions(-DSIMULATE -DRUN_TESTS)
+endif()
+
 file(GLOB_RECURSE SOURCES
                 "Drivers/*.*"
                 "Inc/*.*"
@@ -48,9 +57,6 @@ file(GLOB_RECURSE SOURCES
                 "startup/*.*")
 
 include_directories(Inc
-                    ../SS-common/JSON-settings/test
-                    ../SS-common/JSON-settings
-                    ../SS-common/JSON-settings/jsmn
                     ../Unity/src
                     ../Unity/extras/fixture/src
                     Test
@@ -60,10 +66,9 @@ include_directories(Inc
                     Drivers/CMSIS/Device/ST/STM32F4xx/Include
                     Drivers/CMSIS/Include)
 
-include(../CMakeLists.txt)
-
 add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
 
+# DEFINE YOUR LIBRARIES HERE
 add_compile_definitions(SS_USE_DYNAMIXEL)
 add_compile_definitions(SS_USE_SERVOS)
 add_compile_definitions(SS_USE_FIFO)
@@ -75,8 +80,9 @@ add_compile_definitions(SS_USE_SUPPLY)
 add_compile_definitions(SS_USE_RELAYS)
 add_compile_definitions(SS_USE_SEQUENCE)
 add_compile_definitions(SS_USE_JSON_SETTINGS)
+add_compile_definitions(SS_USE_MUTEX)
 
-#get_target_property(TEMP ${COMPILE} COMPILE_FLAGS)
+
 add_subdirectory(../SS-common common)
 
 target_link_libraries(${PROJECT_NAME}.elf common)

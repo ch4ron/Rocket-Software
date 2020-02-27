@@ -2,17 +2,11 @@ cmake_minimum_required(VERSION 3.11.1)
 
 project(supply C)
 
-list(APPEND SRC SS_supply.c)
-
-get_directory_property(MYDEFS COMPILE_DEFINITIONS)
-if(MYDEFS MATCHES RUN_TESTS)
-    list(APPEND SRC SS_supply_tests.c)
-endif()
-
-add_library(${PROJECT_NAME} ${SRC})
+add_library(${PROJECT_NAME} INTERFACE)
 target_include_directories(
-        ${PROJECT_NAME}
-        PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+        ${PROJECT_NAME} INTERFACE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 
-include_directories(PRIVATE ${SS_COMMON_DIR}/adc)
-
+target_sources(${PROJECT_NAME} INTERFACE
+        ${CMAKE_CURRENT_SOURCE_DIR}/SS_supply.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/SS_supply_tests.c)
