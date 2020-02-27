@@ -51,16 +51,10 @@ file(GLOB_RECURSE SOURCES
                 "Inc/*.*"
                 "Src/*.*"
                 "Test/*.*"
-                "../Unity/extras/fixture/src/*.*"
-                "../Unity/extras/memory/src/*.*"
-                "../Unity/src/*.*"
                 "startup/*.*")
 
 include_directories(Inc
-                    ../Unity/src
-                    ../Unity/extras/fixture/src
                     Test
-                    ../Unity/extras/memory/src
                     Drivers/STM32F4xx_HAL_Driver/Inc
                     Drivers/STM32F4xx_HAL_Driver/Inc/Legacy
                     Drivers/CMSIS/Device/ST/STM32F4xx/Include

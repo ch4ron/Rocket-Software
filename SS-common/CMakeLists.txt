@@ -1,66 +1,81 @@
 cmake_minimum_required(VERSION 3.11.1)
 
 project(common C)
+# TODO - a workaround for including unity without modifying its CMakeLists.txt, find a better way
+file(GLOB_RECURSE UNITY_SOURCES
+        ../Unity/extras/fixture/src/unity_fixture.c
+        ../Unity/extras/memory/src/unity_memory.c)
 
-add_library(${PROJECT_NAME} SS_common.c)
+add_library(${PROJECT_NAME} SS_common.c ${UNITY_SOURCES})
+
+target_include_directories(
+        ${PROJECT_NAME}
+        PUBLIC
+        ../Unity/src
+        ../Unity/extras/fixture/src
+        ../Unity/extras/memory/src)
 
 set(SS_COMMON_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 get_directory_property(COMPILE_DEFS COMPILE_DEFINITIONS)
 
 if(COMPILE_DEFS MATCHES SS_USE_FIFO)
-    add_subdirectory(../SS-common/fifo fifo)
+    add_subdirectory(fifo)
     target_link_libraries(${PROJECT_NAME} PUBLIC fifo)
 endif()
 if(COMPILE_DEFS MATCHES SS_USE_DYNAMIXEL)
-    add_subdirectory(../SS-common/dynamixel dynamixel)
+    add_subdirectory(dynamixel)
     target_link_libraries(${PROJECT_NAME} PUBLIC dynamixel)
 endif()
 if(COMPILE_DEFS MATCHES SS_USE_COM)
-    add_subdirectory(../SS-common/com com)
+    add_subdirectory(com)
     target_link_libraries(${PROJECT_NAME} PUBLIC com)
 endif()
 if(COMPILE_DEFS MATCHES SS_USE_SERVOS)
-    add_subdirectory(../SS-common/servos servos)
+    add_subdirectory(servos)
     target_link_libraries(${PROJECT_NAME} PUBLIC servos)
 endif()
 if(COMPILE_DEFS MATCHES SS_USE_ADS1258)
-    add_subdirectory(../SS-common/ADS1258 ADS1258)
+    add_subdirectory(ADS1258)
     target_link_libraries(${PROJECT_NAME} PUBLIC ADS1258)
 endif()
 if(COMPILE_DEFS MATCHES SS_USE_ADC)
-    add_subdirectory(../SS-common/adc adc)
+    add_subdirectory(adc)
     target_link_libraries(${PROJECT_NAME} PUBLIC adc)
 endif()
 if(COMPILE_DEFS MATCHES SS_USE_GRAZYNA)
-    add_subdirectory(../SS-common/grazyna grazyna)
+    add_subdirectory(grazyna)
     target_link_libraries(${PROJECT_NAME} PUBLIC grazyna)
 endif()
 if(COMPILE_DEFS MATCHES SS_USE_SUPPLY)
-    add_subdirectory(../SS-common/supply supply)
+    add_subdirectory(supply)
     target_link_libraries(${PROJECT_NAME} PUBLIC supply)
 endif()
 if(COMPILE_DEFS MATCHES SS_USE_MUTEX)
-    add_subdirectory(../SS-common/mutex mutex)
+    add_subdirectory(mutex)
     target_link_libraries(${PROJECT_NAME} PUBLIC mutex)
 endif()
 if(COMPILE_DEFS MATCHES SS_USE_RELAYS)
-    add_subdirectory(../SS-common/relays relays)
+    add_subdirectory(relays)
     target_link_libraries(${PROJECT_NAME} PUBLIC relays)
 endif()
 if(COMPILE_DEFS MATCHES SS_USE_S25FL)
-    add_subdirectory(../SS-common/s25fl s25fl)
+    add_subdirectory(s25fl)
     target_link_libraries(${PROJECT_NAME} PUBLIC s25fl)
 endif()
 if(COMPILE_DEFS MATCHES SS_USE_SEQUENCE)
-    add_subdirectory(../SS-common/sequence sequence)
+    add_subdirectory(sequence)
     target_link_libraries(${PROJECT_NAME} PUBLIC sequence)
 endif()
 if(COMPILE_DEFS MATCHES SS_USE_JSON_SETTINGS)
-    add_subdirectory(../SS-common/JSON-settings json-settings)
+    add_subdirectory(json-settings)
     target_link_libraries(${PROJECT_NAME} PUBLIC json-settings)
 endif()
 
 # Mandatory
-add_subdirectory(../SS-common/support support)
+add_subdirectory(support)
 target_link_libraries(${PROJECT_NAME} PUBLIC support)
+
+add_subdirectory(../Unity unity)
+target_link_libraries(${PROJECT_NAME} PUBLIC unity)
+
