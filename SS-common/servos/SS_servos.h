@@ -54,6 +54,7 @@ typedef struct {
 
 extern Servo servos[8];
 
+extern void SS_platform_servos_init();
 void SS_servos_init(Servo *servos_array, uint8_t count);
 void SS_servo_set_position(Servo *servo, uint16_t value);
 void SS_servo_open(Servo *servo);

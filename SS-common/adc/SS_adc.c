@@ -16,25 +16,18 @@
 #include "stm32f4xx_hal.h"
 #include "SS_adc.h"
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wfor-loop-analysis"
 #define ADC1_NUMBER_OF_CHANNELS 6
 #define ADC2_NUMBER_OF_CHANNELS 6
 #define ADC3_NUMBER_OF_CHANNELS 6
 
 #define VREFIN_CAL (uint16_t*) 0x1FFF7A2A
 
-typedef struct {
-        float *value;
-        float (*fun)(uint16_t, float);
-} kromek_adc_measurement;
-
 static uint16_t adc1_raw[ADC1_NUMBER_OF_CHANNELS];
 static uint16_t adc2_raw[ADC2_NUMBER_OF_CHANNELS];
 static uint16_t adc3_raw[ADC3_NUMBER_OF_CHANNELS];
-static kromek_adc_measurement adc1_scaled[ADC1_NUMBER_OF_CHANNELS];
-static kromek_adc_measurement adc2_scaled[ADC2_NUMBER_OF_CHANNELS];
-static kromek_adc_measurement adc3_scaled[ADC3_NUMBER_OF_CHANNELS];
+static AdcMeasurement *adc1_pointers[ADC1_NUMBER_OF_CHANNELS];
+static AdcMeasurement *adc2_pointers[ADC2_NUMBER_OF_CHANNELS];
+static AdcMeasurement *adc3_pointers[ADC3_NUMBER_OF_CHANNELS];
 static float vdd = 3.3f;
 
 void SS_adc_init() {
@@ -48,39 +41,37 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
     if(hadc == &hadc1) {
         vdd = 3.3f * (float) (*VREFIN_CAL) / (float) adc1_raw[0];
         for(uint8_t i = 0; i < ADC1_NUMBER_OF_CHANNELS; i++) {
-            if(adc1_scaled[i].fun != NULL)
-                *adc1_scaled[i].value = adc1_scaled[i].fun(adc1_raw[i], vdd);
+            if(adc1_pointers[i] != NULL)
+                adc1_pointers[i]->value = adc1_pointers[i]->fun(adc1_raw[i], vdd);
         }
     }
     if(hadc == &hadc2) {
         for(uint8_t i = 0; i < ADC2_NUMBER_OF_CHANNELS; i++) {
-            if(adc2_scaled[i].fun != NULL)
-                *adc2_scaled[i].value = adc2_scaled[i].fun(adc2_raw[i], vdd);
+            if(adc2_pointers[i] != NULL)
+                adc2_pointers[i]->value = adc2_pointers[i]->fun(adc2_raw[i], vdd);
         }
     }
     if(hadc == &hadc3) {
         for(uint8_t i = 0; i < ADC3_NUMBER_OF_CHANNELS; i++) {
-            if(adc3_scaled[i].fun != NULL)
-                *adc3_scaled[i].value = adc3_scaled[i].fun(adc3_raw[i], vdd);
+            if(adc3_pointers[i] != NULL)
+                adc3_pointers[i]->value = adc3_pointers[i]->fun(adc3_raw[i], vdd);
         }
     }
 }
 
-void SS_adc_add_measurement(float *value, float (*fun)(uint16_t, float), int rankId, int adc) {
-    kromek_adc_measurement *meas;
-    switch(adc) {
+void SS_adc_add_measurement(AdcMeasurement *meas) {
+    AdcMeasurement **meas_array;
+    switch(meas->adc) {
         case 1:
-            meas = adc1_scaled;
+            meas_array = adc1_pointers;
             break;
         case 2:
-            meas = adc2_scaled;
+            meas_array = adc2_pointers;
             break;
         default:
-            meas = adc3_scaled;
+            meas_array = adc3_pointers;
             break;
     }
-    meas[rankId - 1].fun = fun;
-    meas[rankId - 1].value = value;
+    meas_array[meas->rankId - 1] = meas;
 }
 
-#pragma clang diagnostic pop

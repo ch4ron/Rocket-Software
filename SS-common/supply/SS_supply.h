@@ -9,20 +9,19 @@
 #define SS_SUPPLY_H_
 
 #include "gpio.h"
+#include "SS_adc.h"
 
 typedef struct {
     GPIO_TypeDef *ENABLE_Port;
     uint16_t ENABLE_Pin;
-    float voltage;
     uint32_t timeout;
+    AdcMeasurement measurement;
 } Supply;
 
 typedef enum {
     SUPPLY_OFF = 0,
     SUPPLY_ON = 1
 } Supply_state_t;
-
-extern Supply relay_supply, servos1_supply, servos2_supply, kozackie_servo_supply;
 
 void SS_supply_init();
 void SS_enable_supply(Supply *supply);

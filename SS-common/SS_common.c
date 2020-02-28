@@ -28,7 +28,7 @@ void SS_init() {
 
 #endif
 #if defined(SS_USE_SUPPLY) && !defined(SIMULATE)
-    SS_supply_init();
+//    SS_supply_init();
 #endif
 #ifdef SS_USE_GRAZYNA
     SS_grazyna_init();

@@ -35,7 +35,7 @@
 #include "SS_adc.h"
 #include "SS_Grazyna_com.h"
 #include "SS_common.h"
-#include "SS_Kromek_init.h"
+#include "SS_platform_init.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -124,8 +124,8 @@ int main(void)
 #endif
 
 
+    SS_platform_init();
     SS_init();
-    SS_Kromek_init();
     printf("Elon!\r\n");
 //  SS_settings_read_json(settings_json);
     /* USER CODE END 2 */

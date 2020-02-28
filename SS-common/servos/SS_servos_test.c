@@ -25,7 +25,7 @@ TEST_GROUP_RUNNER(servos) {
     RUN_TEST_CASE(servos, freq300_range2000);
 #endif
 #if !defined(SERVOS_NO_TIMEOUT) && !defined(SIMULATE)
-    RUN_TEST_CASE(servos, timeout);
+//    RUN_TEST_CASE(servos, timeout);
 #endif
 }
 
@@ -48,17 +48,7 @@ TEST_GROUP_RUNNER(grazyna_servos) {
 
 static void set_up() {
     memcpy(&tmp_config, &servos_config, sizeof(ServosConfig));
-    Servo servos[8] = {
-            { .tim = &htim3, .channel = TIM_CHANNEL_2, .supply = &servos1_supply },
-            { .tim = &htim1, .channel = TIM_CHANNEL_3, .supply = &servos1_supply },
-            { .tim = &htim1, .channel = TIM_CHANNEL_2, .supply = &servos1_supply },
-            { .tim = &htim1, .channel = TIM_CHANNEL_1, .supply = &servos1_supply },
-            { .tim = &htim3, .channel = TIM_CHANNEL_4, .supply = &servos2_supply },
-            { .tim = &htim3, .channel = TIM_CHANNEL_3, .supply = &servos2_supply },
-            { .tim = &htim8, .channel = TIM_CHANNEL_2, .supply = &servos2_supply },
-            { .tim = &htim3, .channel = TIM_CHANNEL_1, .supply = &servos2_supply },
-    };
-    SS_servos_init(servos, sizeof(servos) / sizeof(servos[0]));
+    SS_platform_servos_init();
 }
 
 extern void SS_servos_reinit();

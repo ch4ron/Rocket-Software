@@ -10,9 +10,15 @@
 
 #include "stdint.h"
 
-void SS_adc_init();
 /* Note that channelId is equal to channel's rank, counting from 1 (dependent on CubeMX configuration) not ADC Channel */
-void SS_adc_add_measurement(float *value, float (*fun)(uint16_t, float), int rankId, int adc);
-void print_meas(void);
+typedef struct {
+    float value;
+    float (*fun)(uint16_t, float);
+    uint8_t rankId;
+    uint8_t adc;
+} AdcMeasurement;
+
+void SS_adc_init();
+void SS_adc_add_measurement(AdcMeasurement *meas);
 
 #endif /* SS_KROMEK_ADC_H_ */

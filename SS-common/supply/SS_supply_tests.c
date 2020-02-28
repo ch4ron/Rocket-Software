@@ -9,6 +9,7 @@
 
 #include "SS_supply.h"
 #include "unity_fixture.h"
+#include "SS_platform_init.h"
 
 uint8_t relay_supply_status;
 uint8_t servos1_supply_status;
@@ -47,16 +48,16 @@ TEST_TEAR_DOWN(supply_control) {
 
 static void run_supply_test(Supply *supply, float min_voltage, float max_voltage) {
     TEST_ASSERT_FALSE(SS_supply_get_state(supply));
-    if(supply->voltage > 0.7f) {
+    if(supply->measurement.value > 0.7f) {
         TEST_FAIL_MESSAGE("Supply not turned off");
     }
     SS_enable_supply(supply);
     HAL_Delay(10);
     TEST_ASSERT_TRUE(SS_supply_get_state(supply));
-    if(supply->voltage < min_voltage) {
+    if(supply->measurement.value < min_voltage) {
         TEST_FAIL_MESSAGE("Supply voltage too low");
     }
-    if(supply->voltage > max_voltage) {
+    if(supply->measurement.value > max_voltage) {
         TEST_FAIL_MESSAGE("Supply voltage too high");
     }
 }

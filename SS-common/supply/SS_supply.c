@@ -7,44 +7,11 @@
 
 #include "SS_supply.h"
 #include "SS_adc.h"
+#include "SS_platform_init.h"
 
-Supply relay_supply = {
-        .ENABLE_Port = ENABLE1_GPIO_Port,
-        .ENABLE_Pin= ENABLE1_Pin
-};
 
-Supply servos1_supply = {
-        .ENABLE_Port = ENABLE2_GPIO_Port,
-        .ENABLE_Pin= ENABLE2_Pin
-};
-
-Supply servos2_supply = {
-        .ENABLE_Port = ENABLE3_GPIO_Port,
-        .ENABLE_Pin= ENABLE3_Pin
-};
-
-Supply kozackie_servo_supply = {
-        .ENABLE_Port = ENABLE4_GPIO_Port,
-        .ENABLE_Pin= ENABLE4_Pin
-};
-
-static float supply_12v_voltage_scaled(uint16_t raw, float vdd) {
-    return vdd * (float) raw / 4095.0f * (4990.0f + 20000.0f) / 4990.0f;
-}
-
-static float supply_servo_voltage_scaled(uint16_t raw, float vdd) {
-    return vdd * (float) raw / 4095.0f * (8450.0f + 20000.0f) / 8450.0f;
-}
-
-void SS_supply_init() {
-//    SS_enable_supply(&servos1_supply);
-//    SS_enable_supply(&servos2_supply);
-//    SS_enable_supply(&kozackie_servo_supply);
-//    SS_enable_supply(&relay_supply);
-    SS_adc_add_measurement(&relay_supply.voltage, supply_12v_voltage_scaled, 4, 1);
-    SS_adc_add_measurement(&kozackie_servo_supply.voltage, supply_12v_voltage_scaled, 2, 2);
-    SS_adc_add_measurement(&servos1_supply.voltage, supply_servo_voltage_scaled, 5, 3);
-    SS_adc_add_measurement(&servos2_supply.voltage, supply_servo_voltage_scaled, 3, 1);
+void SS_supply_init(Supply *supply) {
+    SS_adc_add_measurement(&supply->measurement);
 }
 
 void SS_enable_supply(Supply *supply) {

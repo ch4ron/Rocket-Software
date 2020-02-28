@@ -48,8 +48,8 @@ class Board:
         cmd = self._flash_cmd('Debug')
         execute(cmd)
 
-    def test(self):
-        self.build_target('Test')
+    def test(self, verbose=False):
+        self.build_target('Test', verbose)
         cmd = self._flash_cmd('Test')
         res = os.popen(cmd).read()
         if res:
@@ -127,9 +127,10 @@ def flash(board):
 
 @main.command()
 @click.argument('board')
-def test(board):
+@click.option('-v', '--verbose', is_flag=True)
+def test(board, verbose):
     b = Board.init(board)
-    b.test()
+    b.test(verbose)
 
 
 if __name__ == '__main__':

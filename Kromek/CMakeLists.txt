@@ -63,7 +63,7 @@ include_directories(Inc
 add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
 
 # DEFINE YOUR LIBRARIES HERE
-add_compile_definitions(SS_USE_DYNAMIXEL)
+#add_compile_definitions(SS_USE_DYNAMIXEL)
 add_compile_definitions(SS_USE_SERVOS)
 add_compile_definitions(SS_USE_FIFO)
 add_compile_definitions(SS_USE_COM)

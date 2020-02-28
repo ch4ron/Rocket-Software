@@ -17,7 +17,6 @@
 
 static void tests() {
 #ifndef SIMULATE
-    RUN_TEST_GROUP(servos);
     SS_ADS1258_run_tests();
     RUN_TEST_GROUP(measurements);
 //    RUN_TEST_GROUP(dynamixel);
@@ -32,7 +31,9 @@ static void tests() {
     RUN_TEST_GROUP(sequence);
     RUN_TEST_GROUP(parser);
     RUN_TEST_GROUP(fifo);
+#ifdef SS_USE_DYNAMIXEL
     RUN_TEST_GROUP(dynamixel_logic);
+#endif
 }
 
 /* Enable verbose output */
