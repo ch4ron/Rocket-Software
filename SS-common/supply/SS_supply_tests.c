@@ -9,7 +9,7 @@
 
 #include "SS_supply.h"
 #include "unity_fixture.h"
-#include "SS_platform_init.h"
+#include "SS_platform.h"
 
 uint8_t relay_supply_status;
 uint8_t servos1_supply_status;

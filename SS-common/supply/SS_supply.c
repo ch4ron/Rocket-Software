@@ -7,7 +7,7 @@
 
 #include "SS_supply.h"
 #include "SS_adc.h"
-#include "SS_platform_init.h"
+#include "SS_platform.h"
 
 
 void SS_supply_init(Supply *supply) {
@@ -23,7 +23,7 @@ void SS_disable_supply(Supply *supply) {
 }
 
 Supply_state_t SS_supply_get_state(Supply *supply) {
-   return HAL_GPIO_ReadPin(supply->ENABLE_Port, supply->ENABLE_Pin);
+   return (Supply_state_t) HAL_GPIO_ReadPin(supply->ENABLE_Port, supply->ENABLE_Pin);
 }
 
 void SS_supply_set_timeout(Supply *supply, uint16_t timeout) {

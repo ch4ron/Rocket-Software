@@ -10,3 +10,8 @@ target_include_directories(
 target_sources(${PROJECT_NAME} INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/SS_supply.c
         ${CMAKE_CURRENT_SOURCE_DIR}/SS_supply_tests.c)
+
+if(NOT TARGET adc)
+    add_subdirectory(../adc adc)
+    target_link_libraries(${PROJECT_NAME} INTERFACE adc)
+endif()

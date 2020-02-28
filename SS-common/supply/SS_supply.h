@@ -23,7 +23,7 @@ typedef enum {
     SUPPLY_ON = 1
 } Supply_state_t;
 
-void SS_supply_init();
+void SS_supply_init(Supply *supply);
 void SS_enable_supply(Supply *supply);
 void SS_disable_supply(Supply *supply);
 Supply_state_t SS_supply_get_state(Supply *supply);

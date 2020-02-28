@@ -2,24 +2,25 @@
 // Created by maciek on 28.02.2020.
 //
 
-#include "SS_platform_init.h"
+#include "SS_platform.h"
 #include "SS_servos.h"
+#include "SS_Grazyna.h"
 
 
 /********** SERVOS *********/
 
 void SS_platform_servos_init() {
-    Servo servos[8] = {
-            { .tim = &htim3, .channel = TIM_CHANNEL_2, .supply = &servos1_supply },
-            { .tim = &htim1, .channel = TIM_CHANNEL_3, .supply = &servos1_supply },
-            { .tim = &htim1, .channel = TIM_CHANNEL_2, .supply = &servos1_supply },
-            { .tim = &htim1, .channel = TIM_CHANNEL_1, .supply = &servos1_supply },
-            { .tim = &htim3, .channel = TIM_CHANNEL_4, .supply = &servos2_supply },
-            { .tim = &htim3, .channel = TIM_CHANNEL_3, .supply = &servos2_supply },
-            { .tim = &htim8, .channel = TIM_CHANNEL_2, .supply = &servos2_supply },
-            { .tim = &htim3, .channel = TIM_CHANNEL_1, .supply = &servos2_supply },
+    Servo servos_init[8] = {
+            {.tim = &htim3, .channel = TIM_CHANNEL_2, .supply = &servos1_supply},
+            {.tim = &htim1, .channel = TIM_CHANNEL_3, .supply = &servos1_supply},
+            {.tim = &htim1, .channel = TIM_CHANNEL_2, .supply = &servos1_supply},
+            {.tim = &htim1, .channel = TIM_CHANNEL_1, .supply = &servos1_supply},
+            {.tim = &htim3, .channel = TIM_CHANNEL_4, .supply = &servos2_supply},
+            {.tim = &htim3, .channel = TIM_CHANNEL_3, .supply = &servos2_supply},
+            {.tim = &htim8, .channel = TIM_CHANNEL_2, .supply = &servos2_supply},
+            {.tim = &htim3, .channel = TIM_CHANNEL_1, .supply = &servos2_supply},
     };
-    SS_servos_init(servos, sizeof(servos) / sizeof(servos[0]));
+    SS_servos_init(servos_init, sizeof(servos_init) / sizeof(servos_init[0]));
 }
 
 /********** SUPPLY *********/
@@ -82,4 +83,5 @@ static void SS_platform_supply_init() {
 void SS_platform_init() {
     SS_platform_servos_init();
     SS_platform_supply_init();
+    SS_grazyna_init(&huart2);
 }

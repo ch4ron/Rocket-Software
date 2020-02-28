@@ -15,7 +15,7 @@
 #include "SS_dynamixel.h"
 #endif
 #ifdef SS_USE_GRAZYNA
-#include "SS_Grazyna_com.h"
+#include "SS_Grazyna.h"
 #endif
 #ifdef SS_USE_SEQUENCE
 #include "SS_sequence.h"
@@ -60,7 +60,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 #ifdef RUN_TESTS
     // TODO Change test to remove this function
-    SS_dynamixel_test_TIM_PeriodElapsedCallback(htim);
+//    SS_dynamixel_test_TIM_PeriodElapsedCallback(htim);
 #endif
 }
 //

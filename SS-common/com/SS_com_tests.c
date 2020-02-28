@@ -6,7 +6,7 @@
  */
 
 #include "unity_fixture.h"
-#include "SS_Grazyna_com.h"
+#include "SS_Grazyna.h"
 #include "SS_com_protocol.h"
 #include "string.h"
 

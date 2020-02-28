@@ -17,7 +17,7 @@
 #include "SS_supply.h"
 #endif
 #ifdef SS_USE_GRAZYNA
-#include "SS_Grazyna_com.h"
+#include "SS_Grazyna.h"
 #endif
 
 void SS_init() {
@@ -30,9 +30,6 @@ void SS_init() {
 #if defined(SS_USE_SUPPLY) && !defined(SIMULATE)
 //    SS_supply_init();
 #endif
-#ifdef SS_USE_GRAZYNA
-    SS_grazyna_init();
-#endif
 
 #ifdef RUN_TESTS
     SS_run_all_tests();
@@ -44,4 +41,10 @@ void SS_init() {
 #endif
 //    printf("Elon!\r\n");
 //  SS_settings_read_json(settings_json);
+}
+
+void SS_main() {
+#ifdef SS_USE_GRAZYNA
+    SS_grazyna_main();
+#endif
 }

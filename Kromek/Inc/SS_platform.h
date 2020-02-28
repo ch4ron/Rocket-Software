@@ -2,8 +2,8 @@
 // Created by maciek on 28.02.2020.
 //
 
-#ifndef SS_PLATFORM_INIT_H
-#define SS_PLATFORM_INIT_H
+#ifndef SS_PLATFORM_H
+#define SS_PLATFORM_H
 
 #include "SS_supply.h"
 

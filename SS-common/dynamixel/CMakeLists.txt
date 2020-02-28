@@ -13,3 +13,13 @@ target_include_directories(
 target_sources(${PROJECT_NAME} INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/SS_dynamixel.c
         ${CMAKE_CURRENT_SOURCE_DIR}/SS_dynamixel_tests.c)
+
+if(NOT TARGET fifo)
+    add_subdirectory(../fifo fifo)
+    target_link_libraries(${PROJECT_NAME} INTERFACE fifo)
+endif()
+
+if(NOT TARGET mutex)
+    add_subdirectory(../mutex mutex)
+    target_link_libraries(${PROJECT_NAME} INTERFACE mutex)
+endif()

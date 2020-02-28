@@ -5,13 +5,6 @@
  *      Author: maciek
  */
 
-
-/*
- * SS_VNQ5027.c
- *
- *  Created on: Mar 25, 2019
- *      Author: charon
- */
 #include "adc.h"
 #include "stm32f4xx_hal.h"
 #include "SS_adc.h"
