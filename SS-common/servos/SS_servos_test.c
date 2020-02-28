@@ -92,7 +92,6 @@ TEST(servos, get_width) {
     TEST_ASSERT_EQUAL_INT(2000, SS_servo_get_width(1000));
     MIN_PULSE_WIDTH = 700;
     MAX_PULSE_WIDTH = 2300;
-    TEST_ASSERT_FALSE(1);
     TEST_ASSERT_EQUAL_INT(700, SS_servo_get_width(0));
     TEST_ASSERT_EQUAL_INT(1500, SS_servo_get_width(500));
     TEST_ASSERT_EQUAL_INT(2300, SS_servo_get_width(1000));

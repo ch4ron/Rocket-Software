@@ -22,7 +22,6 @@ SET(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/STM32F446ZETx_FLASH.ld)
 
 #Uncomment for software floating point
 #SET(FPU_FLAGS "-mfloat-abi=soft")
-
 SET(COMMON_FLAGS
     "-mcpu=cortex-m4 ${FPU_FLAGS} -mthumb -mthumb-interwork -ffunction-sections -fdata-sections \
     -g -fno-common -fmessage-length=0 -specs=nosys.specs -specs=nano.specs")
@@ -37,7 +36,9 @@ set(CMAKE_CXX_STANDARD 11)
 #add_definitions(-DARM_MATH_CM4 -DARM_MATH_MATRIX_CHECK -DARM_MATH_ROUNDING -D__FPU_PRESENT=1)
 add_definitions(-D__weak=__attribute__\(\(weak\)\) -D__packed=__attribute__\(\(__packed__\)\) -DUSE_HAL_DRIVER -DSTM32F446xx)
 
-message(${CMAKE_BUILD_TYPE})
+if(${VERBOSE_TEST_OUTPUT})
+    add_compile_definitions(VERBOSE_TEST_OUTPUT)
+endif()
 if(${CMAKE_BUILD_TYPE} STREQUAL Test)
     add_compile_definitions(RUN_TESTS)
 endif()

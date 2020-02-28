@@ -24,11 +24,15 @@ class Board:
             return
         return Board(board)
 
-    def build_target(self, target):
+    def build_target(self, target, verbose=False):
         directory = self._get_build_directory(target)
         if not os.path.exists(directory):
             os.mkdir(directory)
-        cmd = 'cd {}; cmake ../  -DCMAKE_BUILD_TYPE={}; make -j4'.format(directory, target.capitalize())
+        if verbose:
+            cmd = 'cd {}; cmake ../  -DCMAKE_BUILD_TYPE={} -DVERBOSE_TEST_OUTPUT=1; make -j4'.format(directory, target.capitalize())
+        else:
+            cmd = 'cd {}; cmake ../  -DCMAKE_BUILD_TYPE={} -DVERBOSE_TEST_OUTPUT=0; make -j4'.format(directory, target.capitalize())
+        print cmd
         execute(cmd)
 
     def clean(self):
@@ -108,9 +112,10 @@ def purge(board):
 
 @main.command()
 @click.argument('board')
-def simulate(board):
+@click.option('-v', '--verbose', is_flag=True)
+def simulate(board, verbose):
     b = Board.init(board)
-    b.build_target('Simulate')
+    b.build_target('Simulate', verbose)
 
 
 @main.command()
