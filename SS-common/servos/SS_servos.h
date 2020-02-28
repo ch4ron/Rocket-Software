@@ -44,9 +44,17 @@ typedef enum {
     COM_SERVOS_RANGE,
 } ComServoID;
 
+typedef struct {
+    uint32_t MIN_PULSE_WIDTH; //us
+    uint32_t MAX_PULSE_WIDTH; //us
+    uint32_t SERVO_FREQUENCY; //Hz
+    uint16_t SERVO_RANGE;
+    uint8_t servo_count;
+} ServosConfig;
+
 extern Servo servos[8];
 
-void SS_servos_init(void);
+void SS_servos_init(Servo *servos_array, uint8_t count);
 void SS_servo_set_position(Servo *servo, uint16_t value);
 void SS_servo_open(Servo *servo);
 void SS_servo_close(Servo *servo);

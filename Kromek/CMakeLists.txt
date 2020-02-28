@@ -37,7 +37,7 @@ set(CMAKE_CXX_STANDARD 11)
 add_definitions(-D__weak=__attribute__\(\(weak\)\) -D__packed=__attribute__\(\(__packed__\)\) -DUSE_HAL_DRIVER -DSTM32F446xx)
 
 if(${VERBOSE_TEST_OUTPUT})
-    add_compile_definitions(VERBOSE_TEST_OUTPUT)
+    add_compile_definitions(VERBOSE_TEST_OUTPUT UNITY_OUTPUT_COLOR)
 endif()
 if(${CMAKE_BUILD_TYPE} STREQUAL Test)
     add_compile_definitions(RUN_TESTS)

@@ -16,9 +16,6 @@
 #ifdef SS_USE_SUPPLY
 #include "SS_supply.h"
 #endif
-#ifdef SS_USE_SERVOS
-#include "SS_servos.h"
-#endif
 #ifdef SS_USE_GRAZYNA
 #include "SS_Grazyna_com.h"
 #endif
@@ -32,9 +29,6 @@ void SS_init() {
 #endif
 #if defined(SS_USE_SUPPLY) && !defined(SIMULATE)
     SS_supply_init();
-#endif
-#ifdef SS_USE_SERVOS
-    SS_servos_init();
 #endif
 #ifdef SS_USE_GRAZYNA
     SS_grazyna_init();

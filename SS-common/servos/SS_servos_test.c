@@ -9,13 +9,11 @@
 
 #include "SS_servos.h"
 #include "unity_fixture.h"
-
-static uint32_t MIN_PULSE_WIDTH_tmp;
-static uint32_t MAX_PULSE_WIDTH_tmp;
-static uint32_t SERVO_FREQUENCY_tmp;
-static uint32_t SERVO_RANGE_tmp;
+#include "string.h"
 
 extern uint16_t SS_servo_get_width(uint16_t position);
+extern ServosConfig servos_config;
+ServosConfig tmp_config;
 
 TEST_GROUP(servos);
 TEST_GROUP(grazyna_servos);
@@ -49,18 +47,25 @@ TEST_GROUP_RUNNER(grazyna_servos) {
 }
 
 static void set_up() {
-    MIN_PULSE_WIDTH_tmp = MIN_PULSE_WIDTH;
-    MAX_PULSE_WIDTH_tmp = MAX_PULSE_WIDTH;
-    SERVO_FREQUENCY_tmp = SERVO_FREQUENCY;
-    SERVO_RANGE_tmp = SERVO_RANGE;
+    memcpy(&tmp_config, &servos_config, sizeof(ServosConfig));
+    Servo servos[8] = {
+            { .tim = &htim3, .channel = TIM_CHANNEL_2, .supply = &servos1_supply },
+            { .tim = &htim1, .channel = TIM_CHANNEL_3, .supply = &servos1_supply },
+            { .tim = &htim1, .channel = TIM_CHANNEL_2, .supply = &servos1_supply },
+            { .tim = &htim1, .channel = TIM_CHANNEL_1, .supply = &servos1_supply },
+            { .tim = &htim3, .channel = TIM_CHANNEL_4, .supply = &servos2_supply },
+            { .tim = &htim3, .channel = TIM_CHANNEL_3, .supply = &servos2_supply },
+            { .tim = &htim8, .channel = TIM_CHANNEL_2, .supply = &servos2_supply },
+            { .tim = &htim3, .channel = TIM_CHANNEL_1, .supply = &servos2_supply },
+    };
+    SS_servos_init(servos, sizeof(servos) / sizeof(servos[0]));
 }
 
+extern void SS_servos_reinit();
+
 static void tear_down() {
-    MIN_PULSE_WIDTH = MIN_PULSE_WIDTH_tmp;
-    MAX_PULSE_WIDTH = MAX_PULSE_WIDTH_tmp;
-    SERVO_FREQUENCY = SERVO_FREQUENCY_tmp;
-    SERVO_RANGE = SERVO_RANGE_tmp;
-    SS_servos_init();
+    memcpy(&servos_config, &tmp_config, sizeof(ServosConfig));
+    SS_servos_reinit();
 }
 
 TEST_SETUP(servos) {
@@ -80,29 +85,29 @@ TEST_TEAR_DOWN(grazyna_servos) {
 }
 
 TEST(servos, get_width) {
-    MIN_PULSE_WIDTH = 1000;
-    MAX_PULSE_WIDTH = 2000;
-    SERVO_RANGE = 200;
+    servos_config.MIN_PULSE_WIDTH = 1000;
+    servos_config.MAX_PULSE_WIDTH = 2000;
+    servos_config.SERVO_RANGE = 200;
     TEST_ASSERT_EQUAL_INT(1000, SS_servo_get_width(0));
     TEST_ASSERT_EQUAL_INT(1500, SS_servo_get_width(100));
     TEST_ASSERT_EQUAL_INT(2000, SS_servo_get_width(200));
-    SERVO_RANGE = 1000;
+    servos_config.SERVO_RANGE = 1000;
     TEST_ASSERT_EQUAL_INT(1000, SS_servo_get_width(0));
     TEST_ASSERT_EQUAL_INT(1500, SS_servo_get_width(500));
     TEST_ASSERT_EQUAL_INT(2000, SS_servo_get_width(1000));
-    MIN_PULSE_WIDTH = 700;
-    MAX_PULSE_WIDTH = 2300;
+    servos_config.MIN_PULSE_WIDTH = 700;
+    servos_config.MAX_PULSE_WIDTH = 2300;
     TEST_ASSERT_EQUAL_INT(700, SS_servo_get_width(0));
     TEST_ASSERT_EQUAL_INT(1500, SS_servo_get_width(500));
     TEST_ASSERT_EQUAL_INT(2300, SS_servo_get_width(1000));
 }
 
 TEST(servos, freq50_range100) {
-    MIN_PULSE_WIDTH = 1000;
-    MAX_PULSE_WIDTH = 2000;
-    SERVO_FREQUENCY = 50;
-    SERVO_RANGE = 1000;
-    SS_servos_init();
+    servos_config.MIN_PULSE_WIDTH = 1000;
+    servos_config.MAX_PULSE_WIDTH = 2000;
+    servos_config.SERVO_FREQUENCY = 50;
+    servos_config.SERVO_RANGE = 1000;
+    SS_servos_reinit();
     SS_servo_close(&servos[1]);
     TEST_ASSERT_EQUAL_INT(50, *servos[1].pointer);
     SS_servo_open(&servos[1]);
@@ -113,11 +118,11 @@ TEST(servos, freq50_range100) {
 }
 
 TEST(servos, freq300_range2000) {
-    MIN_PULSE_WIDTH = 1000;
-    MAX_PULSE_WIDTH = 2000;
-    SERVO_FREQUENCY = 300;
-    SERVO_RANGE = 2000;
-    SS_servos_init();
+    servos_config.MIN_PULSE_WIDTH = 1000;
+    servos_config.MAX_PULSE_WIDTH = 2000;
+    servos_config.SERVO_FREQUENCY = 300;
+    servos_config.SERVO_RANGE = 2000;
+    SS_servos_reinit();
     SS_servo_close(&servos[1]);
     TEST_ASSERT_EQUAL_INT(300, *servos[1].pointer);
     SS_servo_open(&servos[1]);
@@ -128,10 +133,10 @@ TEST(servos, freq300_range2000) {
 }
 
 TEST(servos, timeout) {
-    MIN_PULSE_WIDTH = 1000;
-    MAX_PULSE_WIDTH = 2000;
-    SERVO_FREQUENCY = 300;
-    SERVO_RANGE = 1000;
+    servos_config.MIN_PULSE_WIDTH = 1000;
+    servos_config.MAX_PULSE_WIDTH = 2000;
+    servos_config.SERVO_FREQUENCY = 300;
+    servos_config.SERVO_RANGE = 1000;
     for (int i = 0; i < sizeof(servos) / sizeof(servos[1]); i++) {
         SS_servo_open(&servos[i]);
     }
@@ -348,11 +353,11 @@ TEST(grazyna_servos, set_range) {
             .payload = range };
     ComActionID res = SS_com_handle_action(&frame);
     TEST_ASSERT_EQUAL(COM_OK, res);
-    TEST_ASSERT_EQUAL(range, SERVO_RANGE);
+    TEST_ASSERT_EQUAL(range, servos_config.SERVO_RANGE);
 }
 
 TEST(grazyna_servos, get_range) {
-    SERVO_RANGE = 6999;
+    servos_config.SERVO_RANGE = 6999;
     ComFrameContent frame = {
             .action = COM_REQUEST,
             .device = COM_SERVO_ID,
@@ -360,7 +365,7 @@ TEST(grazyna_servos, get_range) {
             COM_SERVOS_RANGE, };
     ComActionID res = SS_com_handle_action(&frame);
     TEST_ASSERT_EQUAL(COM_OK, res);
-    TEST_ASSERT_EQUAL(SERVO_RANGE, frame.payload);
+    TEST_ASSERT_EQUAL(servos_config.SERVO_RANGE, frame.payload);
     TEST_ASSERT_EQUAL(UINT16, frame.data_type);
 }
 

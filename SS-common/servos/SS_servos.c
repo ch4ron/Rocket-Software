@@ -8,42 +8,37 @@
 #include "SS_servos.h"
 #include "stdio.h"
 #include "stdbool.h"
+#include "string.h"
 
 #define SERVO_RESOLUTION 1000
+#define MAX_SERVO_COUNT 8
 
-uint32_t MIN_PULSE_WIDTH = 1000; //us
-uint32_t MAX_PULSE_WIDTH = 2000; //us
-uint32_t SERVO_FREQUENCY = 300; //Hz
-uint16_t SERVO_RANGE = 1000;
-
-Servo servos[8] = {
-        { .tim = &htim3, .channel = TIM_CHANNEL_2, .supply = &servos1_supply },
-        { .tim = &htim1, .channel = TIM_CHANNEL_3, .supply = &servos1_supply },
-        { .tim = &htim1, .channel = TIM_CHANNEL_2, .supply = &servos1_supply },
-        { .tim = &htim1, .channel = TIM_CHANNEL_1, .supply = &servos1_supply },
-        { .tim = &htim3, .channel = TIM_CHANNEL_4, .supply = &servos2_supply },
-        { .tim = &htim3, .channel = TIM_CHANNEL_3, .supply = &servos2_supply },
-        { .tim = &htim8, .channel = TIM_CHANNEL_2, .supply = &servos2_supply },
-        { .tim = &htim3, .channel = TIM_CHANNEL_1, .supply = &servos2_supply },
+ServosConfig servos_config = {
+        .MIN_PULSE_WIDTH = 1000,
+        .MAX_PULSE_WIDTH = 2000,
+        .SERVO_FREQUENCY = 300,
+        .SERVO_RANGE = 1000
 };
 
+Servo servos[MAX_SERVO_COUNT];
+
 static void SS_servo_init(Servo *servo) {
-	uint32_t freq;
-	if (servo->tim->Instance == TIM8 || servo->tim->Instance == TIM1 || servo->tim->Instance == TIM11 || servo->tim->Instance == TIM10 || servo->tim->Instance == TIM9) {
-		freq = HAL_RCC_GetPCLK2Freq() * 2;
-	} else {
-		freq = HAL_RCC_GetPCLK1Freq() * 2;
-	}
-	servo->tim->Init.Prescaler = (freq / SERVO_RESOLUTION) / SERVO_FREQUENCY;
-	servo->tim->Init.CounterMode = TIM_COUNTERMODE_UP;
-	servo->tim->Init.Period = SERVO_RESOLUTION - 1;
-	servo->tim->Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-	HAL_TIM_Base_DeInit(servo->tim);
-	HAL_TIM_Base_Init(servo->tim);
-	HAL_TIM_Base_Start(servo->tim);
+    uint32_t freq;
+    if (servo->tim->Instance == TIM8 || servo->tim->Instance == TIM1 || servo->tim->Instance == TIM11 || servo->tim->Instance == TIM10 || servo->tim->Instance == TIM9) {
+        freq = HAL_RCC_GetPCLK2Freq() * 2;
+    } else {
+        freq = HAL_RCC_GetPCLK1Freq() * 2;
+    }
+    servo->tim->Init.Prescaler = (freq / SERVO_RESOLUTION) / servos_config.SERVO_FREQUENCY;
+    servo->tim->Init.CounterMode = TIM_COUNTERMODE_UP;
+    servo->tim->Init.Period = SERVO_RESOLUTION - 1;
+    servo->tim->Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+    HAL_TIM_Base_DeInit(servo->tim);
+    HAL_TIM_Base_Init(servo->tim);
+    HAL_TIM_Base_Start(servo->tim);
 /* Simulator does not support pwm */
 #ifndef SIMULATE
-	HAL_TIM_PWM_Start(servo->tim, servo->channel);
+    HAL_TIM_PWM_Start(servo->tim, servo->channel);
 	switch (servo->channel) {
 		case TIM_CHANNEL_1:
 			servo->pointer = &servo->tim->Instance->CCR1;
@@ -61,7 +56,7 @@ static void SS_servo_init(Servo *servo) {
 			break;
 	}
 #endif
-    servo->opened_position = SERVO_RANGE;
+    servo->opened_position = servos_config.SERVO_RANGE;
     servo->closed_position = 0;
     SS_servo_close(servo);
 }
@@ -70,12 +65,12 @@ static void SS_servo_init(Servo *servo) {
 void SS_servo_set_pulse_width(Servo *servo, uint16_t width) {
 /* Simulator does not support pwm */
 #ifndef SIMULATE
-    *servo->pointer = width * SERVO_FREQUENCY * SERVO_RESOLUTION / 1000000;
+    *servo->pointer = width * servos_config.SERVO_FREQUENCY * SERVO_RESOLUTION / 1000000;
 #endif
 }
 
 uint16_t SS_servo_get_width(uint16_t position) {
-    return MIN_PULSE_WIDTH + position * (MAX_PULSE_WIDTH - MIN_PULSE_WIDTH) / SERVO_RANGE;
+    return servos_config.MIN_PULSE_WIDTH + position * (servos_config.MAX_PULSE_WIDTH - servos_config.MIN_PULSE_WIDTH) / servos_config.SERVO_RANGE;
 }
 
 /* position range 0 - 1000 */
@@ -98,14 +93,20 @@ void SS_servo_close(Servo *servo) {
     SS_servo_set_position(servo, servo->closed_position);
 }
 
-void SS_servos_init() {
-    for(uint8_t i = 0; i < sizeof(servos) / sizeof(servos[0]); i++) {
+void SS_servos_reinit() {
+    for(uint8_t i = 0; i < servos_config.servo_count; i++) {
         SS_servo_init(&servos[i]);
     }
 }
 
+void SS_servos_init(Servo *servos_array, uint8_t count) {
+    servos_config.servo_count = count;
+    memcpy(servos, servos_array, count * sizeof(Servo));
+    SS_servos_reinit();
+}
+
 void SS_servo_disable(Servo *servo) {
-	*servo->pointer = 0;
+    *servo->pointer = 0;
 }
 
 void SS_servo_set_closed_position(Servo *servo, uint16_t position) {
@@ -125,16 +126,16 @@ void SS_servo_SYSTICK(Servo *servo) {
 
 void SS_servos_SYSTICK() {
 #ifndef SERVOS_NO_TIMEOUT
-    for(uint8_t i = 0; i < sizeof(servos) / sizeof(servos[0]); i++) {
+    for(uint8_t i = 0; i < servos_config.servo_count; i++) {
         SS_servo_SYSTICK(&servos[i]);
     }
 #endif
 }
 
 static bool SS_servos_check_id(uint8_t id) {
-    if(id >= sizeof(servos)/sizeof(servos[0])) {
+    if(id >= servos_config.servo_count) {
 #ifndef RUN_TESTS
-        printf("Servo id: %d is too high, the board supports only %d servos\r\n", id, sizeof(servos)/sizeof(servos[0]));
+        printf("Servo id: %d is too high, the board supports only %d servos\r\n", id, servos_config.servo_count);
 #endif
         return false;
     }
@@ -168,8 +169,8 @@ ComStatus SS_servos_handle_grazyna_service(ComFrameContent *frame) {
             SS_servo_disable(servo);
             break;
         case COM_SERVOS_RANGE:
-            SERVO_RANGE = value;
-            SS_servos_init();
+            servos_config.SERVO_RANGE = value;
+            SS_servos_reinit();
             break;
         default:
             printf("Unhandled Grazyna servo service: %d\r\n", msgID);
@@ -195,7 +196,7 @@ ComStatus SS_servos_handle_grazyna_request(ComFrameContent *frame) {
             SS_com_add_payload_to_frame(frame, UINT16, &servo->position);
             break;
         case COM_SERVOS_RANGE:
-            SS_com_add_payload_to_frame(frame, UINT16, &SERVO_RANGE);
+            SS_com_add_payload_to_frame(frame, UINT16, &servos_config.SERVO_RANGE);
             break;
         default:
             printf("Unhandled Grazyna servo request: %d\r\n", msgID);
@@ -205,24 +206,24 @@ ComStatus SS_servos_handle_grazyna_request(ComFrameContent *frame) {
 }
 
 void SS_servos_read_json(char *json, jsmntok_t **tok) {
-    for(uint8_t i = 0; i < sizeof(servos)/sizeof(servos[0]); i++) {
+    for(uint8_t i = 0; i < servos_config.servo_count; i++) {
         int id, opened_pos, closed_pos;
         JsonData data[] = {
-            {
-                .name = "id",
-                .type = JSON_INT,
-                .data = &id
-            },
-            {
-                .name = "closedPos",
-                .type = JSON_INT,
-                .data = &closed_pos
-            },
-            {
-                .name = "openedPos",
-                .type = JSON_INT,
-                .data = &opened_pos
-            },
+                {
+                        .name = "id",
+                        .type = JSON_INT,
+                        .data = &id
+                },
+                {
+                        .name = "closedPos",
+                        .type = JSON_INT,
+                        .data = &closed_pos
+                },
+                {
+                        .name = "openedPos",
+                        .type = JSON_INT,
+                        .data = &opened_pos
+                },
         };
         SS_json_parse_data(data, sizeof(data)/sizeof(data[0]), json, tok[i]);
         servos[id].opened_position = opened_pos;
