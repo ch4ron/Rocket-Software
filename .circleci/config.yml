@@ -13,6 +13,7 @@ jobs:
             git submodule update --remote
       - run:
           name: test
-          command: python build.py simulate kromek
+          command:
+              JUMPER=jumper python build.py simulate kromek
       - store_artifacts:
           path: BUILD/

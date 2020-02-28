@@ -6,6 +6,12 @@ import sys
 boards = ['Kromek']
 targets = ['Debug', 'Simulate', 'Test']
 
+# Calculates the return value
+def execute(cmd):
+    res = os.system(cmd) >> 8
+    if res != 0:
+        sys.exit(res)
+
 class Board:
     def __init__(self, name):
         self._name = name
@@ -23,7 +29,7 @@ class Board:
         if not os.path.exists(directory):
             os.mkdir(directory)
         cmd = 'cd {}; cmake ../  -DCMAKE_BUILD_TYPE={}; make -j4'.format(directory, target.capitalize())
-        os.system(cmd)
+        execute(cmd)
 
     def clean(self):
         for target in targets:
@@ -36,12 +42,14 @@ class Board:
     def flash(self):
         self.build_target('Debug')
         cmd = self._flash_cmd('Debug')
-        os.system(cmd)
+        execute(cmd)
 
     def test(self):
         self.build_target('Test')
         cmd = self._flash_cmd('Test')
-        os.system(cmd)
+        res = os.popen(cmd).read()
+        if res:
+            sys.exit(res)
         ser = serial.Serial('/dev/ttyACM0', 115200)
         print "\r\nTESTS START\r\n"
         while True:
@@ -59,13 +67,13 @@ class Board:
             return
         print 'Cleaning', directory
         cmd = 'cd {}; make clean'.format(directory, target)
-        os.system(cmd)
+        execute(cmd)
 
     def _purge_target(self, target):
         directory = self._get_build_directory(target)
         cmd = 'rm -rf {}'.format(directory)
         print 'Purging', directory
-        os.system(cmd)
+        execute(cmd)
 
     def _flash_cmd(self, target):
         return "openocd -c 'tcl_port disabled' -s openocd/scripts -c 'gdb_port 3333' -c 'telnet_port 4444' -f " \

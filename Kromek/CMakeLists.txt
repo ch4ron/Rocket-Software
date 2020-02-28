@@ -93,7 +93,13 @@ add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
         COMMENT "Building ${HEX_FILE}
 Building ${BIN_FILE}")
 
+if(NOT DEFINED ENV{JUMPER})
+    set(JUMPER ../../.venv/bin/jumper)
+else()
+    set(JUMPER $ENV{JUMPER})
+endif()
+
 if(${CMAKE_BUILD_TYPE} STREQUAL Simulate)
     add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
-            COMMAND ../../.venv/bin/jumper run --fw ${PROJECT_NAME}.bin -u UART5 --platform stm32f446)
+            COMMAND ${JUMPER} run --fw ${PROJECT_NAME}.bin -u UART5 --platform stm32f446)
 endif()
