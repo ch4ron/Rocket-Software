@@ -121,7 +121,6 @@ int main(void) {
     MX_CRC_Init();
 #endif
 
-
     SS_platform_init();
     SS_init();
 //  SS_settings_read_json(settings_json);

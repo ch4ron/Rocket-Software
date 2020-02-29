@@ -5,6 +5,7 @@
  *      Author: maciek
  */
 
+#include <crc.h>
 #include "unity_fixture.h"
 #include "SS_Grazyna.h"
 #include "SS_com_protocol.h"
@@ -23,6 +24,10 @@ TEST_GROUP_RUNNER(com) {
     RUN_TEST_CASE(com, create_frame2);
     RUN_TEST_CASE(com, create_frame3);
     RUN_TEST_CASE(com, prepare_tx_frame);
+#ifndef SIMULATE
+    RUN_TEST_CASE(com, software_crc);
+    RUN_TEST_CASE(com, software_crc_frame);
+#endif
 }
 
 TEST_SETUP(com) {}
@@ -106,4 +111,29 @@ TEST(com, prepare_tx_frame) {
 #else
     TEST_ASSERT_EQUAL_UINT8_ARRAY(expected, (uint8_t*) &grazyna_frame, sizeof(expected) - 4);
 #endif
+}
+
+extern uint32_t crc32 (uint32_t *data, int len);
+TEST(com, software_crc) {
+    char message[] = "an interesting message for testing crc";
+    uint32_t expected = HAL_CRC_Calculate(&hcrc, (uint32_t *) message, sizeof(message)/4);
+    uint32_t actual = crc32((uint32_t*) message, sizeof(message)/4);
+    TEST_ASSERT_EQUAL_HEX(expected, actual);
+}
+
+TEST(com, software_crc_frame) {
+    GrazynaFrame frame = {
+            .com_frame = {
+                    .header = 3,
+                    .message_type = 4,
+                    .payload = 11
+            },
+            .header = 3
+    };
+    uint32_t len = sizeof(frame)/4;
+    uint32_t buff[len];
+    memcpy(buff, &frame, len*4);
+    uint32_t expected = HAL_CRC_Calculate(&hcrc, buff, len);
+    uint32_t actual = crc32(buff, len);
+    TEST_ASSERT_EQUAL_HEX(expected, actual);
 }
