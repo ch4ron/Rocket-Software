@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.11.1)
 
-project(supply C)
+project(error C)
 
 add_library(${PROJECT_NAME} INTERFACE)
 target_include_directories(
@@ -8,9 +8,4 @@ target_include_directories(
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 
 target_sources(${PROJECT_NAME} INTERFACE
-        ${CMAKE_CURRENT_SOURCE_DIR}/SS_supply.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/SS_supply_tests.c)
-
-if(NOT TARGET adc)
-    message(FATAL_ERROR adc module required)
-endif()
+        ${CMAKE_CURRENT_SOURCE_DIR}/SS_error.c)

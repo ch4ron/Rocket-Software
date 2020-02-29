@@ -9,18 +9,19 @@
 
 /********** SERVOS *********/
 
+Servo servos[8] = {
+        {.id = 0, .tim = &htim3, .channel = TIM_CHANNEL_2, .supply = &servos1_supply},
+        {.id = 1,.tim = &htim1, .channel = TIM_CHANNEL_3, .supply = &servos1_supply},
+        {.id = 2,.tim = &htim1, .channel = TIM_CHANNEL_2, .supply = &servos1_supply},
+        {.id = 3,.tim = &htim1, .channel = TIM_CHANNEL_1, .supply = &servos1_supply},
+        {.id = 4,.tim = &htim3, .channel = TIM_CHANNEL_4, .supply = &servos2_supply},
+        {.id = 5,.tim = &htim3, .channel = TIM_CHANNEL_3, .supply = &servos2_supply},
+        {.id = 6,.tim = &htim8, .channel = TIM_CHANNEL_2, .supply = &servos2_supply},
+        {.id = 7,.tim = &htim3, .channel = TIM_CHANNEL_1, .supply = &servos2_supply},
+};
+
 void SS_platform_servos_init() {
-    Servo servos_init[8] = {
-            {.tim = &htim3, .channel = TIM_CHANNEL_2, .supply = &servos1_supply},
-            {.tim = &htim1, .channel = TIM_CHANNEL_3, .supply = &servos1_supply},
-            {.tim = &htim1, .channel = TIM_CHANNEL_2, .supply = &servos1_supply},
-            {.tim = &htim1, .channel = TIM_CHANNEL_1, .supply = &servos1_supply},
-            {.tim = &htim3, .channel = TIM_CHANNEL_4, .supply = &servos2_supply},
-            {.tim = &htim3, .channel = TIM_CHANNEL_3, .supply = &servos2_supply},
-            {.tim = &htim8, .channel = TIM_CHANNEL_2, .supply = &servos2_supply},
-            {.tim = &htim3, .channel = TIM_CHANNEL_1, .supply = &servos2_supply},
-    };
-    SS_servos_init(servos_init, sizeof(servos_init) / sizeof(servos_init[0]));
+    SS_servos_init(servos, sizeof(servos) / sizeof(servos[0]));
 }
 
 /********** SUPPLY *********/

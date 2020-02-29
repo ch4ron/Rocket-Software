@@ -49,15 +49,18 @@ TEST_TEAR_DOWN(supply_control) {
 static void run_supply_test(Supply *supply, float min_voltage, float max_voltage) {
     TEST_ASSERT_FALSE(SS_supply_get_state(supply));
     if(supply->measurement.value > 0.7f) {
+        printf("\r\nVoltage is equal to: %f", supply->measurement.value);
         TEST_FAIL_MESSAGE("Supply not turned off");
     }
     SS_enable_supply(supply);
     HAL_Delay(10);
     TEST_ASSERT_TRUE(SS_supply_get_state(supply));
     if(supply->measurement.value < min_voltage) {
+        printf("\r\nVoltage is equal to: %f", supply->measurement.value);
         TEST_FAIL_MESSAGE("Supply voltage too low");
     }
     if(supply->measurement.value > max_voltage) {
+        printf("\r\nVoltage is equal to: %f", supply->measurement.value);
         TEST_FAIL_MESSAGE("Supply voltage too high");
     }
 }

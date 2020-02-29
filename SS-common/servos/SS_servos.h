@@ -15,14 +15,10 @@
 #include "SS_json_parser.h"
 
 #define SERVO_TIMEOUT 1500
-
-extern uint32_t MIN_PULSE_WIDTH;
-extern uint32_t MAX_PULSE_WIDTH;
-extern uint32_t SERVO_FREQUENCY;
-extern uint32_t SERVO_RESOLUTION;
-extern uint16_t SERVO_RANGE;
+#define MAX_SERVO_COUNT 8
 
 typedef struct {
+    uint8_t id;
 	uint16_t position;
 	uint16_t closed_position;
 	uint16_t opened_position;
@@ -52,10 +48,10 @@ typedef struct {
     uint8_t servo_count;
 } ServosConfig;
 
-extern Servo servos[8];
 
 extern void SS_platform_servos_init();
 void SS_servos_init(Servo *servos_array, uint8_t count);
+void SS_servo_init(Servo *servo);
 void SS_servo_set_position(Servo *servo, uint16_t value);
 void SS_servo_open(Servo *servo);
 void SS_servo_close(Servo *servo);

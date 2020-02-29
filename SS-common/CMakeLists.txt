@@ -87,6 +87,9 @@ target_sources(${PROJECT_NAME} PRIVATE SS_common.c)
 add_subdirectory(support)
 target_link_libraries(${PROJECT_NAME} PUBLIC support)
 
+add_subdirectory(error)
+target_link_libraries(${PROJECT_NAME} PUBLIC error)
+
 add_subdirectory(callbacks)
 target_link_libraries(${PROJECT_NAME} PUBLIC callbacks)
 

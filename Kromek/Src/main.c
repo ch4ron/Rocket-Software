@@ -124,7 +124,6 @@ int main(void) {
 
     SS_platform_init();
     SS_init();
-    printf("Elon!\r\n");
 //  SS_settings_read_json(settings_json);
     /* USER CODE END 2 */
 

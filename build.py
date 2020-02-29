@@ -113,9 +113,13 @@ def purge(board):
 @main.command()
 @click.argument('board')
 @click.option('-v', '--verbose', is_flag=True)
-def simulate(board, verbose):
+@click.option('-t', '--test', is_flag=True)
+def simulate(board, verbose, test):
     b = Board.init(board)
-    b.build_target('Simulate', verbose)
+    if test:
+        b.build_target('Simulate-test', verbose)
+    else:
+        b.build_target('Simulate', verbose)
 
 
 @main.command()

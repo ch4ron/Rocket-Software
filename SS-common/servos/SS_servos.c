@@ -9,9 +9,9 @@
 #include "stdio.h"
 #include "stdbool.h"
 #include "string.h"
+#include "SS_error.h"
 
 #define SERVO_RESOLUTION 1000
-#define MAX_SERVO_COUNT 8
 
 ServosConfig servos_config = {
         .MIN_PULSE_WIDTH = 1000,
@@ -20,9 +20,40 @@ ServosConfig servos_config = {
         .SERVO_RANGE = 1000
 };
 
-Servo servos[MAX_SERVO_COUNT];
+Servo *servo_pointers[MAX_SERVO_COUNT];
 
-static void SS_servo_init(Servo *servo) {
+static int8_t SS_servos_check_id(uint8_t id) {
+    if(id >= MAX_SERVO_COUNT) {
+#ifndef RUN_TESTS
+        SS_error("Servo id: %d too high, max supported id: %d", id, MAX_SERVO_COUNT);
+#endif
+        return -1;
+    }
+    if(servo_pointers[id] == NULL) {
+        SS_error("Servo id: %d not initialized");
+        return -1;
+    }
+    return 0;
+}
+
+static int8_t SS_servo_check_initialized(Servo *servo) {
+    if(servo == NULL) {
+        SS_error("Servo not initialized");
+        return -1;
+    }
+    return 0;
+}
+
+void SS_servo_init(Servo *servo) {
+    if(servo_pointers[servo->id] != servo && servo_pointers[servo->id] != NULL) {
+        SS_error("Duplicate servo id, %d", servo->id);
+        return;
+    }
+    if(servo->id >= MAX_SERVO_COUNT) {
+        SS_error("Servo id: %d too high, max supported id: %d", servo->id, MAX_SERVO_COUNT);
+        return;
+    }
+    servo_pointers[servo->id] = servo;
     uint32_t freq;
     if (servo->tim->Instance == TIM8 || servo->tim->Instance == TIM1 || servo->tim->Instance == TIM11 || servo->tim->Instance == TIM10 || servo->tim->Instance == TIM9) {
         freq = HAL_RCC_GetPCLK2Freq() * 2;
@@ -63,6 +94,7 @@ static void SS_servo_init(Servo *servo) {
 
 /* width in us */
 void SS_servo_set_pulse_width(Servo *servo, uint16_t width) {
+    if(SS_servo_check_initialized(servo) != 0) return;
 /* Simulator does not support pwm */
 #ifndef SIMULATE
     *servo->pointer = width * servos_config.SERVO_FREQUENCY * SERVO_RESOLUTION / 1000000;
@@ -75,6 +107,7 @@ uint16_t SS_servo_get_width(uint16_t position) {
 
 /* position range 0 - 1000 */
 void SS_servo_set_position(Servo *servo, uint16_t position) {
+    if(SS_servo_check_initialized(servo) != 0) return;
     SS_enable_supply(servo->supply);
     uint16_t width = SS_servo_get_width(position);
     SS_servo_set_pulse_width(servo, width);
@@ -86,34 +119,41 @@ void SS_servo_set_position(Servo *servo, uint16_t position) {
 }
 
 void SS_servo_open(Servo *servo) {
+    if(SS_servo_check_initialized(servo) != 0) return;
     SS_servo_set_position(servo, servo->opened_position);
 }
 
 void SS_servo_close(Servo *servo) {
+    if(SS_servo_check_initialized(servo) != 0) return;
     SS_servo_set_position(servo, servo->closed_position);
 }
 
 void SS_servos_reinit() {
-    for(uint8_t i = 0; i < servos_config.servo_count; i++) {
-        SS_servo_init(&servos[i]);
+    for(uint8_t i = 0; i < MAX_SERVO_COUNT; i++) {
+        if(servo_pointers[i] != NULL) {
+            SS_servo_init(servo_pointers[i]);
+        }
     }
 }
 
 void SS_servos_init(Servo *servos_array, uint8_t count) {
-    servos_config.servo_count = count;
-    memcpy(servos, servos_array, count * sizeof(Servo));
-    SS_servos_reinit();
+    for(uint8_t i = 0; i < count; i++) {
+        SS_servo_init(&servos_array[i]);
+    }
 }
 
 void SS_servo_disable(Servo *servo) {
+    if(SS_servo_check_initialized(servo) != 0) return;
     *servo->pointer = 0;
 }
 
 void SS_servo_set_closed_position(Servo *servo, uint16_t position) {
+    if(SS_servo_check_initialized(servo) != 0) return;
     servo->closed_position = position;
 }
 
 void SS_servo_set_opened_position(Servo *servo, uint16_t position) {
+    if(SS_servo_check_initialized(servo) != 0) return;
     servo->opened_position = position;
 }
 
@@ -126,28 +166,18 @@ void SS_servo_SYSTICK(Servo *servo) {
 
 void SS_servos_SYSTICK() {
 #ifndef SERVOS_NO_TIMEOUT
-    for(uint8_t i = 0; i < servos_config.servo_count; i++) {
-        SS_servo_SYSTICK(&servos[i]);
+    for(uint8_t i = 0; i < MAX_SERVO_COUNT; i++) {
+        if(servo_pointers[i] != NULL) {
+            SS_servo_SYSTICK(servo_pointers[i]);
+        }
     }
 #endif
-}
-
-static bool SS_servos_check_id(uint8_t id) {
-    if(id >= servos_config.servo_count) {
-#ifndef RUN_TESTS
-        printf("Servo id: %d is too high, the board supports only %d servos\r\n", id, servos_config.servo_count);
-#endif
-        return false;
-    }
-    return true;
 }
 
 ComStatus SS_servos_handle_grazyna_service(ComFrameContent *frame) {
-    if(!SS_servos_check_id(frame->id)) {
-        return COM_ERROR;
-    }
+    if(SS_servos_check_id(frame->id) != 0) return COM_ERROR;
     ComServoID msgID = frame->message_type;
-    Servo *servo = &servos[frame->id];
+    Servo *servo = servo_pointers[frame->id];
     uint32_t value = frame->payload;
     switch(msgID) {
         case COM_SERVO_OPEN:
@@ -173,18 +203,16 @@ ComStatus SS_servos_handle_grazyna_service(ComFrameContent *frame) {
             SS_servos_reinit();
             break;
         default:
-            printf("Unhandled Grazyna servo service: %d\r\n", msgID);
+            SS_error("Unhandled Grazyna servo service: %d\r\n", msgID);
             return COM_ERROR;
     }
     return COM_OK;
 }
 
 ComStatus SS_servos_handle_grazyna_request(ComFrameContent *frame) {
-    if(!SS_servos_check_id(frame->id)) {
-        return COM_ERROR;
-    }
+    if(SS_servos_check_id(frame->id) != 0) return COM_ERROR;
     ComServoID msgID = frame->message_type;
-    Servo *servo = &servos[frame->id];
+    Servo *servo = servo_pointers[frame->id];
     switch(msgID) {
         case COM_SERVO_OPENED_POSITION:
             SS_com_add_payload_to_frame(frame, UINT16, &servo->opened_position);
@@ -199,7 +227,7 @@ ComStatus SS_servos_handle_grazyna_request(ComFrameContent *frame) {
             SS_com_add_payload_to_frame(frame, UINT16, &servos_config.SERVO_RANGE);
             break;
         default:
-            printf("Unhandled Grazyna servo request: %d\r\n", msgID);
+            SS_error("Unhandled Grazyna servo request: %d\r\n", msgID);
             return COM_ERROR;
     }
     return COM_OK;
@@ -226,8 +254,8 @@ void SS_servos_read_json(char *json, jsmntok_t **tok) {
                 },
         };
         SS_json_parse_data(data, sizeof(data)/sizeof(data[0]), json, tok[i]);
-        servos[id].opened_position = opened_pos;
-        servos[id].closed_position = closed_pos;
-        servos[id].tok = tok[i];
+        servo_pointers[id]->opened_position = opened_pos;
+        servo_pointers[id]->closed_position = closed_pos;
+        servo_pointers[id]->tok = tok[i];
     }
 }
