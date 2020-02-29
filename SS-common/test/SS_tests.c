@@ -23,7 +23,7 @@ static void tests() {
 /* Disable mutex test for now, as it takes a long time and causes troubles
  * (But current implementation works correctly */
 //    RUN_TEST_GROUP(mutex);
-    RUN_TEST_GROUP(supply_control);
+//    RUN_TEST_GROUP(supply_control);
 #endif
     RUN_TEST_GROUP(servos);
     RUN_TEST_GROUP(grazyna_servos);
@@ -31,6 +31,9 @@ static void tests() {
     RUN_TEST_GROUP(sequence);
     RUN_TEST_GROUP(parser);
     RUN_TEST_GROUP(fifo);
+#ifdef SS_USE_RELAYS
+    RUN_TEST_GROUP(relays);
+#endif
 #ifdef SS_USE_DYNAMIXEL
     RUN_TEST_GROUP(dynamixel_logic);
 #endif

@@ -2,6 +2,7 @@
 // Created by maciek on 28.02.2020.
 //
 
+#include <relays/SS_relays.h>
 #include "SS_platform.h"
 #include "SS_servos.h"
 #include "SS_Grazyna.h"
@@ -9,7 +10,7 @@
 
 /********** SERVOS *********/
 
-Servo servos[8] = {
+Servo servos[] = {
         {.id = 0, .tim = &htim3, .channel = TIM_CHANNEL_2, .supply = &servos1_supply},
         {.id = 1,.tim = &htim1, .channel = TIM_CHANNEL_3, .supply = &servos1_supply},
         {.id = 2,.tim = &htim1, .channel = TIM_CHANNEL_2, .supply = &servos1_supply},
@@ -78,11 +79,29 @@ static void SS_platform_supply_init() {
     SS_supply_init(&servos2_supply);
 }
 
+/********** RELAYS *********/
+
+Relay relays[] = {
+        { .id = 0, .GPIO_Port = RELAY1_GPIO_Port, .Pin = RELAY1_Pin },
+        { .id = 1, .GPIO_Port = RELAY2_GPIO_Port, .Pin = RELAY2_Pin },
+        { .id = 2, .GPIO_Port = RELAY3_GPIO_Port, .Pin = RELAY3_Pin },
+        { .id = 3, .GPIO_Port = RELAY4_GPIO_Port, .Pin = RELAY4_Pin },
+        { .id = 4, .GPIO_Port = RELAY5_GPIO_Port, .Pin = RELAY5_Pin },
+        { .id = 5, .GPIO_Port = RELAY6_GPIO_Port, .Pin = RELAY6_Pin },
+        { .id = 6, .GPIO_Port = RELAY7_GPIO_Port, .Pin = RELAY7_Pin },
+        { .id = 7, .GPIO_Port = RELAY8_GPIO_Port, .Pin = RELAY8_Pin },
+        { .id = 8, .GPIO_Port = RELAY9_GPIO_Port, .Pin = RELAY9_Pin },
+};
+
+static void SS_platform_relays_init() {
+    SS_relays_init(relays, sizeof(relays)/sizeof(relays[0]));
+}
 
 /********** MAIN INIT *********/
 
 void SS_platform_init() {
     SS_platform_servos_init();
     SS_platform_supply_init();
+    SS_platform_relays_init();
     SS_grazyna_init(&huart2);
 }

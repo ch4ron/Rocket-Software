@@ -5,9 +5,15 @@
  *      Author: maciek
  */
 
+#include <error/SS_error.h>
 #include "SS_com_protocol.h"
-#include "SS_servos.h"
 #include "stdio.h"
+#ifdef SS_USE_RELAYS
+#include "SS_relays.h"
+#endif
+#ifdef SS_USE_SERVOS
+#include "SS_servos.h"
+#endif
 
 ComStatus SS_com_handle_action(ComFrameContent *frame) {
     ComActionID action = frame->action;
@@ -25,10 +31,14 @@ ComStatus SS_com_handle_action(ComFrameContent *frame) {
 ComStatus SS_com_handle_request(ComFrameContent *frame) {
     ComDeviceID device = frame->device;
     switch(device) {
+#ifdef SS_USE_SERVOS
         case COM_SERVO_ID:
-            return SS_servos_handle_grazyna_request(frame);
+            return SS_servos_com_request(frame);
+#endif
+#ifdef SS_USE_RELAYS
         case COM_RELAY_ID:
-            break;
+            return SS_relays_com_request(frame);
+#endif
         case COM_PRESSURE_ID:
             break;
         case COM_SUPPLY_ID:
@@ -48,10 +58,14 @@ ComStatus SS_com_handle_request(ComFrameContent *frame) {
 ComStatus SS_com_handle_service(ComFrameContent *frame) {
     ComDeviceID device = frame->device;
     switch(device) {
+#ifdef SS_USE_SERVOS
         case COM_SERVO_ID:
-            return SS_servos_handle_grazyna_service(frame);
+            return SS_servos_com_service(frame);
+#endif
+#ifdef SS_USE_RELAYS
         case COM_RELAY_ID:
-            break;
+            return SS_relay_com_service(frame);
+#endif
         case COM_PRESSURE_ID:
             break;
         case COM_SUPPLY_ID:
@@ -63,7 +77,7 @@ ComStatus SS_com_handle_service(ComFrameContent *frame) {
         case COM_TENSOMETER_ID:
             break;
         default:
-            printf("Unsupported device: %d\r\n", frame->action);
+            SS_error("Unsupported device: %d\r\n", frame->action);
     }
     return COM_ERROR;
 }

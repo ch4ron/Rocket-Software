@@ -12,5 +12,5 @@ target_sources(${PROJECT_NAME} INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/SS_supply_tests.c)
 
 if(NOT TARGET adc)
-    message(FATAL_ERROR adc module required)
+    message(FATAL_ERROR "adc module required")
 endif()

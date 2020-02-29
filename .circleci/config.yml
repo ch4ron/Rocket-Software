@@ -14,6 +14,6 @@ jobs:
       - run:
           name: test
           command:
-              JUMPER=jumper python build.py simulate kromek --verbose
+              JUMPER=jumper python build.py simulate kromek --verbose --test
       - store_artifacts:
           path: BUILD/

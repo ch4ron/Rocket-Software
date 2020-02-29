@@ -5,8 +5,6 @@
  *      Author: maciek
  */
 
-#ifdef RUN_TESTS
-
 #include "SS_servos.h"
 #include "unity_fixture.h"
 #include "string.h"
@@ -42,6 +40,7 @@ TEST_GROUP_RUNNER(grazyna_servos) {
     RUN_TEST_CASE(grazyna_servos, get_closed_position);
     RUN_TEST_CASE(grazyna_servos, get_opened_position);
     RUN_TEST_CASE(grazyna_servos, get_range);
+    RUN_TEST_CASE(grazyna_servos, uninitialized_id);
 #ifndef SIMULATE
     RUN_TEST_CASE(grazyna_servos, disable);
 #endif
@@ -360,5 +359,22 @@ TEST(grazyna_servos, get_range) {
     TEST_ASSERT_EQUAL(UINT16, frame.data_type);
 }
 
-#endif
+Servo test_servo = {.id = 1, .tim = &htim3, .channel = TIM_CHANNEL_2};
 
+TEST(grazyna_servos, uninitialized_id) {
+    Servo *pointers[MAX_SERVO_COUNT];
+    memcpy(pointers, servo_pointers, MAX_SERVO_COUNT);
+    SS_servos_deinit();
+    SS_servo_init(&test_servo);
+    ComFrameContent frame = {
+            .action = COM_SERVICE,
+            .device = COM_SERVO_ID,
+            .id = 3,
+            .message_type = COM_SERVO_CLOSE };
+    ComStatus res = SS_com_handle_action(&frame);
+    TEST_ASSERT_EQUAL(COM_ERROR, res);
+    frame.id = 1;
+    ComStatus status = SS_com_handle_action(&frame);
+    TEST_ASSERT_EQUAL(COM_OK, status);
+    SS_servos_deinit();
+}

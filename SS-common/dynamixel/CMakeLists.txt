@@ -20,6 +20,5 @@ if(NOT TARGET fifo)
 endif()
 
 if(NOT TARGET mutex)
-    add_subdirectory(../mutex mutex)
-    target_link_libraries(${PROJECT_NAME} INTERFACE mutex)
+    message(FATAL_ERROR "fifo module required")
 endif()

@@ -52,6 +52,7 @@ typedef struct {
 extern void SS_platform_servos_init();
 void SS_servos_init(Servo *servos_array, uint8_t count);
 void SS_servo_init(Servo *servo);
+void SS_servos_deinit();
 void SS_servo_set_position(Servo *servo, uint16_t value);
 void SS_servo_open(Servo *servo);
 void SS_servo_close(Servo *servo);
@@ -59,8 +60,8 @@ void SS_servo_disable(Servo *servo);
 void SS_servo_set_closed_position(Servo *servo, uint16_t position);
 void SS_servo_set_opened_position(Servo *servo, uint16_t position);
 void SS_servos_SYSTICK(void);
-ComStatus SS_servos_handle_grazyna_service(ComFrameContent *frame);
-ComStatus SS_servos_handle_grazyna_request(ComFrameContent *frame);
+ComStatus SS_servos_com_service(ComFrameContent *frame);
+ComStatus SS_servos_com_request(ComFrameContent *frame);
 void SS_servos_read_json(char *json, jsmntok_t **tok);
 
 #endif /* SS_SERVOS_H_ */

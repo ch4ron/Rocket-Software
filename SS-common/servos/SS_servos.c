@@ -7,7 +7,6 @@
 
 #include "SS_servos.h"
 #include "stdio.h"
-#include "stdbool.h"
 #include "string.h"
 #include "SS_error.h"
 
@@ -30,7 +29,9 @@ static int8_t SS_servos_check_id(uint8_t id) {
         return -1;
     }
     if(servo_pointers[id] == NULL) {
-        SS_error("Servo id: %d not initialized");
+#ifndef RUN_TESTS
+        SS_error("Servo id: %d not initialized", id);
+#endif
         return -1;
     }
     return 0;
@@ -108,13 +109,17 @@ uint16_t SS_servo_get_width(uint16_t position) {
 /* position range 0 - 1000 */
 void SS_servo_set_position(Servo *servo, uint16_t position) {
     if(SS_servo_check_initialized(servo) != 0) return;
-    SS_enable_supply(servo->supply);
+    if(servo->supply != NULL) {
+        SS_enable_supply(servo->supply);
+    }
     uint16_t width = SS_servo_get_width(position);
     SS_servo_set_pulse_width(servo, width);
     servo->position = position;
 #ifndef SERVOS_NO_TIMEOUT
     servo->timeout = SERVO_TIMEOUT;
-    SS_supply_set_timeout(servo->supply, SERVO_TIMEOUT);
+    if(servo->supply != NULL) {
+        SS_supply_set_timeout(servo->supply, SERVO_TIMEOUT);
+    }
 #endif
 }
 
@@ -140,6 +145,20 @@ void SS_servos_init(Servo *servos_array, uint8_t count) {
     for(uint8_t i = 0; i < count; i++) {
         SS_servo_init(&servos_array[i]);
     }
+}
+
+static void SS_servo_deinit(Servo *servo) {
+    if(servo == NULL) return;
+    HAL_TIM_PWM_Stop(servo->tim, servo->channel);
+    HAL_TIM_Base_Stop(servo->tim);
+    HAL_TIM_Base_DeInit(servo->tim);
+}
+
+void SS_servos_deinit() {
+    for(uint8_t i = 0; i < MAX_SERVO_COUNT; i++) {
+        SS_servo_deinit(servo_pointers[i]);
+    }
+    memset(servo_pointers, 0, sizeof(servo_pointers));
 }
 
 void SS_servo_disable(Servo *servo) {
@@ -174,7 +193,7 @@ void SS_servos_SYSTICK() {
 #endif
 }
 
-ComStatus SS_servos_handle_grazyna_service(ComFrameContent *frame) {
+ComStatus SS_servos_com_service(ComFrameContent *frame) {
     if(SS_servos_check_id(frame->id) != 0) return COM_ERROR;
     ComServoID msgID = frame->message_type;
     Servo *servo = servo_pointers[frame->id];
@@ -209,7 +228,7 @@ ComStatus SS_servos_handle_grazyna_service(ComFrameContent *frame) {
     return COM_OK;
 }
 
-ComStatus SS_servos_handle_grazyna_request(ComFrameContent *frame) {
+ComStatus SS_servos_com_request(ComFrameContent *frame) {
     if(SS_servos_check_id(frame->id) != 0) return COM_ERROR;
     ComServoID msgID = frame->message_type;
     Servo *servo = servo_pointers[frame->id];

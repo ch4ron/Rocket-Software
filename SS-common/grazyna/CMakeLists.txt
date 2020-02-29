@@ -11,6 +11,5 @@ target_sources(${PROJECT_NAME} INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/SS_grazyna.c)
 
 if(NOT TARGET fifo)
-    add_subdirectory(../fifo fifo)
-    target_link_libraries(${PROJECT_NAME} INTERFACE fifo)
+    message(FATAL_ERROR "fifo module required")
 endif()
