@@ -5,9 +5,6 @@
  *      Author: maciek
  */
 
-#include "SS_config.h"
-
-
 #include "unity_fixture.h"
 #include "SS_ADS1258_unit_tests.h"
 

@@ -7,8 +7,9 @@
 
 #include "SS_measurements.h"
 #include "string.h"
+#include "SS_error.h"
 
-Measurement measurements[MEASUREMENTS_NUM];
+Measurement *measurement_pointers[MAX_MEASUREMENT_COUNT];
 uint8_t last_measurement;
 static float vcc;
 
@@ -17,25 +18,29 @@ void SS_measurements_chid_to_channel(uint8_t chid, uint8_t* reg_addr, uint8_t* r
 	*reg_mask = 1 << (chid % 8);
 }
 
-void SS_measurements_add(uint8_t chid) {
-	if(last_measurement >= MEASUREMENTS_NUM) return;
-	measurements[last_measurement].channel = chid;
-	uint8_t reg_addr, reg_mask;
-	SS_measurements_chid_to_channel(chid, &reg_addr, &reg_mask);
-	measurements[last_measurement].reg_address = reg_addr;
-	measurements[last_measurement++].reg_mask = reg_mask;
+void SS_measurement_init(Measurement *measurement) {
+    if(last_measurement >= MAX_MEASUREMENT_COUNT) {
+        SS_error("Max %d measurements are supported");
+        return;
+    }
+    measurement_pointers[last_measurement++] = measurement;
+    uint8_t reg_addr, reg_mask;
+    SS_measurements_chid_to_channel(measurement->channel_id, &reg_addr, &reg_mask);
+    measurement->reg_address = reg_addr;
+    measurement->reg_mask = reg_mask;
 }
 
 void SS_measurements_clear() {
-	memset(measurements, 0, sizeof(measurements));
+	memset(measurement_pointers, 0, sizeof(measurement_pointers));
 	last_measurement = 0;
 }
 
 void SS_measurements_start() {
+
 	uint8_t muxdif = 0, muxsg0 = 0, muxsg1 = 0, sysred = 0;
 	for(uint8_t i = 0; i < last_measurement; i++) {
-		uint8_t mask = measurements[i].reg_mask;
-		switch(measurements[i].reg_address) {
+		uint8_t mask = measurement_pointers[i]->reg_mask;
+		switch(measurement_pointers[i]->reg_address) {
 			case REG_ADDR_MUXDIF:
 				muxdif |= mask;
 				break;
@@ -54,28 +59,25 @@ void SS_measurements_start() {
 	SS_ADS1258_startMeasurements();
 }
 
-void SS_measurements_init() {
-    SS_measurements_read_VCC();
-	SS_measurements_start();
-	SS_ADS1258_startConversions();
-}
-
 void SS_measurements_parse(ADS1258_Measurement* meas) {
 	for(uint8_t i = 0; i < last_measurement; i++) {
-		if(measurements[i].channel == meas->channel) {
-			measurements[i].raw = meas->value;
+		if(measurement_pointers[i]->channel_id == meas->channel) {
+			measurement_pointers[i]->raw = meas->value;
 		}
 	}
 }
 
 float SS_measurements_read_VCC() {
     SS_measurements_clear();
-    SS_measurements_add(STATUS_CHID_VCC);
+    Measurement meas = {
+            .channel_id = STATUS_CHID_VCC,
+    };
+    SS_measurement_init(&meas);
 	SS_measurements_start();
 	SS_ADS1258_startConversions();
 	HAL_Delay(10);
 	for(uint8_t i = 0; i < 25; i++) {
-        vcc += measurements[0].raw / 786432.0f;
+        vcc += meas.raw / 786432.0f;
 	    HAL_Delay(1);
 	}
 	vcc /= 25;
@@ -83,29 +85,3 @@ float SS_measurements_read_VCC() {
     return vcc;
 }
 
-//void SS_measurements_read_json(char *json, jsmntok_t **tok) {
-//    for(uint8_t i = 0; i < sizeof(servos)/sizeof(servos[0]); i++) {
-//        int id, opened_pos, closed_pos;
-//        JsonData data[] = {
-//            {
-//                .name = "id",
-//                .type = JSON_INT,
-//                .data = &id
-//            },
-//            {
-//                .name = "closedPos",
-//                .type = JSON_INT,
-//                .data = &closed_pos
-//            },
-//            {
-//                .name = "openedPos",
-//                .type = JSON_INT,
-//                .data = &opened_pos
-//            },
-//        };
-//        SS_json_parse_data(data, sizeof(data)/sizeof(data[0]), json, tok[i]);
-//        servos[id].opened_position = opened_pos;
-//        servos[id].closed_position = closed_pos;
-//        servos[id].tok = tok[i];
-//    }
-//}

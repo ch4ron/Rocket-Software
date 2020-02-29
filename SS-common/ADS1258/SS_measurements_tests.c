@@ -26,7 +26,6 @@ TEST_TEAR_DOWN(measurements) {
 }
 
 extern void SS_measurements_chid_to_channel(uint8_t chid, uint8_t* reg_addr, uint8_t* reg_mask);
-extern void SS_measurements_start();
 
 TEST(measurements, chid_to_ch) {
 	uint8_t reg_addr, reg_mask;
@@ -75,11 +74,18 @@ TEST(measurements, chid_to_ch) {
 }
 
 TEST(measurements, start) {
-	SS_measurements_add(0x04);
-	SS_measurements_add(0x01);
-	SS_measurements_add(0x0A);
-	SS_measurements_add(0x17);
-	SS_measurements_add(STATUS_CHID_GAIN);
+    Measurement measurement[] = {
+            {.channel_id = 0x04 },
+            {.channel_id = 0x01 },
+            {.channel_id = 0x0A },
+            {.channel_id = 0x17 },
+            {.channel_id = STATUS_CHID_GAIN }
+    };
+	SS_measurement_init(&measurement[0]);
+    SS_measurement_init(&measurement[1]);
+    SS_measurement_init(&measurement[2]);
+    SS_measurement_init(&measurement[3]);
+    SS_measurement_init(&measurement[4]);
 	SS_measurements_start();
 	uint8_t reg = SS_ADS1258_readSingleRegister(REG_ADDR_MUXDIF);
 	TEST_ASSERT_EQUAL_HEX8(MUXDIF_DIFF1_ENABLE | MUXDIF_DIFF4_ENABLE, reg);
@@ -91,54 +97,62 @@ TEST(measurements, start) {
 	TEST_ASSERT_EQUAL_HEX8(SYSRED_GAIN_ENABLE, reg);
 }
 
-extern Measurement measurements[MEASUREMENTS_NUM];
+extern Measurement *measurement_pointers[MAX_MEASUREMENT_COUNT];
 
 TEST(measurements, values) {
-	SS_measurements_add(STATUS_CHID_OFFSET);
-	SS_measurements_add(STATUS_CHID_VCC);
-	SS_measurements_add(STATUS_CHID_TEMP);
-	SS_measurements_add(STATUS_CHID_GAIN);
-	SS_measurements_add(STATUS_CHID_REF);
+    Measurement measurement[] = {
+            {.channel_id = STATUS_CHID_OFFSET },
+            {.channel_id = STATUS_CHID_VCC },
+            {.channel_id = STATUS_CHID_TEMP },
+            {.channel_id = STATUS_CHID_GAIN },
+            {.channel_id = STATUS_CHID_REF },
+    };
+    SS_measurement_init(&measurement[0]);
+    SS_measurement_init(&measurement[1]);
+    SS_measurement_init(&measurement[2]);
+    SS_measurement_init(&measurement[3]);
+    SS_measurement_init(&measurement[4]);
 	SS_measurements_start();
 	HAL_Delay(5);
 	TEST_ASSERT_EQUAL(SYSRED_GAIN_ENABLE | SYSRED_OFFSET_ENABLE | SYSRED_REF_ENABLE | SYSRED_TEMP_ENABLE | SYSRED_VCC_ENABLE, SS_ADS1258_getRegisterValue(REG_ADDR_SYSRED));
 	HAL_Delay(50);
 	uint32_t lowerlimit, upperLimit, data;
-	for(uint8_t i = 0; i < MEASUREMENTS_NUM; i++) {
-		switch(measurements[i].channel) {
+	for(uint8_t i = 0; i < MAX_MEASUREMENT_COUNT; i++) {
+	    if(measurement_pointers[i] == NULL) return;
+		switch(measurement_pointers[i]->channel_id) {
 			case(STATUS_CHID_OFFSET):
 //				upperLimit = 0xFFFFFEE0;    // -91.5 uV
 				upperLimit = 0xFFFFFFFF;
 				lowerlimit = 0x00000120;    // +91.5 uV
-				data = measurements[i].raw;
+				data = measurement_pointers[i]->raw;
 				TEST_ASSERT_LESS_OR_EQUAL_HEX32(upperLimit, data);
 				TEST_ASSERT_GREATER_OR_EQUAL_HEX32(lowerlimit, data);
 				break;
 			case(STATUS_CHID_VCC):
 				lowerlimit = 0x00390000;    // 4.75 V
 				upperLimit = 0x003F0000;    // 5.25 V
-				data = measurements[i].raw;
+				data = measurement_pointers[i]->raw;
 				TEST_ASSERT_LESS_OR_EQUAL_HEX32(upperLimit, data);
 				TEST_ASSERT_GREATER_OR_EQUAL_HEX32(lowerlimit, data);
 				break;
 			case(STATUS_CHID_TEMP):
 				lowerlimit = 0x000384AE;   // 0 deg. C, with 5.25V reference
 				upperLimit = 0x002BB2B0;   // 50 deg. C with 0.50V reference
-				data = measurements[i].raw;
+				data = measurement_pointers[i]->raw;
 				TEST_ASSERT_LESS_OR_EQUAL_HEX32(upperLimit, data);
 				TEST_ASSERT_GREATER_OR_EQUAL_HEX32(lowerlimit, data);
 				break;
 			case(STATUS_CHID_GAIN):
 				lowerlimit = 0x0070CCCC;    // -0.6% V/V
 				upperLimit = 0x007F3333;    // +0.6% V/V
-				data = measurements[i].raw;
+				data = measurement_pointers[i]->raw;
 				TEST_ASSERT_LESS_OR_EQUAL_HEX32(upperLimit, data);
 				TEST_ASSERT_GREATER_OR_EQUAL_HEX32(lowerlimit, data);
 				break;
 			case(STATUS_CHID_REF):
 				lowerlimit = 0x00060000;    // 0.50 V
 				upperLimit = 0x003F0000;    // 5.25 V
-				data = measurements[i].raw;
+				data = measurement_pointers[i]->raw;
 				TEST_ASSERT_LESS_OR_EQUAL_HEX32(upperLimit, data);
 				TEST_ASSERT_GREATER_OR_EQUAL_HEX32(lowerlimit, data);
 				break;

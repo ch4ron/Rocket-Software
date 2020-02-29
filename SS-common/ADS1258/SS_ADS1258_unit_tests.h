@@ -40,10 +40,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "SS_ADS1258.h"
-//
+
 // Function prototypes
 //
-void SS_ADS1258_run_tests(void);
+void SS_ADS1258_run_tests();
 
 bool SS_ADS1258_waitForDRDYinterrupt(uint32_t timeout_ms);
 bool SS_ADS1258_waitForDataInterrupt(uint32_t timeout_ms);
@@ -52,4 +52,4 @@ void SS_ADS1258_set_data_interrupt_flag();
 
 #endif
 
-#endif /* ADS1258_UNIT_TESTS_H_ */
+#endif /* UNIT_TESTS_H_ */

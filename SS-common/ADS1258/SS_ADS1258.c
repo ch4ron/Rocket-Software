@@ -60,6 +60,7 @@
 uint8_t registerMap[NUM_REGISTERS];
 static ADS1258_Measurement last_measurement;
 static volatile bool measurements_started;
+SPI_HandleTypeDef *ads_spi;
 
 //****************************************************************************
 //
@@ -76,6 +77,13 @@ static volatile bool measurements_started;
 uint8_t SS_ADS1258_getRegisterValue(uint8_t address) {
     assert(address < NUM_REGISTERS);
     return registerMap[address];
+}
+
+void SS_ADS1258_init(SPI_HandleTypeDef *hspi) {
+    SS_measurements_read_VCC();
+    SS_measurements_start();
+    ads_spi = hspi;
+    SS_ADS1258_startConversions();
 }
 
 /**
@@ -147,7 +155,7 @@ uint8_t SS_ADS1258_readSingleRegister(uint8_t address) {
 
     /* Build TX array and send it */
     DataTx[0] = OPCODE_RREG | (address & OPCODE_A_MASK);
-    HAL_SPI_TransmitReceive(&ADS_SPI, DataTx, DataRx, 2, 100);
+    HAL_SPI_TransmitReceive(ads_spi, DataTx, DataRx, 2, 100);
 
     /* Update register array and return read result*/
     registerMap[address] = DataRx[1];
@@ -170,9 +178,9 @@ void SS_ADS1258_readMultipleRegisters(uint8_t startAddress, uint8_t count) {
     //
 
     uint8_t dataTx = OPCODE_RREG | OPCODE_MUL_MASK | (startAddress & OPCODE_A_MASK);
-    HAL_SPI_Transmit(&ADS_SPI, &dataTx, 1, 100);
+    HAL_SPI_Transmit(ads_spi, &dataTx, 1, 100);
     uint8_t rec[count];
-    HAL_SPI_Receive(&ADS_SPI, rec, count, 100);
+    HAL_SPI_Receive(ads_spi, rec, count, 100);
     uint8_t i;
     //change to memcpy
     for (i = startAddress; i < startAddress + count; i++) {
@@ -197,7 +205,7 @@ void SS_ADS1258_writeSingleRegister(uint8_t address, uint8_t data) {
     /* Build TX array and send it */
     DataTx[0] = ( OPCODE_WREG | (address & OPCODE_A_MASK));
     DataTx[1] = data;
-    HAL_SPI_Transmit(&ADS_SPI, DataTx, 2, 100);
+    HAL_SPI_Transmit(ads_spi, DataTx, 2, 100);
 
     /* Update register array */
     registerMap[address] = DataTx[1];
@@ -225,9 +233,9 @@ void SS_ADS1258_writeMultipleRegisters(uint8_t startAddress, uint8_t count, cons
     //
 
     uint8_t dataTx = OPCODE_WREG | OPCODE_MUL_MASK | (startAddress & OPCODE_A_MASK);
-    HAL_SPI_Transmit(&ADS_SPI, &dataTx, 1, 100);
+    HAL_SPI_Transmit(ads_spi, &dataTx, 1, 100);
     // write register data bytes
-    HAL_SPI_Transmit(&ADS_SPI, (uint8_t*) regData, count, 100);
+    HAL_SPI_Transmit(ads_spi, (uint8_t*) regData, count, 100);
     uint8_t i;
     //change to memcpy
     for (i = startAddress; i < startAddress + count; i++) {
@@ -249,7 +257,7 @@ void SS_ADS1258_sendCommand(uint8_t op_code) {
     assert(OPCODE_READ_COMMAND != op_code); /* Use "readData()" */
 
     /* SPI communication */
-    HAL_SPI_Transmit(&ADS_SPI, &op_code, 1, 100);
+    HAL_SPI_Transmit(ads_spi, &op_code, 1, 100);
 
     // Check for RESET command
     if (OPCODE_RESET == op_code) {
@@ -303,13 +311,13 @@ void SS_ADS1258_readDataDMA(readMode mode) {
         byteLength = 5;
         dataPosition = 2;
     }
-    HAL_SPI_TransmitReceive_DMA(&ADS_SPI, (uint8_t*) DataTx, (uint8_t*) DataRx, byteLength);
+    HAL_SPI_TransmitReceive_DMA(ads_spi, (uint8_t*) DataTx, (uint8_t*) DataRx, byteLength);
 }
 
 
 
 void SS_ADS1258_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
-    if (hspi == &ADS_SPI) {
+    if (hspi == ads_spi) {
         SS_ADS1258_parse_data();
     }
 }
@@ -384,7 +392,7 @@ int32_t SS_ADS1258_readData(uint8_t status[], uint8_t data[], readMode mode) {
         byteLength = 5;
         dataPosition = 2;
     }
-    HAL_SPI_TransmitReceive(&ADS_SPI, DataTx, DataRx, byteLength, 200);
+    HAL_SPI_TransmitReceive(ads_spi, DataTx, DataRx, byteLength, 200);
 
     //
     // Parse returned SPI data

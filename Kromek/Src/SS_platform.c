@@ -3,6 +3,7 @@
 //
 
 #include <relays/SS_relays.h>
+#include <ADS1258/SS_ADS1258.h>
 #include "SS_platform.h"
 #include "SS_servos.h"
 #include "SS_Grazyna.h"
@@ -103,5 +104,8 @@ void SS_platform_init() {
     SS_platform_servos_init();
     SS_platform_supply_init();
     SS_platform_relays_init();
+#ifndef SIMULATE
+    SS_ADS1258_init(&hspi2);
+#endif
     SS_grazyna_init(&huart2);
 }

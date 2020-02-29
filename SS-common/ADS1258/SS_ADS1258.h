@@ -39,8 +39,6 @@
 #include <stdint.h>
 #include "spi.h"
 
-#define ADS_SPI hspi2
-
 
 //*****************************************************************************
 //
@@ -451,6 +449,7 @@ typedef struct {
 	uint8_t channel;
 } ADS1258_Measurement;
 
+void SS_ADS1258_init(SPI_HandleTypeDef *hspi);
 void    SS_ADS1258_adcStartupRoutine(uint8_t muxdif, uint8_t muxsg0, uint8_t muxsg1, uint8_t sysred);
 int32_t SS_ADS1258_readData(uint8_t status[], uint8_t data[], readMode mode);
 uint8_t SS_ADS1258_readSingleRegister(uint8_t address);

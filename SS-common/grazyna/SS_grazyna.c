@@ -120,3 +120,4 @@ void SS_grazyna_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
        }
     }
 }
+
