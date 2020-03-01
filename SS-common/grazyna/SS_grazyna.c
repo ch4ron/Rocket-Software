@@ -47,11 +47,11 @@ void SS_grazyna_init(UART_HandleTypeDef *huart) {
 
 void SS_grazyna_main() {
     if(SS_fifo_get_data(&grazyna_fifo, &grazyna.frame)) {
-        SS_com_parse_frame(&grazyna.frame, &grazyna.frame_content);
-        SS_com_print_message_received(&grazyna.frame_content);
+        SS_com_handle_frame(&grazyna.frame);
         SS_grazyna_transmit(&grazyna.frame);
     }
 }
+
 
 uint32_t SS_grazyna_CRC_calculate(GrazynaFrame *grazyna_frame) {
     static uint32_t buff[3];
@@ -70,10 +70,10 @@ void SS_grazyna_prepare_tx_frame(ComFrame *com_frame, GrazynaFrame *grazyna_fram
 //    printf("\r\ncrc:0x%04x", calculated_crc);
 }
 
-/* Add mutex for transmission */
+/* TODO Add mutex for transmission */
 void SS_grazyna_transmit(ComFrame *frame) {
     SS_grazyna_prepare_tx_frame(frame, &grazyna.tx_frame);
-        SS_com_parse_frame(frame, &grazyna.frame_content);
+//    SS_com_parse_frame(frame, &grazyna.frame_content);
     /*
     SS_com_print_message_sent(&frame_content);
     uint8_t *p = (uint8_t*) &grazyna.tx_frame;
@@ -82,6 +82,7 @@ void SS_grazyna_transmit(ComFrame *frame) {
         printf("0x%02x, ", p[i]);
     }
     */
+    printf("tx frame\r\n");
 #ifndef SIMULATE
     HAL_UART_Transmit_DMA(grazyna.huart, (uint8_t*) &grazyna.tx_frame, sizeof(grazyna.tx_frame));
 #else

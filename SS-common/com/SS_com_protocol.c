@@ -13,7 +13,19 @@
 #endif
 #ifdef SS_USE_SERVOS
 #include "SS_servos.h"
+#include "SS_com_debug.h"
+
 #endif
+
+static ComFrameContent frame_content;
+
+ComStatus SS_com_handle_frame(ComFrame *frame) {
+    SS_com_parse_frame(frame, &frame_content);
+    SS_com_print_message_received(&frame_content);
+    ComStatus res = SS_com_handle_action(&frame_content);
+    SS_com_create_frame(frame, &frame_content);
+    return res;
+}
 
 ComStatus SS_com_handle_action(ComFrameContent *frame) {
     ComActionID action = frame->action;
@@ -30,14 +42,17 @@ ComStatus SS_com_handle_action(ComFrameContent *frame) {
 
 ComStatus SS_com_handle_request(ComFrameContent *frame) {
     ComDeviceID device = frame->device;
+    ComStatus res = COM_OK;
     switch(device) {
 #ifdef SS_USE_SERVOS
         case COM_SERVO_ID:
-            return SS_servos_com_request(frame);
+            res = SS_servos_com_request(frame);
+            break;
 #endif
 #ifdef SS_USE_RELAYS
         case COM_RELAY_ID:
-            return SS_relays_com_request(frame);
+            res = SS_relays_com_request(frame);
+            break;
 #endif
         case COM_PRESSURE_ID:
             break;
@@ -50,21 +65,26 @@ ComStatus SS_com_handle_request(ComFrameContent *frame) {
         case COM_TENSOMETER_ID:
             break;
         default:
+            res = COM_ERROR;
             printf("Unsupported device: %d\r\n", frame->action);
     }
-    return COM_ERROR;
+    frame->action = COM_RESPONSE;
+    return res;
 }
 
 ComStatus SS_com_handle_service(ComFrameContent *frame) {
     ComDeviceID device = frame->device;
+    ComStatus res = COM_OK;
     switch(device) {
 #ifdef SS_USE_SERVOS
         case COM_SERVO_ID:
-            return SS_servos_com_service(frame);
+            res = SS_servos_com_service(frame);
+            break;
 #endif
 #ifdef SS_USE_RELAYS
         case COM_RELAY_ID:
-            return SS_relay_com_service(frame);
+            res = SS_relay_com_service(frame);
+            break;
 #endif
         case COM_PRESSURE_ID:
             break;
@@ -77,9 +97,11 @@ ComStatus SS_com_handle_service(ComFrameContent *frame) {
         case COM_TENSOMETER_ID:
             break;
         default:
+            res = COM_ERROR;
             SS_error("Unsupported device: %d\r\n", frame->action);
     }
-    return COM_ERROR;
+    frame->action = COM_ACK;
+    return res;
 }
 
 void SS_com_add_payload_to_frame(ComFrameContent *frame, ComDataType type, void *payload) {

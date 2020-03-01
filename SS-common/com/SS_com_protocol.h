@@ -36,6 +36,7 @@ typedef enum {
     COM_ERROR
 } ComStatus;
 
+ComStatus SS_com_handle_frame(ComFrame *frame);
 ComStatus SS_com_handle_action(ComFrameContent *frame);
 ComStatus SS_com_handle_request(ComFrameContent *frame);
 ComStatus SS_com_handle_service(ComFrameContent *frame);
