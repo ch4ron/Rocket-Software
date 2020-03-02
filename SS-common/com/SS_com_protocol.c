@@ -19,10 +19,15 @@
 
 static ComFrameContent frame_content;
 
+/* Warning, the the functions in this module modify the received frame */
+
 ComStatus SS_com_handle_frame(ComFrame *frame) {
     SS_com_parse_frame(frame, &frame_content);
     SS_com_print_message_received(&frame_content);
     ComStatus res = SS_com_handle_action(&frame_content);
+    uint8_t source = frame_content.source;
+    frame_content.source = frame_content.destination;
+    frame_content.destination = source;
     SS_com_create_frame(frame, &frame_content);
     return res;
 }
@@ -35,7 +40,7 @@ ComStatus SS_com_handle_action(ComFrameContent *frame) {
         case COM_SERVICE:
             return SS_com_handle_service(frame);
         default:
-            printf("Unsupported action: %d\r\n", frame->action);
+            SS_error("Unsupported action: %d\r\n", frame->action);
     }
     return COM_ERROR;
 }

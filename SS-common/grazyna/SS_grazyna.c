@@ -49,6 +49,9 @@ void SS_grazyna_main() {
     if(SS_fifo_get_data(&grazyna_fifo, &grazyna.frame)) {
         SS_com_handle_frame(&grazyna.frame);
         SS_grazyna_transmit(&grazyna.frame);
+        ComFrameContent frame_content;
+        SS_com_parse_frame(&grazyna.frame, &frame_content);
+        SS_com_print_message_sent(&frame_content);
     }
 }
 
@@ -82,7 +85,6 @@ void SS_grazyna_transmit(ComFrame *frame) {
         printf("0x%02x, ", p[i]);
     }
     */
-    printf("tx frame\r\n");
 #ifndef SIMULATE
     HAL_UART_Transmit_DMA(grazyna.huart, (uint8_t*) &grazyna.tx_frame, sizeof(grazyna.tx_frame));
 #else

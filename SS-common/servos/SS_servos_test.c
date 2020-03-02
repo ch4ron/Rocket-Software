@@ -374,6 +374,7 @@ TEST(grazyna_servos, uninitialized_id) {
     ComStatus res = SS_com_handle_action(&frame);
     TEST_ASSERT_EQUAL(COM_ERROR, res);
     frame.id = 1;
+    frame.action = COM_SERVICE;
     ComStatus status = SS_com_handle_action(&frame);
     TEST_ASSERT_EQUAL(COM_OK, status);
     SS_servos_deinit();
