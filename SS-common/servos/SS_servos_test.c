@@ -122,6 +122,7 @@ TEST(servos, freq300_range2000) {
     TEST_ASSERT_EQUAL_INT(1000, servo_pointers[1]->position);
 }
 
+#ifdef SS_USE_SUPPLY
 TEST(servos, timeout) {
     servos_config.MIN_PULSE_WIDTH = 1000;
     servos_config.MAX_PULSE_WIDTH = 2000;
@@ -148,6 +149,7 @@ TEST(servos, timeout) {
         TEST_ASSERT_TRUE(SS_supply_get_state(servo_pointers[i]->supply));
     }
 }
+#endif
 
 static void test_grazyna_servo_open(uint8_t servo_id) {
     SS_servo_close(servo_pointers[servo_id]);
@@ -360,10 +362,11 @@ TEST(grazyna_servos, get_range) {
     TEST_ASSERT_EQUAL(UINT16, frame.data_type);
 }
 
-Servo test_servo = {.id = 1, .tim = &htim3, .channel = TIM_CHANNEL_2};
+Servo test_servo = {.id = 1, .channel = TIM_CHANNEL_2};
 
 TEST(grazyna_servos, uninitialized_id) {
     Servo *pointers[MAX_SERVO_COUNT];
+    test_servo.tim = servo_pointers[0]->tim;
     memcpy(pointers, servo_pointers, MAX_SERVO_COUNT);
     SS_servos_deinit();
     SS_servo_init(&test_servo);

@@ -2,13 +2,8 @@
 // Created by maciek on 28.02.2020.
 //
 
-#include "SS_relays.h"
-#include "SS_ADS1258.h"
+#include "SS_common.h"
 #include "SS_platform.h"
-#include "SS_servos.h"
-#include "SS_measurements.h"
-#include "SS_Grazyna.h"
-
 
 /********** SERVOS *********/
 
@@ -25,6 +20,17 @@ Servo servos[] = {
 
 void SS_platform_servos_init() {
     SS_servos_init(servos, sizeof(servos) / sizeof(servos[0]));
+}
+
+/********** ADC *********/
+
+static void SS_platform_adc_init() {
+#if defined(SS_USE_ADC) && !defined(SIMULATE)
+    ADC_HandleTypeDef *adc[] = {
+            &hadc1, &hadc2, &hadc3
+    };
+    SS_adc_init(adc, sizeof(adc)/sizeof(adc[0]));
+#endif
 }
 
 /********** SUPPLY *********/
@@ -115,6 +121,7 @@ static void SS_platform_ADS1258_init() {
 /********** MAIN INIT *********/
 
 void SS_platform_init() {
+    SS_platform_adc_init();
     SS_platform_servos_init();
     SS_platform_supply_init();
     SS_platform_relays_init();

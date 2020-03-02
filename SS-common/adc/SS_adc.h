@@ -9,6 +9,7 @@
 #define SS_ADC_H_
 
 #include "stdint.h"
+#include "adc.h"
 
 /* Note that channelId is equal to channel's rank, counting from 1 (dependent on CubeMX configuration) not ADC Channel */
 typedef struct {
@@ -18,7 +19,7 @@ typedef struct {
     uint8_t adc;
 } AdcMeasurement;
 
-void SS_adc_init();
+void SS_adc_init(ADC_HandleTypeDef *adc[], uint8_t count);
 void SS_adc_add_measurement(AdcMeasurement *meas);
 
 #endif /* SS_KROMEK_ADC_H_ */

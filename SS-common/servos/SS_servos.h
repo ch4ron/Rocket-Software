@@ -10,9 +10,12 @@
 
 #include "SS_com_protocol.h"
 #include "stm32f4xx_hal.h"
-#include "SS_supply.h"
 #include "tim.h"
 #include "SS_json_parser.h"
+
+#ifdef SS_USE_SUPPLY
+#include "SS_supply.h"
+#endif
 
 #define SERVO_TIMEOUT 1500
 #define MAX_SERVO_COUNT 8
@@ -25,7 +28,9 @@ typedef struct {
 	__IO uint32_t *pointer;
 	TIM_HandleTypeDef *tim;
 	uint32_t channel;
+#ifdef SS_USE_SUPPLY
 	Supply *supply;
+#endif
 	uint32_t timeout;
 	jsmntok_t *tok;
 } Servo;

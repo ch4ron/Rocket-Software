@@ -109,17 +109,21 @@ uint16_t SS_servo_get_width(uint16_t position) {
 /* position range 0 - 1000 */
 void SS_servo_set_position(Servo *servo, uint16_t position) {
     if(SS_servo_check_initialized(servo) != 0) return;
+#ifdef SS_USE_SUPPLY
     if(servo->supply != NULL) {
         SS_enable_supply(servo->supply);
     }
+#endif
     uint16_t width = SS_servo_get_width(position);
     SS_servo_set_pulse_width(servo, width);
     servo->position = position;
 #ifndef SERVOS_NO_TIMEOUT
     servo->timeout = SERVO_TIMEOUT;
+#ifdef SS_USE_SUPPLY
     if(servo->supply != NULL) {
         SS_supply_set_timeout(servo->supply, SERVO_TIMEOUT);
     }
+#endif
 #endif
 }
 

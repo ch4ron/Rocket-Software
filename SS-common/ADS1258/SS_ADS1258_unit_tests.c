@@ -85,12 +85,14 @@ TEST_TEAR_DOWN(ADS1258_Functionality) {
 }
 
 void SS_ADS1258_run_tests() {
+#ifndef SIMULATE
     SS_ADS1258_stopMeasurements();
     HAL_Delay(50); // Delay in case we are calling this function while the power supplies are still settling.
     SS_ADS1258_toggleRESET(); // NOTE: We are assuming that this function is working before we've tested it.
     RUN_TEST_GROUP(ADS1258_GPIO);
     RUN_TEST_GROUP(ADS1258_Functionality);
     SS_ADS1258_startMeasurements();
+#endif
 }
 
 ////////////////////////////////   TEST CASES   ////////////////////////////////

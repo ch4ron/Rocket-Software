@@ -13,9 +13,11 @@ TEST_GROUP(measurements);
 
 TEST_GROUP_RUNNER(measurements) {
 	RUN_TEST_CASE(measurements, chid_to_ch);
+#ifndef SIMULATE
 	RUN_TEST_CASE(measurements, start);
 	RUN_TEST_CASE(measurements, values);
 	RUN_TEST_CASE(measurements, read_vcc);
+#endif
 }
 
 TEST_SETUP(measurements) {}

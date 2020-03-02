@@ -55,7 +55,6 @@ file(GLOB_RECURSE SOURCES
                 "Drivers/*.*"
                 "Inc/*.*"
                 "Src/*.*"
-                "Test/*.*"
                 "startup/*.*")
 
 include_directories(Inc

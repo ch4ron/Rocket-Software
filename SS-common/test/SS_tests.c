@@ -6,34 +6,51 @@
  */
 
 #include "unity_fixture.h"
+
+/* TODO remove this header */
+#ifdef SS_USE_ADS1258
 #include "SS_ADS1258_unit_tests.h"
+#endif
 
 #ifdef SIMULATE
 #include "jumper.h"
 #endif
 
 static void tests() {
-#ifndef SIMULATE
+#ifdef SS_USE_ADS1258
     SS_ADS1258_run_tests();
     RUN_TEST_GROUP(measurements);
-//    RUN_TEST_GROUP(dynamixel);
-/* Disable mutex test for now, as it takes a long time and causes troubles
- * (But current implementation works correctly */
-//    RUN_TEST_GROUP(mutex);
-//    RUN_TEST_GROUP(supply_control);
 #endif
+#ifdef SS_USE_GRAZYNA
+//    RUN_TEST_GROUP(grazyna);
+#endif
+#ifdef SS_USE_SERVOS
     RUN_TEST_GROUP(servos);
     RUN_TEST_GROUP(grazyna_servos);
-    RUN_TEST_GROUP(com);
+#endif
+#ifdef SS_USE_SEQUENCE
     RUN_TEST_GROUP(sequence);
+#endif
+#ifdef SS_USE_COM
+    RUN_TEST_GROUP(com);
+#endif
+#ifdef SS_USE_JSON_SETTINGS
     RUN_TEST_GROUP(parser);
+#endif
+#ifdef SS_USE_FIFO
     RUN_TEST_GROUP(fifo);
+#endif
 #ifdef SS_USE_RELAYS
     RUN_TEST_GROUP(relays);
 #endif
 #ifdef SS_USE_DYNAMIXEL
+    RUN_TEST_GROUP(dynamixel);
     RUN_TEST_GROUP(dynamixel_logic);
 #endif
+/* Disable mutex test for now, as it takes a long time and causes troubles
+ * (But current implementation works correctly */
+//    RUN_TEST_GROUP(mutex);
+//    RUN_TEST_GROUP(supply_control);
 }
 
 /* Enable verbose output */

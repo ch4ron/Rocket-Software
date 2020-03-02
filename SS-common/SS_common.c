@@ -4,27 +4,7 @@
 #include "SS_common.h"
 #include "stdio.h"
 
-#ifdef SS_USE_ADC
-#include "SS_adc.h"
-#endif
-#ifdef SS_USE_ADS1258
-#include "SS_ADS1258.h"
-#include "SS_measurements.h"
-#endif
-#ifdef SS_USE_DYNAMIXEL
-#include "SS_dynamixel.h"
-#endif
-#ifdef SS_USE_SUPPLY
-#include "SS_supply.h"
-#endif
-#ifdef SS_USE_GRAZYNA
-#include "SS_Grazyna.h"
-#endif
-
 void SS_init() {
-#if defined(SS_USE_ADC) && !defined(SIMULATE)
-    SS_adc_init();
-#endif
 #ifdef SS_USE_DYNAMIXEL
 
 #endif

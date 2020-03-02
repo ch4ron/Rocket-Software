@@ -5,9 +5,8 @@
  *      Author: maciek
  */
 
-#include "adc.h"
-#include "stm32f4xx_hal.h"
 #include "SS_adc.h"
+#include "stm32f4xx_hal.h"
 
 #define ADC1_NUMBER_OF_CHANNELS 6
 #define ADC2_NUMBER_OF_CHANNELS 6
@@ -23,10 +22,10 @@ static AdcMeasurement *adc2_pointers[ADC2_NUMBER_OF_CHANNELS];
 static AdcMeasurement *adc3_pointers[ADC3_NUMBER_OF_CHANNELS];
 static float vdd = 3.3f;
 
-void SS_adc_init() {
-    HAL_ADC_Start_DMA(&hadc1, (uint32_t*) adc1_raw, ADC1_NUMBER_OF_CHANNELS);
-    HAL_ADC_Start_DMA(&hadc2, (uint32_t*) adc2_raw, ADC2_NUMBER_OF_CHANNELS);
-    HAL_ADC_Start_DMA(&hadc3, (uint32_t*) adc3_raw, ADC3_NUMBER_OF_CHANNELS);
+void SS_adc_init(ADC_HandleTypeDef *adc[], uint8_t count) {
+    for(uint8_t i = 0; i < count; i++) {
+        HAL_ADC_Start_DMA(adc[i], (uint32_t *) adc1_raw, ADC1_NUMBER_OF_CHANNELS);
+    }
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
