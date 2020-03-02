@@ -97,7 +97,6 @@ static void SS_grazyna_handle_frame() {
     if(grazyna.rx_frame.crc == calculated_crc) {
         SS_fifo_put_data(&grazyna_fifo, &grazyna.rx_frame.com_frame);
     }
-    SS_fifo_put_data(&grazyna_fifo, &grazyna.rx_frame.com_frame);
     grazyna.grazyna_state = GRAZYNA_LOOKING_FOR_HEADER;
     SS_grazyna_receive((uint8_t*) &grazyna.rx_frame, sizeof(grazyna.rx_frame.header));
 }
