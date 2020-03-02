@@ -22,53 +22,53 @@ TEST_SETUP(measurements) {}
 
 TEST_TEAR_DOWN(measurements) {
 	SS_ADS1258_stopMeasurements();
-	SS_measurements_clear();
+    SS_ADS1258_measurements_clear();
 }
 
-extern void SS_measurements_chid_to_channel(uint8_t chid, uint8_t* reg_addr, uint8_t* reg_mask);
+extern void SS_ADS1258_measurements_chid_to_channel(uint8_t chid, uint8_t* reg_addr, uint8_t* reg_mask);
 
 TEST(measurements, chid_to_ch) {
 	uint8_t reg_addr, reg_mask;
-	SS_measurements_chid_to_channel(0, &reg_addr, &reg_mask);
+    SS_ADS1258_measurements_chid_to_channel(0, &reg_addr, &reg_mask);
 	TEST_ASSERT_EQUAL(REG_ADDR_MUXDIF, reg_addr);
 	TEST_ASSERT_EQUAL(MUXDIF_DIFF0_ENABLE, reg_mask);
-	SS_measurements_chid_to_channel(3, &reg_addr, &reg_mask);
+    SS_ADS1258_measurements_chid_to_channel(3, &reg_addr, &reg_mask);
 	TEST_ASSERT_EQUAL(REG_ADDR_MUXDIF, reg_addr);
 	TEST_ASSERT_EQUAL(MUXDIF_DIFF3_ENABLE, reg_mask);
-	SS_measurements_chid_to_channel(7, &reg_addr, &reg_mask);
+    SS_ADS1258_measurements_chid_to_channel(7, &reg_addr, &reg_mask);
 	TEST_ASSERT_EQUAL(REG_ADDR_MUXDIF, reg_addr);
 	TEST_ASSERT_EQUAL(MUXDIF_DIFF7_ENABLE, reg_mask);
-	SS_measurements_chid_to_channel(8, &reg_addr, &reg_mask);
+    SS_ADS1258_measurements_chid_to_channel(8, &reg_addr, &reg_mask);
 	TEST_ASSERT_EQUAL(REG_ADDR_MUXSG0, reg_addr);
 	TEST_ASSERT_EQUAL(MUXSG0_AIN0_ENABLE, reg_mask);
-	SS_measurements_chid_to_channel(0x0B, &reg_addr, &reg_mask);
+    SS_ADS1258_measurements_chid_to_channel(0x0B, &reg_addr, &reg_mask);
 	TEST_ASSERT_EQUAL(REG_ADDR_MUXSG0, reg_addr);
 	TEST_ASSERT_EQUAL(MUXSG0_AIN3_ENABLE, reg_mask);
-	SS_measurements_chid_to_channel(0x0F, &reg_addr, &reg_mask);
+    SS_ADS1258_measurements_chid_to_channel(0x0F, &reg_addr, &reg_mask);
 	TEST_ASSERT_EQUAL(REG_ADDR_MUXSG0, reg_addr);
 	TEST_ASSERT_EQUAL(MUXSG0_AIN7_ENABLE, reg_mask);
-	SS_measurements_chid_to_channel(0x10, &reg_addr, &reg_mask);
+    SS_ADS1258_measurements_chid_to_channel(0x10, &reg_addr, &reg_mask);
 	TEST_ASSERT_EQUAL(REG_ADDR_MUXSG1, reg_addr);
 	TEST_ASSERT_EQUAL(MUXSG1_AIN8_ENABLE, reg_mask);
-	SS_measurements_chid_to_channel(0x13, &reg_addr, &reg_mask);
+    SS_ADS1258_measurements_chid_to_channel(0x13, &reg_addr, &reg_mask);
 	TEST_ASSERT_EQUAL(REG_ADDR_MUXSG1, reg_addr);
 	TEST_ASSERT_EQUAL(MUXSG1_AIN11_ENABLE, reg_mask);
-	SS_measurements_chid_to_channel(0x17, &reg_addr, &reg_mask);
+    SS_ADS1258_measurements_chid_to_channel(0x17, &reg_addr, &reg_mask);
 	TEST_ASSERT_EQUAL(REG_ADDR_MUXSG1, reg_addr);
 	TEST_ASSERT_EQUAL(MUXSG1_AIN15_ENABLE, reg_mask);
-	SS_measurements_chid_to_channel(STATUS_CHID_OFFSET, &reg_addr, &reg_mask);
+    SS_ADS1258_measurements_chid_to_channel(STATUS_CHID_OFFSET, &reg_addr, &reg_mask);
 	TEST_ASSERT_EQUAL(REG_ADDR_SYSRED, reg_addr);
 	TEST_ASSERT_EQUAL(SYSRED_OFFSET_ENABLE, reg_mask);
-	SS_measurements_chid_to_channel(STATUS_CHID_VCC, &reg_addr, &reg_mask);
+    SS_ADS1258_measurements_chid_to_channel(STATUS_CHID_VCC, &reg_addr, &reg_mask);
 	TEST_ASSERT_EQUAL(REG_ADDR_SYSRED, reg_addr);
 	TEST_ASSERT_EQUAL(SYSRED_VCC_ENABLE, reg_mask);
-	SS_measurements_chid_to_channel(STATUS_CHID_TEMP, &reg_addr, &reg_mask);
+    SS_ADS1258_measurements_chid_to_channel(STATUS_CHID_TEMP, &reg_addr, &reg_mask);
 	TEST_ASSERT_EQUAL(REG_ADDR_SYSRED, reg_addr);
 	TEST_ASSERT_EQUAL(SYSRED_TEMP_ENABLE, reg_mask);
-	SS_measurements_chid_to_channel(STATUS_CHID_GAIN, &reg_addr, &reg_mask);
+    SS_ADS1258_measurements_chid_to_channel(STATUS_CHID_GAIN, &reg_addr, &reg_mask);
 	TEST_ASSERT_EQUAL(REG_ADDR_SYSRED, reg_addr);
 	TEST_ASSERT_EQUAL(SYSRED_GAIN_ENABLE, reg_mask);
-	SS_measurements_chid_to_channel(STATUS_CHID_REF, &reg_addr, &reg_mask);
+    SS_ADS1258_measurements_chid_to_channel(STATUS_CHID_REF, &reg_addr, &reg_mask);
 	TEST_ASSERT_EQUAL(REG_ADDR_SYSRED, reg_addr);
 	TEST_ASSERT_EQUAL(SYSRED_REF_ENABLE, reg_mask);
 }
@@ -81,12 +81,8 @@ TEST(measurements, start) {
             {.channel_id = 0x17 },
             {.channel_id = STATUS_CHID_GAIN }
     };
-	SS_measurement_init(&measurement[0]);
-    SS_measurement_init(&measurement[1]);
-    SS_measurement_init(&measurement[2]);
-    SS_measurement_init(&measurement[3]);
-    SS_measurement_init(&measurement[4]);
-	SS_measurements_start();
+    SS_ADS1258_measurements_init(measurement, sizeof(measurement) / sizeof(measurement[0]));
+    SS_ADS1258_measurements_start();
 	uint8_t reg = SS_ADS1258_readSingleRegister(REG_ADDR_MUXDIF);
 	TEST_ASSERT_EQUAL_HEX8(MUXDIF_DIFF1_ENABLE | MUXDIF_DIFF4_ENABLE, reg);
 	reg = SS_ADS1258_readSingleRegister(REG_ADDR_MUXSG0);
@@ -107,12 +103,8 @@ TEST(measurements, values) {
             {.channel_id = STATUS_CHID_GAIN },
             {.channel_id = STATUS_CHID_REF },
     };
-    SS_measurement_init(&measurement[0]);
-    SS_measurement_init(&measurement[1]);
-    SS_measurement_init(&measurement[2]);
-    SS_measurement_init(&measurement[3]);
-    SS_measurement_init(&measurement[4]);
-	SS_measurements_start();
+    SS_ADS1258_measurements_init(measurement, sizeof(measurement) / sizeof(measurement[0]));
+    SS_ADS1258_measurements_start();
 	HAL_Delay(5);
 	TEST_ASSERT_EQUAL(SYSRED_GAIN_ENABLE | SYSRED_OFFSET_ENABLE | SYSRED_REF_ENABLE | SYSRED_TEMP_ENABLE | SYSRED_VCC_ENABLE, SS_ADS1258_getRegisterValue(REG_ADDR_SYSRED));
 	HAL_Delay(50);
@@ -161,6 +153,6 @@ TEST(measurements, values) {
 }
 
 TEST(measurements, read_vcc) {
-    float vcc = SS_measurements_read_VCC();
+    float vcc = SS_ADS1258_measurements_read_VCC();
     TEST_ASSERT_FLOAT_WITHIN(0.1f, 5.0f, vcc);
 }

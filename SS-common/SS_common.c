@@ -38,7 +38,7 @@ void SS_init() {
 
 /* These modules need to be initialized after tests */
 #ifdef SS_USE_ADS1258
-//  SS_measurements_init();
+//  SS_ADS1258_measurements_init();
 #endif
     printf("Elon!\r\n");
 //  SS_settings_read_json(settings_json);

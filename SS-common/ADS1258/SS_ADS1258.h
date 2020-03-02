@@ -462,6 +462,7 @@ void    SS_ADS1258_writeSingleRegister(uint8_t address, uint8_t data);
 void    SS_ADS1258_writeMultipleRegisters(uint8_t startAddress, uint8_t count, const uint8_t regData[]);
 void    SS_ADS1258_toggleRESET(void);
 
+void SS_ADS1258_Systick();
 
 void SS_ADS1258_parse_data();
 void SS_ADS1258_readDataDMA(readMode mode);

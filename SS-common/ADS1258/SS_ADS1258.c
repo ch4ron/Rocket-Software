@@ -80,9 +80,9 @@ uint8_t SS_ADS1258_getRegisterValue(uint8_t address) {
 }
 
 void SS_ADS1258_init(SPI_HandleTypeDef *hspi) {
-    SS_measurements_read_VCC();
     ads_spi = hspi;
-    SS_measurements_start();
+    SS_ADS1258_measurements_read_VREF();
+    SS_ADS1258_measurements_start();
     SS_ADS1258_startConversions();
 }
 
@@ -280,7 +280,7 @@ void SS_ADS1258_startConversions(void) {
 }
 
 void SS_ADS1258_startMeasurements(void) {
-    HAL_GPIO_WritePin(ADS_START_GPIO_Port, ADS_START_Pin, SET);
+    SS_ADS1258_startConversions();
     measurements_started = true;
 }
 
@@ -347,7 +347,7 @@ void SS_ADS1258_parse_data() {
     int32_t lowerByte = ((int32_t) DataRx[dataPosition + 2] & 0xFF) << 0;
 
     last_measurement.value = (signByte | upperByte | middleByte | lowerByte);
-    SS_measurements_parse(&last_measurement);
+    SS_ADS1258_measurements_parse(&last_measurement);
 #ifdef RUN_TESTS
     SS_ADS1258_set_data_interrupt_flag();
 #endif

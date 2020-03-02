@@ -88,4 +88,7 @@ void HAL_SYSTICK_Callback() {
 #ifdef SS_USE_SEQUENCE
     SS_sequence_SYSTICK();
 #endif
+#ifdef SS_USE_ADS1258
+    SS_ADS1258_Systick();
+#endif
 }

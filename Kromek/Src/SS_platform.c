@@ -14,13 +14,13 @@
 
 Servo servos[] = {
         {.id = 0, .tim = &htim3, .channel = TIM_CHANNEL_2, .supply = &servos1_supply},
-        {.id = 1,.tim = &htim1, .channel = TIM_CHANNEL_3, .supply = &servos1_supply},
-        {.id = 2,.tim = &htim1, .channel = TIM_CHANNEL_2, .supply = &servos1_supply},
-        {.id = 3,.tim = &htim1, .channel = TIM_CHANNEL_1, .supply = &servos1_supply},
-        {.id = 4,.tim = &htim3, .channel = TIM_CHANNEL_4, .supply = &servos2_supply},
-        {.id = 5,.tim = &htim3, .channel = TIM_CHANNEL_3, .supply = &servos2_supply},
-        {.id = 6,.tim = &htim8, .channel = TIM_CHANNEL_2, .supply = &servos2_supply},
-        {.id = 7,.tim = &htim3, .channel = TIM_CHANNEL_1, .supply = &servos2_supply},
+        {.id = 1, .tim = &htim1, .channel = TIM_CHANNEL_3, .supply = &servos1_supply},
+        {.id = 2, .tim = &htim1, .channel = TIM_CHANNEL_2, .supply = &servos1_supply},
+        {.id = 3, .tim = &htim1, .channel = TIM_CHANNEL_1, .supply = &servos1_supply},
+        {.id = 4, .tim = &htim3, .channel = TIM_CHANNEL_4, .supply = &servos2_supply},
+        {.id = 5, .tim = &htim3, .channel = TIM_CHANNEL_3, .supply = &servos2_supply},
+        {.id = 6, .tim = &htim8, .channel = TIM_CHANNEL_2, .supply = &servos2_supply},
+        {.id = 7, .tim = &htim3, .channel = TIM_CHANNEL_1, .supply = &servos2_supply},
 };
 
 void SS_platform_servos_init() {
@@ -84,29 +84,31 @@ static void SS_platform_supply_init() {
 /********** RELAYS *********/
 
 Relay relays[] = {
-        { .id = 0, .GPIO_Port = RELAY1_GPIO_Port, .Pin = RELAY1_Pin },
-        { .id = 1, .GPIO_Port = RELAY2_GPIO_Port, .Pin = RELAY2_Pin },
-        { .id = 2, .GPIO_Port = RELAY3_GPIO_Port, .Pin = RELAY3_Pin },
-        { .id = 3, .GPIO_Port = RELAY4_GPIO_Port, .Pin = RELAY4_Pin },
-        { .id = 4, .GPIO_Port = RELAY5_GPIO_Port, .Pin = RELAY5_Pin },
-        { .id = 5, .GPIO_Port = RELAY6_GPIO_Port, .Pin = RELAY6_Pin },
-        { .id = 6, .GPIO_Port = RELAY7_GPIO_Port, .Pin = RELAY7_Pin },
-        { .id = 7, .GPIO_Port = RELAY8_GPIO_Port, .Pin = RELAY8_Pin },
-        { .id = 8, .GPIO_Port = RELAY9_GPIO_Port, .Pin = RELAY9_Pin },
+        {.id = 0, .GPIO_Port = RELAY1_GPIO_Port, .Pin = RELAY1_Pin},
+        {.id = 1, .GPIO_Port = RELAY2_GPIO_Port, .Pin = RELAY2_Pin},
+        {.id = 2, .GPIO_Port = RELAY3_GPIO_Port, .Pin = RELAY3_Pin},
+        {.id = 3, .GPIO_Port = RELAY4_GPIO_Port, .Pin = RELAY4_Pin},
+        {.id = 4, .GPIO_Port = RELAY5_GPIO_Port, .Pin = RELAY5_Pin},
+        {.id = 5, .GPIO_Port = RELAY6_GPIO_Port, .Pin = RELAY6_Pin},
+        {.id = 6, .GPIO_Port = RELAY7_GPIO_Port, .Pin = RELAY7_Pin},
+        {.id = 7, .GPIO_Port = RELAY8_GPIO_Port, .Pin = RELAY8_Pin},
+        {.id = 8, .GPIO_Port = RELAY9_GPIO_Port, .Pin = RELAY9_Pin},
 };
 
 static void SS_platform_relays_init() {
-    SS_relays_init(relays, sizeof(relays)/sizeof(relays[0]));
+    SS_relays_init(relays, sizeof(relays) / sizeof(relays[0]));
 }
 
 /********** ADS1258 *********/
 
-Measurement measurement = {
-        .channel_id = STATUS_CHID_DIFF0
+Measurement measurements[] = {
+        { .channel_id = STATUS_CHID_DIFF0,
+          .a_coefficient = 0.251004016064257028112449799196787148f,
+          .b_coefficient = 0.75f },
 };
 
 static void SS_platform_ADS1258_init() {
-    SS_measurement_init(&measurement);
+    SS_ADS1258_measurements_init(measurements, sizeof(measurements) / sizeof(measurements[0]));
     SS_ADS1258_init(&hspi2);
 }
 
