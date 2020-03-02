@@ -2,10 +2,11 @@
 // Created by maciek on 28.02.2020.
 //
 
-#include <relays/SS_relays.h>
-#include <ADS1258/SS_ADS1258.h>
+#include "SS_relays.h"
+#include "SS_ADS1258.h"
 #include "SS_platform.h"
 #include "SS_servos.h"
+#include "SS_measurements.h"
 #include "SS_Grazyna.h"
 
 
@@ -98,6 +99,17 @@ static void SS_platform_relays_init() {
     SS_relays_init(relays, sizeof(relays)/sizeof(relays[0]));
 }
 
+/********** ADS1258 *********/
+
+Measurement measurement = {
+        .channel_id = STATUS_CHID_DIFF0
+};
+
+static void SS_platform_ADS1258_init() {
+    SS_measurement_init(&measurement);
+    SS_ADS1258_init(&hspi2);
+}
+
 /********** MAIN INIT *********/
 
 void SS_platform_init() {
@@ -105,7 +117,7 @@ void SS_platform_init() {
     SS_platform_supply_init();
     SS_platform_relays_init();
 #ifndef SIMULATE
-    SS_ADS1258_init(&hspi2);
+    SS_platform_ADS1258_init();
 #endif
     SS_grazyna_init(&huart2);
 }

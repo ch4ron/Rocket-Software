@@ -10,7 +10,7 @@
 #include "SS_error.h"
 
 Measurement *measurement_pointers[MAX_MEASUREMENT_COUNT];
-uint8_t last_measurement;
+volatile uint8_t last_measurement;
 static float vcc;
 
 void SS_measurements_chid_to_channel(uint8_t chid, uint8_t* reg_addr, uint8_t* reg_mask) {
@@ -36,7 +36,6 @@ void SS_measurements_clear() {
 }
 
 void SS_measurements_start() {
-
 	uint8_t muxdif = 0, muxsg0 = 0, muxsg1 = 0, sysred = 0;
 	for(uint8_t i = 0; i < last_measurement; i++) {
 		uint8_t mask = measurement_pointers[i]->reg_mask;
@@ -68,10 +67,12 @@ void SS_measurements_parse(ADS1258_Measurement* meas) {
 }
 
 float SS_measurements_read_VCC() {
-    SS_measurements_clear();
     Measurement meas = {
             .channel_id = STATUS_CHID_VCC,
     };
+    Measurement *tmp_pointers[MAX_MEASUREMENT_COUNT];
+    memcpy(tmp_pointers, measurement_pointers, sizeof(tmp_pointers));
+    SS_measurements_clear();
     SS_measurement_init(&meas);
 	SS_measurements_start();
 	SS_ADS1258_startConversions();
@@ -80,8 +81,13 @@ float SS_measurements_read_VCC() {
         vcc += meas.raw / 786432.0f;
 	    HAL_Delay(1);
 	}
-	vcc /= 25;
+	vcc /= 25.0f;
     SS_measurements_clear();
+    for(uint8_t i = 0; i < MAX_MEASUREMENT_COUNT; i++) {
+        if(tmp_pointers[i] != NULL) {
+            SS_measurement_init(tmp_pointers[i]);
+        }
+    }
     return vcc;
 }
 

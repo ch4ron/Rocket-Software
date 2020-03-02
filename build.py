@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import click
 import os
 import serial
@@ -32,7 +33,6 @@ class Board:
             cmd = 'cd {}; cmake ../  -DCMAKE_BUILD_TYPE={} -DVERBOSE_TEST_OUTPUT=1; make -j4'.format(directory, target.capitalize())
         else:
             cmd = 'cd {}; cmake ../  -DCMAKE_BUILD_TYPE={} -DVERBOSE_TEST_OUTPUT=0; make -j4'.format(directory, target.capitalize())
-        print cmd
         execute(cmd)
 
     def clean(self):

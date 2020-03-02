@@ -126,7 +126,7 @@ void SS_grazyna_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
     }
 }
 
-#ifdef SIMULATE
+#if defined(SIMULATE) || defined (RUN_TESTS)
 // CRC32 lookup table for polynomial 0x04c11db7
 static uint32_t crc_table[256] = {
         0x00000000, 0x04c11db7, 0x09823b6e, 0x0d4326d9, 0x130476dc, 0x17c56b6b,

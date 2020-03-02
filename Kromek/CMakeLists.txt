@@ -36,6 +36,7 @@ set(CMAKE_CXX_STANDARD 11)
 #add_definitions(-DARM_MATH_CM4 -DARM_MATH_MATRIX_CHECK -DARM_MATH_ROUNDING -D__FPU_PRESENT=1)
 add_definitions(-D__weak=__attribute__\(\(weak\)\) -D__packed=__attribute__\(\(__packed__\)\) -DUSE_HAL_DRIVER -DSTM32F446xx)
 add_compile_options(-Wall)
+add_link_options("-u_printf_float")
 
 if(${VERBOSE_TEST_OUTPUT})
     add_compile_definitions(VERBOSE_TEST_OUTPUT UNITY_OUTPUT_COLOR)

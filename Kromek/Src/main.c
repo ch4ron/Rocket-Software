@@ -19,6 +19,7 @@
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
+#include <ADS1258/SS_measurements.h>
 #include "main.h"
 #include "adc.h"
 #include "can.h"
@@ -120,7 +121,6 @@ int main(void) {
     MX_TIM8_Init();
     MX_CRC_Init();
 #endif
-
     SS_platform_init();
     SS_init();
 //  SS_settings_read_json(settings_json);

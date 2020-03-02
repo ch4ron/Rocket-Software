@@ -307,7 +307,8 @@ TEST(grazyna_servos, disable) {
         SS_servo_open(servo_pointers[i]);
         TEST_ASSERT_NOT_EQUAL(0, *servo_pointers[i]->pointer);
         frame.id = i;
-        ComActionID res = SS_com_handle_action(&frame);
+        frame.action = COM_SERVICE;
+        ComStatus res = SS_com_handle_action(&frame);
         TEST_ASSERT_EQUAL(COM_OK, res);
     }
     HAL_Delay(SERVO_TIMEOUT +10);

@@ -81,8 +81,8 @@ uint8_t SS_ADS1258_getRegisterValue(uint8_t address) {
 
 void SS_ADS1258_init(SPI_HandleTypeDef *hspi) {
     SS_measurements_read_VCC();
-    SS_measurements_start();
     ads_spi = hspi;
+    SS_measurements_start();
     SS_ADS1258_startConversions();
 }
 
