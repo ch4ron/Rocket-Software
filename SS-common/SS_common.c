@@ -1,6 +1,7 @@
 //
 // Created by maciek on 26.02.2020.
 //
+#include "SS_MS5X.h"
 #include "SS_common.h"
 #include "stdio.h"
 
@@ -27,5 +28,9 @@ void SS_init() {
 void SS_main() {
 #ifdef SS_USE_GRAZYNA
     SS_grazyna_main();
+#endif
+#ifdef SS_USE_MS5X
+    SS_MS56_DMA_read_convert_and_calculate();
+    SS_MS56_get_altitude(&ms5607);
 #endif
 }

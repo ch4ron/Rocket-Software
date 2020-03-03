@@ -71,6 +71,10 @@ if(COMPILE_DEFS MATCHES SS_USE_SUPPLY)
     add_subdirectory(supply)
     target_link_libraries(${PROJECT_NAME} PUBLIC supply)
 endif()
+if(COMPILE_DEFS MATCHES SS_USE_MS5X)
+    add_subdirectory(MS5X)
+    target_link_libraries(${PROJECT_NAME} PUBLIC MS5X)
+endif()
 
 
 if(COMPILE_DEFS MATCHES RUN_TESTS)

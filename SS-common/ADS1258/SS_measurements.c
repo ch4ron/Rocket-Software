@@ -130,6 +130,7 @@ static float SS_ADS1258_calculate_voltage(Measurement *measurement) {
 
 }
 
+/* TODO move to run in main */
 static void SS_ADS1258_calculate_preview_values() {
     static uint32_t timer = 0;
     static uint8_t counter = 0;

@@ -6,6 +6,8 @@
  */
 
 #ifdef SS_USE_ADS1258
+
+#include "SS_MS5X.h"
 #include "SS_ADS1258.h"
 #endif
 #ifdef SS_USE_SERVOS
@@ -38,9 +40,20 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
 #endif
 }
 
-//void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
-//	printf("spi error\r\n");
-//}
+void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
+#ifdef SS_USE_MS5X
+    SS_MS56_TxCpltCallback(hspi);
+#endif
+}
+
+void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
+#ifdef SS_USE_MS5X
+    SS_MS56_RxCpltCallback(hspi);
+#endif
+}
+void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
+	printf("spi error\r\n");
+}
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 #ifdef SS_USE_DYNAMIXEL
@@ -90,5 +103,8 @@ void HAL_SYSTICK_Callback() {
 #endif
 #ifdef SS_USE_ADS1258
     SS_ADS1258_Systick();
+#endif
+#ifdef SS_USE_MS5X
+    SS_MS56_SYSTICK_Callback();
 #endif
 }
