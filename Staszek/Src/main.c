@@ -96,8 +96,6 @@ int main(void) {
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
     MX_DMA_Init();
-    MX_CAN1_Init();
-    MX_CAN2_Init();
     MX_I2C1_Init();
     MX_UART4_Init();
     MX_UART5_Init();
@@ -105,10 +103,16 @@ int main(void) {
     MX_ADC1_Init();
     MX_SPI4_Init();
     MX_SPI2_Init();
-    MX_TIM8_Init();
+    /* USER CODE BEGIN 2 */
+
+#ifndef SIMULATE
+    MX_CAN1_Init();
+    MX_CAN2_Init();
     MX_TIM1_Init();
     MX_TIM4_Init();
-    /* USER CODE BEGIN 2 */
+    MX_TIM8_Init();
+#endif
+
     SS_platform_init();
     SS_init();
 

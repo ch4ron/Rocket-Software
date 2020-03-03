@@ -4,7 +4,7 @@ import os
 import serial
 import sys
 
-boards = ['Kromek']
+boards = ['Kromek', 'Staszek']
 targets = ['Debug', 'Simulate', 'Test']
 
 # Calculates the return value
@@ -81,7 +81,7 @@ class Board:
 
     def _flash_cmd(self, target):
         return "openocd -c 'tcl_port disabled' -s openocd/scripts -c 'gdb_port 3333' -c 'telnet_port 4444' -f " \
-               "st_nucleo_f4.cfg -c 'program {}/cmake-build-{}/Kromek.elf' -c reset -c shutdown".format(self._name, target.lower())
+               "st_nucleo_f4.cfg -c 'program {}/cmake-build-{}/{}.elf' -c reset -c shutdown".format(self._name, target.lower(), self._name.capitalize())
 
 
 @click.group()

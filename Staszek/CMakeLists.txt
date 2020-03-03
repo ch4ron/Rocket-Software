@@ -68,7 +68,7 @@ add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
 
 # DEFINE YOUR LIBRARIES HERE
 #add_compile_definitions(SS_USE_DYNAMIXEL)
-add_compile_definitions(SS_USE_SERVOS)
+#add_compile_definitions(SS_USE_SERVOS)
 add_compile_definitions(SS_USE_COM)
 add_compile_definitions(SS_USE_ADS1258)
 add_compile_definitions(SS_USE_FIFO)
@@ -102,5 +102,5 @@ endif()
 
 if(${CMAKE_BUILD_TYPE} STREQUAL Simulate OR ${CMAKE_BUILD_TYPE} STREQUAL Simulate-test)
     add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
-            COMMAND ${JUMPER} run --fw ${PROJECT_NAME}.bin -u UART5 --platform stm32f446)
+            COMMAND ${JUMPER} run --fw ${PROJECT_NAME}.bin -u UART4 --platform stm32f446)
 endif()

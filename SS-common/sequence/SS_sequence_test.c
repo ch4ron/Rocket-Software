@@ -31,7 +31,7 @@ TEST_TEAR_DOWN(sequence) {
     SS_sequence_clear();
 }
 
-extern SequenceItem sequence_items[];
+extern SequenceItem sequence_items[MAX_SEQUENCE_ITEMS];
 
 TEST(sequence, add_single) {
     void (*func)(uint32_t) = (void (*)(uint32_t)) 3333; // Dummy pointer, do not call it!

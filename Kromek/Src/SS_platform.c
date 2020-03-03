@@ -4,6 +4,14 @@
 
 #include "SS_common.h"
 #include "SS_platform.h"
+#include "usart.h"
+
+/********** PRINTF *********/
+
+int _write(int file, char *ptr, int len) {
+    HAL_UART_Transmit(&huart5, (uint8_t*) ptr, (uint16_t) len, 1000);
+    return len;
+}
 
 /********** SERVOS *********/
 
