@@ -114,22 +114,18 @@ int main(void) {
     MX_TIM4_Init();
     MX_TIM8_Init();
 #endif
-
     HAL_GPIO_WritePin(MPU_CS_GPIO_Port, MPU_CS_Pin, GPIO_PIN_SET);
     SS_platform_init();
     SS_init();
 
-    uint32_t counter = 0;
     /* USER CODE END 2 */
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
         SS_main();
-        if(HAL_GetTick() - counter >= 1000) {
-            printf("altitude: %ld, pressure: %ld, uncompressed: %ld\r\n", ms5607.altitude, ms5607.press, ms5607.uncomp_press);
-            counter = HAL_GetTick();
-        }
+        printf("altitude: %ld, pressure: %ld, uncompressed: %ld\r\n", ms5607.altitude, ms5607.press, ms5607.uncomp_press);
+        HAL_Delay(1000);
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */

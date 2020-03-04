@@ -95,20 +95,16 @@ enum RESULT SS_MS56_reset(void) {
   * @retval Condition of SPI communication.
   */
 enum RESULT SS_MS56_prom_read(struct MS5607 *ms5607) {
-    uint8_t buff = MS56_PROM_READ_BASE;
+    uint8_t buff[3] = { MS56_PROM_READ_BASE, 0, 0 };
     uint8_t buffRX[2];
     for (uint8_t i = 0; i < 8; i++) {
         SS_MS56_CS_ENABLE();
-        HAL_SPI_Transmit(&HSPI_MS56, &buff, 1, 200);
-        while (HAL_SPI_GetState(&HSPI_MS56) == HAL_SPI_STATE_BUSY_TX);
-
-        HAL_SPI_Receive(&HSPI_MS56, buffRX, 2, 200);
-        while (HAL_SPI_GetState(&HSPI_MS56) == HAL_SPI_STATE_BUSY_RX);
+        HAL_SPI_TransmitReceive(&HSPI_MS56, buff, buffRX, 3, 200);
         if (HAL_SPI_GetState(&HSPI_MS56) == HAL_SPI_STATE_ERROR)
             return 1;
         SS_MS56_CS_DISABLE();
-        buff += 2;
-        ms5607->PROM[i] = buffRX[1] + (uint16_t) (buffRX[0] << 8);
+        buff[0] += 2;
+        ms5607->PROM[i] = buffRX[2] + (uint16_t) (buffRX[1] << 8);
     }
     return 0;
 }

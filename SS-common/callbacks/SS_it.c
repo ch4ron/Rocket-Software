@@ -7,7 +7,9 @@
 
 #ifdef SS_USE_ADS1258
 
+#ifdef SS_USE_MS5X
 #include "SS_MS5X.h"
+#endif
 #include "SS_ADS1258.h"
 #endif
 #ifdef SS_USE_SERVOS
@@ -35,6 +37,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 }
 
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
+    printf("spi txrx\r\n");
 #ifdef SS_USE_ADS1258
     SS_ADS1258_SPI_TxRxCpltCallback(hspi);
 #endif
