@@ -136,5 +136,6 @@ void SS_platform_init() {
 #ifndef SIMULATE
     SS_platform_ADS1258_init();
 #endif
+    SS_com_init(COM_KROMEK_ID);
     SS_grazyna_init(&huart2);
 }

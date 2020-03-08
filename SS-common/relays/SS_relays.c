@@ -5,7 +5,7 @@
  *      Author: maciek
  */
 
-#include "SS_com_protocol.h"
+#include "SS_com.h"
 #include "SS_relays.h"
 #include "SS_supply.h"
 #include "SS_platform.h"

@@ -9,7 +9,7 @@
 #define SS_RELAYS_H_
 
 #include "gpio.h"
-#include "SS_com_protocol.h"
+#include "SS_com.h"
 
 #define MAX_RELAY_COUNT 9
 

@@ -6,7 +6,7 @@
  */
 
 #include "unity_fixture.h"
-#include "SS_com_protocol.h"
+#include "SS_com.h"
 #include "string.h"
 
 TEST_GROUP(com);

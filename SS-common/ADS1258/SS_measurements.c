@@ -5,9 +5,11 @@
  *      Author: maciek
  */
 
+#include <com/SS_com.h>
+#include <grazyna/SS_Grazyna.h>
+#include <com/SS_com_debug.h>
 #include "SS_measurements.h"
 #include "string.h"
-#include "SS_error.h"
 
 #define ADS1258_PREVIEW_VALUES_PERIOD 100
 
@@ -27,8 +29,8 @@ void SS_ADS1258_measurement_init(Measurement *measurement) {
     measurement->reg_address = reg_addr;
     measurement->reg_mask = reg_mask;
     measurements_count++;
-
 }
+
 void SS_ADS1258_measurements_init(Measurement *measurements, uint8_t count) {
     for(uint8_t i = 0; i < count; i++) {
         SS_ADS1258_measurement_init(&measurements[i]);
@@ -148,6 +150,41 @@ static void SS_ADS1258_calculate_preview_values() {
         float voltage = SS_ADS1258_calculate_voltage(meas);
         meas->scaled = voltage * meas->a_coefficient + meas->b_coefficient;
     }
+}
+
+static void SS_ADS1258_measurement_feed(Measurement *meas, ComFrameContent *frame) {
+    float voltage = SS_ADS1258_calculate_voltage(meas);
+    meas->scaled = voltage * meas->a_coefficient + meas->b_coefficient;
+            /* TODO add macro for priority */
+    frame->priority = 1;
+    frame->action = COM_FEED;
+    frame->destination = COM_GRAZYNA_ID;
+    frame->device = COM_MEASUREMENT_ID;
+    frame->message_type = 0;
+    frame->grazyna_ind = 1;
+    frame->id = meas->channel_id;
+    frame->data_type = FLOAT;
+    frame->payload = *((uint32_t *) &meas->scaled);
+    SS_com_print_message_received(frame);
+}
+
+/* Function for transmitting feed values, it returns the number of remaining values to transmit */
+int8_t SS_ADS1258_com_feed(ComFrameContent *frame) {
+    static uint8_t counter, meas_num;
+    if(measurements_count == 0) return -1;
+    if(meas_num == 0) {
+        meas_num = measurements_count;
+    }
+    Measurement *meas;
+    do {
+        meas = measurement_pointers[counter++];
+        if(counter >= MAX_MEASUREMENT_COUNT) {
+            counter = 0;
+        }
+    } while(meas == NULL);
+    meas_num--;
+    SS_ADS1258_measurement_feed(meas, frame);
+    return meas_num;
 }
 
 void SS_ADS1258_Systick() {

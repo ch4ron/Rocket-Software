@@ -1,111 +1,177 @@
 /*
- * SS_com.c
+ * SS_com_protocol.c
  *
- *  Created on: Dec 26, 2019
+ *  Created on: Jan 16, 2020
  *      Author: maciek
  */
 
-
+#include <grazyna/SS_Grazyna.h>
+#include "SS_error.h"
 #include "SS_com.h"
+#include "stdio.h"
+#ifdef SS_USE_RELAYS
+#include "SS_relays.h"
+#endif
+#ifdef SS_USE_SERVOS
+#include "SS_servos.h"
+#include "SS_com_debug.h"
 
-//uint8_t COMMUNICATION = 0;
+#endif
 
-//can_board communication_board;
+static ComFrameContent frame_content;
+static ComBoardID board_id;
+static ComFrame tx_frame;
 
-/* Board specific stuff BEGIN */
-//parameter parameters[] = {
-//        { PAUEK_CELL_1, &cell_scaled_main[0], SHORT },
-//        { PAUEK_CELL_2, &cell_scaled_main[1], SHORT },
-//        { PAUEK_CELL_3, &cell_scaled_main[2], SHORT },
-//        { PAUEK_CELL_4, &cell_scaled_main[3], SHORT },
-//        { PAUEK_BATTERY_MAIN, &battery_scaled[0], SHORT },
-//        { PAUEK_BATTERY_BACKUP, &battery_scaled[1], SHORT },
-//        { PAUEK_BATTERY_EXTERNAL, &battery_scaled[2], SHORT },
-//};
+/* The the functions in this module modify the received frame */
 
-void SS_com_calculate_scaled_values(void) {
+void SS_com_init(ComBoardID board) {
+    board_id = board;
 }
-/* Board specific stuff END */
 
-//void SS_com_can_main(void) {
-//    SS_can_rx_handle_from_fifo_data(CAN_HIGH_PRIORITY);
-//    SS_can_rx_handle_from_fifo_data(CAN_LOW_PRIORITY);
-//    SS_can_tx_data_fifo(CAN_HIGH_PRIORITY);
-//    SS_can_tx_data_fifo(CAN_LOW_PRIORITY);
-//}
+void SS_com_transmit(ComFrameContent *frame_content) {
+    frame_content->source = board_id;
+    SS_com_create_frame(&tx_frame, frame_content);
+    SS_grazyna_transmit(&tx_frame);
+}
 
-//void SS_com_send_parameter(uint32_t *current_parameter) {
-//    int dat;
-//    float fl;
-//    switch(parameters[*current_parameter].type) {
-//        case INT:
-//            memcpy(&dat, parameters[*current_parameter].data, 4);
-//            dat *= 100;
-//            break;
-//        case SHORT: {
-//            //Only battery values are 16 bits long and they are multiplied by 100 during conversion
-//            uint16_t tmp;
-//            memcpy(&tmp, parameters[*current_parameter].data, 2);
-//            dat = tmp;
-//            break;
-//        }
-//        case FLOAT:
-//            memcpy(&fl, parameters[*current_parameter].data, 4);
-//            dat = (int) (fl * 100);
-//            break;
-//        default:
-//            return;
-//    }
-////    if(communication_board == CAN_BOARD_ID){
-////        SS_grazyna_put_to_fifo(0x15,  parameters[(*current_parameter)++].header, dat);
-////    }
-////    else
-//        SS_can_send_to_grazyna(parameters[(*current_parameter)++].header, (uint8_t*) &dat, 4, communication_board, CAN_LOW_PRIORITY);
-//}
+ComStatus SS_com_handle_frame(ComFrame *frame) {
+    SS_com_parse_frame(frame, &frame_content);
+    SS_com_print_message_received(&frame_content);
+    ComStatus res = SS_com_handle_action(&frame_content);
+    frame_content.destination = frame_content.source;
+    SS_com_transmit(&frame_content);
+    return res;
+}
 
-//void SS_com_report_parameters(uint32_t board, can_board com_board, uint32_t *current_parameter) {
-//    communication_board = com_board;
-//    SS_com_calculate_scaled_values();
-//    uint32_t messages = sizeof(parameters) / sizeof(parameter);
-//    SS_can_put_to_fifo_data(CAN_PARAMETERS_NUMBER, (uint8_t*) &messages, 4, board, CAN_LOW_PRIORITY);
-//    *current_parameter = 0;
-//}
+ComStatus SS_com_handle_action(ComFrameContent *frame) {
+    ComActionID action = frame->action;
+    switch(action) {
+        case COM_REQUEST:
+            return SS_com_handle_request(frame);
+        case COM_SERVICE:
+            return SS_com_handle_service(frame);
+        default:
+            SS_error("Unsupported action: %d\r\n", frame->action);
+    }
+    return COM_ERROR;
+}
 
-//void SS_com_handle_parameters_update(uint32_t can_id, can_board com_board, uint32_t board) {
-//    static uint32_t current_parameter = 0;
-//    switch (can_id) {
-//        case CAN_PARAMETERS_NUMBER:
-//            SS_com_report_parameters(board, com_board, &current_parameter);
-//            break;
-//        case CAN_PARAMETER:
-//            SS_com_send_parameter(&current_parameter);
-//            break;
-//    }
-//}
+ComStatus SS_com_handle_request(ComFrameContent *frame) {
+    ComDeviceID device = frame->device;
+    ComStatus res = COM_OK;
+    switch(device) {
+#ifdef SS_USE_SERVOS
+        case COM_SERVO_ID:
+            res = SS_servos_com_request(frame);
+            break;
+#endif
+#ifdef SS_USE_RELAYS
+        case COM_RELAY_ID:
+            res = SS_relays_com_request(frame);
+            break;
+#endif
+        case COM_MEASUREMENT_ID:
+            break;
+        case COM_SUPPLY_ID:
+            break;
+        case COM_MEMORY_ID:
+            break;
+        case COM_IGNITER_ID:
+            break;
+        case COM_TENSOMETER_ID:
+            break;
+        default:
+            res = COM_ERROR;
+            printf("Unsupported device: %d\r\n", frame->action);
+    }
+    frame->action = COM_RESPONSE;
+    return res;
+}
 
-//void SS_com_forward_to_grazyna(can_fifo_bufor *fifo_bufor, uint32_t can_id, uint32_t bufor) {
-//    if(fifo_bufor->header.data.grazyna)
-//        SS_grazyna_put_to_fifo(0x15, can_id - CAN_OFFSET, bufor);
-//}
-//
-//void SS_com_handle_can_received(can_fifo_bufor *fifo_bufor, uint8_t priority) {
-//    uint8_t data[fifo_bufor->length];
-//    uint32_t bufor;
-//    uint32_t board = fifo_bufor->header.data.source;
-//    uint32_t can_id = fifo_bufor->header.data.id;
-//    memcpy(data, fifo_bufor->data, fifo_bufor->length);
-//    memcpy(&bufor, fifo_bufor->data, fifo_bufor->length);
-//    SS_com_forward_to_grazyna(fifo_bufor, can_id, bufor);
-//    SS_com_handle_parameters_update(can_id, bufor, board);
-//    SS_com_can_received_handler(can_id, board, data, fifo_bufor->length, priority);
-//}
+ComStatus SS_com_handle_service(ComFrameContent *frame) {
+    ComDeviceID device = frame->device;
+    ComStatus res = COM_OK;
+    switch(device) {
+#ifdef SS_USE_SERVOS
+        case COM_SERVO_ID:
+            res = SS_servos_com_service(frame);
+            break;
+#endif
+#ifdef SS_USE_RELAYS
+        case COM_RELAY_ID:
+            res = SS_relay_com_service(frame);
+            break;
+#endif
+        case COM_MEASUREMENT_ID:
+            break;
+        case COM_SUPPLY_ID:
+            break;
+        case COM_MEMORY_ID:
+            break;
+        case COM_IGNITER_ID:
+            break;
+        case COM_TENSOMETER_ID:
+            break;
+        default:
+            res = COM_ERROR;
+            SS_error("Unsupported device: %d\r\n", frame->action);
+    }
+    frame->action = COM_ACK;
+    return res;
+}
 
-//void SS_com_grazyna_main(void) {
-//    SS_com_handle_grazyna_received();
-//    SS_grazyna_send_from_fifo();
-//}
+void SS_com_add_payload_to_frame(ComFrameContent *frame, ComDataType type, void *payload) {
+    frame->data_type = type;
+    switch(type) {
+        case UINT32:
+            *((uint32_t*) &frame->payload) = *((uint32_t*) payload);
+            break;
+        case UINT16:
+            *((uint16_t*) &frame->payload) = *((uint16_t*) payload);
+            break;
+        case UINT8:
+            *((uint8_t*) &frame->payload) = *((uint8_t*) payload);
+            break;
+        case INT32:
+            *((int32_t*) &frame->payload) = *((int32_t*) payload);
+            break;
+        case INT16:
+            *((int16_t*) &frame->payload) = *((int16_t*) payload);
+            break;
+        case INT8:
+            *((int8_t*) &frame->payload) = *((int8_t*) payload);
+            break;
+        case FLOAT:
+            *((float*) &frame->payload) = *((float*) payload);
+            break;
+        default:
+            break;
+    }
+}
 
-void SS_com_can_main_kromek(void) {
-    //    SS_can_tx_data_fifo_kromek();
-    //    SS_can_tx_data_fifo_kromek_priority();
+void SS_com_parse_frame(ComFrame *frame, ComFrameContent *content) {
+    content->priority = (frame->header >> 5) & 0b00000111;
+    content->destination = frame->header & 0b00011111;
+    content->source = (frame->header >> 11) & 0b00011111;
+    content->action = (frame->header >> 8) & 0b00000111;
+    content->device = ((frame->header >> 18) & 0b00111111) ;
+    content->id = (((frame->header >> 16) & 0b00000011) << 4) | ((frame->header >> 28) & 0b00001111);
+    content->grazyna_ind = (frame->header >> 27) & 0b00000001;
+    content->data_type = (frame->header >> 24) & 0b00000111;
+    content->message_type = frame->message_type;
+    content->payload = frame->payload;
+}
+
+void SS_com_create_frame(ComFrame *frame, ComFrameContent *content) {
+    frame->header = 0;
+    frame->header |= content->priority << 5;
+    frame->header |= content->destination;
+    frame->header |= content->source << 11;
+    frame->header |= content->action << 8;
+    frame->header |= content->device << 18;
+    frame->header |= (((content->id & 0b00110000) >> 4) << 16) | ((content->id & 0b00001111) << 28);
+    frame->header |= content->grazyna_ind << 27;
+    frame->header |= content->data_type << 24;
+    frame->message_type = content->message_type;
+    frame->payload = content->payload;
 }

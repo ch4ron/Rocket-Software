@@ -5,6 +5,7 @@
  *      Author: maciek
  */
 
+#include <com/SS_com.h>
 #include "unity_fixture.h"
 #include "SS_measurements.h"
 #include "SS_ADS1258.h"
@@ -13,6 +14,7 @@ TEST_GROUP(measurements);
 
 TEST_GROUP_RUNNER(measurements) {
 	RUN_TEST_CASE(measurements, chid_to_ch);
+    RUN_TEST_CASE(measurements, feed);
 #ifndef SIMULATE
 	RUN_TEST_CASE(measurements, start);
 	RUN_TEST_CASE(measurements, values);
@@ -157,4 +159,26 @@ TEST(measurements, values) {
 TEST(measurements, read_vcc) {
     float vcc = SS_ADS1258_measurements_read_VCC();
     TEST_ASSERT_FLOAT_WITHIN(0.1f, 5.0f, vcc);
+}
+
+TEST(measurements, feed) {
+    Measurement measurement[] = {
+            {.channel_id = STATUS_CHID_OFFSET },
+            {.channel_id = STATUS_CHID_VCC },
+            {.channel_id = STATUS_CHID_TEMP },
+    };
+    ComFrameContent frame;
+    SS_ADS1258_measurements_init(measurement, sizeof(measurement) / sizeof(measurement[0]));
+    uint8_t cnt = SS_ADS1258_com_feed(&frame);
+    TEST_ASSERT_EQUAL(2, cnt);
+    TEST_ASSERT_EQUAL(STATUS_CHID_OFFSET, frame.id);
+    cnt = SS_ADS1258_com_feed(&frame);
+    TEST_ASSERT_EQUAL(1, cnt);
+    TEST_ASSERT_EQUAL(STATUS_CHID_VCC, frame.id);
+    cnt = SS_ADS1258_com_feed(&frame);
+    TEST_ASSERT_EQUAL(0, cnt);
+    TEST_ASSERT_EQUAL(STATUS_CHID_TEMP, frame.id);
+    cnt = SS_ADS1258_com_feed(&frame);
+    TEST_ASSERT_EQUAL(2, cnt);
+    TEST_ASSERT_EQUAL(STATUS_CHID_OFFSET, frame.id);
 }

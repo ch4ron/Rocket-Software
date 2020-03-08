@@ -8,7 +8,7 @@
 #ifndef SS_SERVOS_H_
 #define SS_SERVOS_H_
 
-#include "SS_com_protocol.h"
+#include "SS_com.h"
 #include "stm32f4xx_hal.h"
 #include "tim.h"
 #include "SS_json_parser.h"

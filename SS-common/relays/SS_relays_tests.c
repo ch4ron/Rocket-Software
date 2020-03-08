@@ -3,7 +3,7 @@
 //
 
 #include "SS_relays.h"
-#include "SS_com_protocol.h"
+#include "SS_com.h"
 #include "unity_fixture.h"
 
 TEST_GROUP(relays);

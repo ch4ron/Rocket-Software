@@ -1,35 +1,49 @@
 /*
- * SS_com.h
+ * SS_com_protocol.h
  *
- *  Created on: Dec 26, 2019
+ *  Created on: Jan 16, 2020
  *      Author: maciek
  */
 
-#ifndef SS_COM_H_
-#define SS_COM_H_
+#ifndef SS_COM_PROTOCOL_H_
+#define SS_COM_PROTOCOL_H_
 
-//#include "SS_can.h"
 #include "stm32f4xx_hal.h"
+#include "SS_com_ids.h"
 
-#define INT 0
-#define SHORT 1
-#define FLOAT 2
+typedef struct __attribute__((packed)) {
+    uint32_t header;
+    uint8_t message_type;
+    uint32_t payload;
+} ComFrame;
 
-typedef struct parameter {
-    const int header;
-    const void *data;
-    const uint8_t type;
-} parameter;
+typedef struct {
+    uint8_t priority; // 3 bits
+    uint8_t destination; // 5 bits
+    uint8_t source; // 5 bits
+    uint8_t action; // 3 bits
+    uint8_t device; // 6 bits
+    uint8_t id; // 6 bits
+    /* Set to 1 for frames from and to Grazyna, 0 otherwise */
+    uint8_t grazyna_ind; // 1 bit
+    uint8_t data_type; // 3 bits
+    uint8_t message_type; // 8 bits
+    uint32_t payload; // 32 bits
+} ComFrameContent;
 
-extern uint32_t parameters_number[5];
+typedef enum {
+    COM_OK,
+    COM_ERROR
+} ComStatus;
 
-void SS_com_grazyna_main(void);
-//void SS_com_handle_parameters_update(uint32_t can_id, can_board com_board, uint32_t board);
-int16_t SS_com_handle_onboard_parameters(uint16_t *counter);
-uint8_t SS_com_get_board_to(uint32_t header);
-//void SS_com_handle_can_received(can_fifo_bufor *fifo_bufor, uint8_t priority);
-void SS_com_handle_grazyna_received(void);
-void SS_com_handle_kromek_to_pauek(void);
+void SS_com_init(ComBoardID board);
+void SS_com_transmit(ComFrameContent *frame_content);
+ComStatus SS_com_handle_frame(ComFrame *frame);
+ComStatus SS_com_handle_action(ComFrameContent *frame);
+ComStatus SS_com_handle_request(ComFrameContent *frame);
+ComStatus SS_com_handle_service(ComFrameContent *frame);
+void SS_com_add_payload_to_frame(ComFrameContent *frame, ComDataType type, void *payload);
+void SS_com_parse_frame(ComFrame *frame, ComFrameContent *content);
+void SS_com_create_frame(ComFrame *frame, ComFrameContent *content);
 
-
-#endif /* SS_COM_H_ */
+#endif /* SS_COM_PROTOCOL_H_ */

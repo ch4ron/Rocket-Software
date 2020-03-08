@@ -10,6 +10,7 @@
 
 #include "SS_ADS1258.h"
 #include "stm32f4xx_hal.h"
+#include "SS_com.h"
 
 #define MAX_MEASUREMENT_COUNT 30
 
@@ -30,5 +31,6 @@ void SS_ADS1258_measurements_start();
 void SS_ADS1258_measurements_parse(ADS1258_Measurement* meas);
 float SS_ADS1258_measurements_read_VCC();
 float SS_ADS1258_measurements_read_VREF();
+int8_t SS_ADS1258_com_feed(ComFrameContent *frame);
 
 #endif /* SS_MEASUREMENTS_H_ */

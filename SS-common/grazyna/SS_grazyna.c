@@ -17,7 +17,8 @@ typedef enum {
     GRAZYNA_RECEIVING_FRAME
 } GrazynaState;
 
-FIFO_INIT(grazyna, 10, ComFrame)
+FIFO_INIT(grazyna_rx, 10, ComFrame)
+FIFO_INIT(grazyna_tx, 10, ComFrame)
 
 uint32_t crc32 (uint32_t *data, uint32_t len);
 
@@ -39,23 +40,6 @@ void SS_grazyna_receive(uint8_t *data, uint16_t length) {
 #endif
 }
 
-void SS_grazyna_init(UART_HandleTypeDef *huart) {
-    grazyna.grazyna_state = GRAZYNA_LOOKING_FOR_HEADER;
-    grazyna.huart = huart;
-    SS_grazyna_receive((uint8_t*) &grazyna.rx_frame, sizeof(grazyna.rx_frame.header));
-}
-
-void SS_grazyna_main() {
-    if(SS_fifo_get_data(&grazyna_fifo, &grazyna.frame)) {
-        SS_com_handle_frame(&grazyna.frame);
-        SS_grazyna_transmit(&grazyna.frame);
-        ComFrameContent frame_content;
-        SS_com_parse_frame(&grazyna.frame, &frame_content);
-        SS_com_print_message_sent(&frame_content);
-    }
-}
-
-
 uint32_t SS_grazyna_CRC_calculate(GrazynaFrame *grazyna_frame) {
     static uint32_t buff[3];
     memcpy(buff, grazyna_frame, sizeof(GrazynaFrame) - sizeof(grazyna_frame->crc));
@@ -66,6 +50,12 @@ uint32_t SS_grazyna_CRC_calculate(GrazynaFrame *grazyna_frame) {
 #endif
 }
 
+void SS_grazyna_init(UART_HandleTypeDef *huart) {
+    grazyna.grazyna_state = GRAZYNA_LOOKING_FOR_HEADER;
+    grazyna.huart = huart;
+    SS_grazyna_receive((uint8_t*) &grazyna.rx_frame, sizeof(grazyna.rx_frame.header));
+}
+
 void SS_grazyna_prepare_tx_frame(ComFrame *com_frame, GrazynaFrame *grazyna_frame) {
     grazyna_frame->header = GRAZYNA_HEADER;
     memcpy(&grazyna_frame->com_frame, com_frame, sizeof(ComFrame));
@@ -73,29 +63,39 @@ void SS_grazyna_prepare_tx_frame(ComFrame *com_frame, GrazynaFrame *grazyna_fram
 //    printf("\r\ncrc:0x%04x", calculated_crc);
 }
 
-/* TODO Add mutex for transmission */
-void SS_grazyna_transmit(ComFrame *frame) {
-    SS_grazyna_prepare_tx_frame(frame, &grazyna.tx_frame);
-//    SS_com_parse_frame(frame, &grazyna.frame_content);
-    /*
-    SS_com_print_message_sent(&frame_content);
-    uint8_t *p = (uint8_t*) &grazyna.tx_frame;
-    printf("\r\n");
-    for(int i = 0; i < sizeof(grazyna.tx_frame);i++) {
-        printf("0x%02x, ", p[i]);
+static void SS_grazyna_rx_main() {
+    if(SS_fifo_get_data(&grazyna_rx_fifo, &grazyna.frame)) {
+        SS_com_handle_frame(&grazyna.frame);
     }
-    */
+}
+
+static void SS_grazyna_tx_main() {
+    if(SS_fifo_get_data(&grazyna_tx_fifo, &grazyna.frame)) {
+        ComFrameContent frame_content;
+        SS_com_parse_frame(&grazyna.frame, &frame_content);
+        SS_com_print_message_sent(&frame_content);
+        SS_grazyna_prepare_tx_frame(&grazyna.frame, &grazyna.tx_frame);
 #ifndef SIMULATE
-    HAL_UART_Transmit_DMA(grazyna.huart, (uint8_t*) &grazyna.tx_frame, sizeof(grazyna.tx_frame));
+        HAL_UART_Transmit_DMA(grazyna.huart, (uint8_t*) &grazyna.tx_frame, sizeof(grazyna.tx_frame));
 #else
-    HAL_UART_Transmit_IT(grazyna.huart, (uint8_t*) &grazyna.tx_frame, sizeof(grazyna.tx_frame));
+        HAL_UART_Transmit_IT(grazyna.huart, (uint8_t *) &grazyna.tx_frame, sizeof(grazyna.tx_frame));
 #endif
+    }
+}
+
+void SS_grazyna_main() {
+    SS_grazyna_rx_main();
+    SS_grazyna_tx_main();
+}
+
+void SS_grazyna_transmit(ComFrame *frame) {
+    SS_fifo_put_data(&grazyna_tx_fifo, frame);
 }
 
 static void SS_grazyna_handle_frame() {
     uint32_t calculated_crc = SS_grazyna_CRC_calculate(&grazyna.rx_frame);
     if(grazyna.rx_frame.crc == calculated_crc) {
-        SS_fifo_put_data(&grazyna_fifo, &grazyna.rx_frame.com_frame);
+        SS_fifo_put_data(&grazyna_rx_fifo, &grazyna.rx_frame.com_frame);
     }
     grazyna.grazyna_state = GRAZYNA_LOOKING_FOR_HEADER;
     SS_grazyna_receive((uint8_t*) &grazyna.rx_frame, sizeof(grazyna.rx_frame.header));

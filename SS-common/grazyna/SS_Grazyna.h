@@ -8,7 +8,7 @@
 #ifndef SS_GRAZYNA_H_
 #define SS_GRAZYNA_H_
 
-#include "SS_com_protocol.h"
+#include "SS_com.h"
 #include "usart.h"
 
 #define GRAZYNA_HEADER 0x05

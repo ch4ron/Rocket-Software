@@ -4,6 +4,8 @@
 #ifdef SS_USE_MS5X
 #include "SS_MS5X.h"
 #endif
+
+#include <com/SS_com_feed.h>
 #include "SS_common.h"
 #include "stdio.h"
 
@@ -30,6 +32,9 @@ void SS_init() {
 void SS_main() {
 #ifdef SS_USE_GRAZYNA
     SS_grazyna_main();
+#endif
+#ifdef SS_USE_COM
+    SS_com_main();
 #endif
 #ifdef SS_USE_MS5X
     SS_MS56_DMA_read_convert_and_calculate();
