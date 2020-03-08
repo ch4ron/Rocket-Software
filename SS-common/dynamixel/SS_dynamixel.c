@@ -5,6 +5,8 @@
  *      Author: maciek
  */
 
+/* TODO change dma to it on tx (Stream on Kromek necessary for QSPI) */
+
 #include "SS_dynamixel.h"
 #include "string.h"
 #include "SS_fifo.h"

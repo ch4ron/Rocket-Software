@@ -37,7 +37,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 }
 
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
-    printf("spi txrx\r\n");
 #ifdef SS_USE_ADS1258
     SS_ADS1258_SPI_TxRxCpltCallback(hspi);
 #endif

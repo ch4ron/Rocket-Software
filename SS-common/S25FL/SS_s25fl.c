@@ -7,8 +7,8 @@
 
 #include "SS_s25fl.h"
 
-#define NRST_GPIO GPIOA
-#define NRST_PIN GPIO_PIN_0
+#define NRST_GPIO FLASH_RESET_GPIO_Port
+#define NRST_PIN FLASH_RESET_Pin
 
 #define TIMEOUT_ms 3000
 #define ERASE_ALL_TIMEOUT_ms 500000

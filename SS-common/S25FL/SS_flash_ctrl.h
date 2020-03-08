@@ -9,6 +9,7 @@
 #define INC_SS_FLASH_CTRL_H_
 
 #include "main.h"
+#include "stdbool.h"
 
 #define FLASH_CTRL_CONFIG_FILE_SIZE (8UL*1024UL)
 

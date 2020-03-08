@@ -173,8 +173,6 @@ void Error_Handler(void);
 #define SERVO2_GPIO_Port GPIOA
 #define FAN_Pin GPIO_PIN_15
 #define FAN_GPIO_Port GPIOA
-#define FLASH_CS_Pin GPIO_PIN_11
-#define FLASH_CS_GPIO_Port GPIOC
 #define STLINK_TX_Pin GPIO_PIN_12
 #define STLINK_TX_GPIO_Port GPIOC
 #define STLINK_RX_Pin GPIO_PIN_2

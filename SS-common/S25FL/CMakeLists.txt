@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.11.1)
 
-project(S25fl C)
+project(S25FL C)
 
 add_library(${PROJECT_NAME} INTERFACE)
 target_include_directories(

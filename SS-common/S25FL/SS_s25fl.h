@@ -9,6 +9,7 @@
 #define INC_SS_S25FL_H_
 
 #include "main.h"
+#include "stdbool.h"
 
 #define S25FL_USE_QUAD
 

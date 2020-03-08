@@ -55,14 +55,17 @@ file(GLOB_RECURSE SOURCES
                 "Drivers/*.*"
                 "Inc/*.*"
                 "Src/*.*"
-                "startup/*.*")
+                "startup/*.*"
+                "Middlewares/*.*")
 
 include_directories(Inc
                     Test
                     Drivers/STM32F4xx_HAL_Driver/Inc
                     Drivers/STM32F4xx_HAL_Driver/Inc/Legacy
                     Drivers/CMSIS/Device/ST/STM32F4xx/Include
-                    Drivers/CMSIS/Include)
+                    Drivers/CMSIS/Include
+                    Middlewares/ST/STM32_USB_Device_Library/Core/Inc
+                    Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc)
 
 add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
 
@@ -78,6 +81,7 @@ add_compile_definitions(SS_USE_ADC)
 add_compile_definitions(SS_USE_RELAYS)
 add_compile_definitions(SS_USE_SEQUENCE)
 add_compile_definitions(SS_USE_JSON_SETTINGS)
+add_compile_definitions(SS_USE_S25FL)
 
 
 add_subdirectory(../SS-common common)
