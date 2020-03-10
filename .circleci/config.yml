@@ -15,9 +15,5 @@ jobs:
           name: test
           command:
               JUMPER=jumper python build.py simulate kromek --verbose --test
-      - run:
-          name: test
-          command:
-              JUMPER=jumper python build.py simulate staszek --verbose --test
       - store_artifacts:
           path: BUILD/

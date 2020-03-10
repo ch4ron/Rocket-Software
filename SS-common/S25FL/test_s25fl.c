@@ -7,6 +7,7 @@
 
 #include "unity.h"
 #include "SS_s25fl.h"
+#include "string.h"
 
 static void test_s25fl_init(void);
 static void test_s25fl_read_rems_id(void);

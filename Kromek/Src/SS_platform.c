@@ -122,6 +122,7 @@ Measurement measurements[] = {
           .b_coefficient = 0.75f },
 };
 
+
 static void SS_platform_ADS1258_init() {
     SS_ADS1258_measurements_init(measurements, sizeof(measurements) / sizeof(measurements[0]));
     SS_ADS1258_init(&hspi2);

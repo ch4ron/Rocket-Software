@@ -15,6 +15,7 @@
 #ifdef SS_USE_SERVOS
 #include "SS_servos.h"
 #include "SS_com_debug.h"
+#include "SS_com_feed.h"
 
 #endif
 
@@ -26,6 +27,9 @@ static ComFrame tx_frame;
 
 void SS_com_init(ComBoardID board) {
     board_id = board;
+#ifndef SIMULATE
+    SS_com_feed_enable();
+#endif
 }
 
 void SS_com_transmit(ComFrameContent *frame_content) {

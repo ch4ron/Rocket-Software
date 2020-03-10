@@ -11,5 +11,7 @@
 #include "stm32f4xx_hal.h"
 
 void SS_com_main();
+void SS_com_feed_enable();
+void SS_com_feed_disable();
 
 #endif /* SS_COM_H_ */

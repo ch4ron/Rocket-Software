@@ -132,26 +132,6 @@ static float SS_ADS1258_calculate_voltage(Measurement *measurement) {
 
 }
 
-/* TODO move to run in main */
-static void SS_ADS1258_calculate_preview_values() {
-    static uint32_t timer = 0;
-    static uint8_t counter = 0;
-    if(measurements_count == 0) return;
-    timer++;
-    if(timer >= ADS1258_PREVIEW_VALUES_PERIOD / measurements_count)  {
-        timer = 0;
-        Measurement *meas;
-        do {
-            meas = measurement_pointers[counter++];
-            if(counter >= MAX_MEASUREMENT_COUNT) {
-                counter = 0;
-            }
-        } while(meas == NULL);
-        float voltage = SS_ADS1258_calculate_voltage(meas);
-        meas->scaled = voltage * meas->a_coefficient + meas->b_coefficient;
-    }
-}
-
 static void SS_ADS1258_measurement_feed(Measurement *meas, ComFrameContent *frame) {
     float voltage = SS_ADS1258_calculate_voltage(meas);
     meas->scaled = voltage * meas->a_coefficient + meas->b_coefficient;
@@ -165,7 +145,6 @@ static void SS_ADS1258_measurement_feed(Measurement *meas, ComFrameContent *fram
     frame->id = meas->channel_id;
     frame->data_type = FLOAT;
     frame->payload = *((uint32_t *) &meas->scaled);
-    SS_com_print_message_received(frame);
 }
 
 /* Function for transmitting feed values, it returns the number of remaining values to transmit */
@@ -187,6 +166,27 @@ int8_t SS_ADS1258_com_feed(ComFrameContent *frame) {
     return meas_num;
 }
 
-void SS_ADS1258_Systick() {
-    SS_ADS1258_calculate_preview_values();
-}
+/* Unnecessary, feed calculates scaled values before sending */
+
+//static void SS_ADS1258_calculate_preview_values() {
+//    static uint32_t timer = 0;
+//    static uint8_t counter = 0;
+//    if(measurements_count == 0) return;
+//    timer++;
+//    if(timer >= ADS1258_PREVIEW_VALUES_PERIOD / measurements_count)  {
+//        timer = 0;
+//        Measurement *meas;
+//        do {
+//            meas = measurement_pointers[counter++];
+//            if(counter >= MAX_MEASUREMENT_COUNT) {
+//                counter = 0;
+//            }
+//        } while(meas == NULL);
+//        float voltage = SS_ADS1258_calculate_voltage(meas);
+//        meas->scaled = voltage * meas->a_coefficient + meas->b_coefficient;
+//    }
+//}
+//
+//void SS_ADS1258_Systick() {
+//    SS_ADS1258_calculate_preview_values();
+//}

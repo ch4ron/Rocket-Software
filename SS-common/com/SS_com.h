@@ -19,14 +19,14 @@ typedef struct __attribute__((packed)) {
 
 typedef struct {
     uint8_t priority; // 3 bits
-    uint8_t destination; // 5 bits
-    uint8_t source; // 5 bits
-    uint8_t action; // 3 bits
-    uint8_t device; // 6 bits
+    ComBoardID destination; // 5 bits
+    ComBoardID source; // 5 bits
+    ComActionID action; // 3 bits
+    ComDeviceID device; // 6 bits
     uint8_t id; // 6 bits
     /* Set to 1 for frames from and to Grazyna, 0 otherwise */
     uint8_t grazyna_ind; // 1 bit
-    uint8_t data_type; // 3 bits
+    ComDataType data_type; // 3 bits
     uint8_t message_type; // 8 bits
     uint32_t payload; // 32 bits
 } ComFrameContent;

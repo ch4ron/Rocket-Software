@@ -28,7 +28,7 @@
 //}
 
 void print_board(uint32_t board, char *color) {
-    switch(board) {
+    switch (board) {
         case COM_GRAZYNA_ID:
             printf("\x01b[48;5;9mGrazyna");
             break;
@@ -54,7 +54,7 @@ void print_board(uint32_t board, char *color) {
 }
 
 void print_action(uint32_t action) {
-    switch(action) {
+    switch (action) {
         case COM_FEED:
             printf("feed");
             break;
@@ -82,11 +82,11 @@ void print_action(uint32_t action) {
 }
 
 void print_payload(ComFrameContent *frame) {
-    if(frame->data_type == NO_DATA) return;
-    uint32_t data;
-    memcpy(&data, &frame->payload, 4);
+    if (frame->data_type == NO_DATA) return;
     printf("\t Data: ");
-    switch(frame->payload) {
+    switch (frame->data_type) {
+        case NO_DATA:
+            break;
         case UINT8:
         case UINT16:
             printf("%u", (uint16_t) frame->payload);
@@ -101,8 +101,9 @@ void print_payload(ComFrameContent *frame) {
         case INT32:
             printf("%ld", frame->payload);
             break;
-        case FLOAT:
+        case FLOAT:;
             printf("%f", *((float*) &frame->payload));
+            break;
     }
 }
 
