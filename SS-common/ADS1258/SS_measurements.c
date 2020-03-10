@@ -17,9 +17,9 @@ Measurement *measurement_pointers[MAX_MEASUREMENT_COUNT];
 static float vref;
 static uint8_t measurements_count;
 
-void SS_ADS1258_measurements_chid_to_channel(uint8_t chid, uint8_t* reg_addr, uint8_t* reg_mask) {
-	*reg_addr = chid / 8 + 3;
-	*reg_mask = 1 << (chid % 8);
+void SS_ADS1258_measurements_chid_to_channel(uint8_t chid, uint8_t *reg_addr, uint8_t *reg_mask) {
+    *reg_addr = chid / 8 + 3;
+    *reg_mask = 1 << (chid % 8);
 }
 
 void SS_ADS1258_measurement_init(Measurement *measurement) {
@@ -32,20 +32,20 @@ void SS_ADS1258_measurement_init(Measurement *measurement) {
 }
 
 void SS_ADS1258_measurements_init(Measurement *measurements, uint8_t count) {
-    for(uint8_t i = 0; i < count; i++) {
+    for (uint8_t i = 0; i < count; i++) {
         SS_ADS1258_measurement_init(&measurements[i]);
     }
 }
 
 void SS_ADS1258_measurements_clear() {
-	memset(measurement_pointers, 0, sizeof(measurement_pointers));
-	measurements_count = 0;
+    memset(measurement_pointers, 0, sizeof(measurement_pointers));
+    measurements_count = 0;
 }
 
 void SS_ADS1258_measurements_start() {
-	uint8_t muxdif = 0, muxsg0 = 0, muxsg1 = 0, sysred = 0;
-	for(uint8_t i = 0; i < MAX_MEASUREMENT_COUNT; i++) {
-	    if(measurement_pointers[i] != NULL) {
+    uint8_t muxdif = 0, muxsg0 = 0, muxsg1 = 0, sysred = 0;
+    for (uint8_t i = 0; i < MAX_MEASUREMENT_COUNT; i++) {
+        if (measurement_pointers[i] != NULL) {
             uint8_t mask = measurement_pointers[i]->reg_mask;
             switch (measurement_pointers[i]->reg_address) {
                 case REG_ADDR_MUXDIF:
@@ -62,13 +62,13 @@ void SS_ADS1258_measurements_start() {
                     break;
             }
         }
-	}
-	SS_ADS1258_adcStartupRoutine(muxdif, muxsg0, muxsg1, sysred);
-	SS_ADS1258_startMeasurements();
+    }
+    SS_ADS1258_adcStartupRoutine(muxdif, muxsg0, muxsg1, sysred);
+    SS_ADS1258_startMeasurements();
 }
 
-void SS_ADS1258_measurements_parse(ADS1258_Measurement* meas) {
-    if(measurement_pointers[meas->channel] == NULL) {
+void SS_ADS1258_measurements_parse(ADS1258_Measurement *meas) {
+    if (measurement_pointers[meas->channel] == NULL) {
         /* TODO fix tests */
 //        SS_error("Measurement channel: %u not initialized", meas->channel);
         return;
@@ -78,24 +78,24 @@ void SS_ADS1258_measurements_parse(ADS1258_Measurement* meas) {
 
 float SS_ADS1258_measurements_read_VCC() {
     Measurement meas = {
-            .channel_id = STATUS_CHID_REF,
+            .channel_id = STATUS_CHID_VCC,
     };
     Measurement *tmp_pointers[MAX_MEASUREMENT_COUNT];
     memcpy(tmp_pointers, measurement_pointers, sizeof(tmp_pointers));
     SS_ADS1258_measurements_clear();
     SS_ADS1258_measurement_init(&meas);
     SS_ADS1258_measurements_start();
-	SS_ADS1258_startConversions();
-	HAL_Delay(10);
-	float vcc;
-	for(uint8_t i = 0; i < 25; i++) {
+    SS_ADS1258_startConversions();
+    HAL_Delay(10);
+    float vcc;
+    for (uint8_t i = 0; i < 25; i++) {
         vcc += meas.raw / 786432.0f;
-	    HAL_Delay(1);
-	}
+        HAL_Delay(1);
+    }
     vcc /= 25.0f;
     SS_ADS1258_measurements_clear();
-    for(uint8_t i = 0; i < MAX_MEASUREMENT_COUNT; i++) {
-        if(tmp_pointers[i] != NULL) {
+    for (uint8_t i = 0; i < MAX_MEASUREMENT_COUNT; i++) {
+        if (tmp_pointers[i] != NULL) {
             SS_ADS1258_measurement_init(tmp_pointers[i]);
         }
     }
@@ -113,14 +113,14 @@ float SS_ADS1258_measurements_read_VREF() {
     SS_ADS1258_measurements_start();
     SS_ADS1258_startConversions();
     HAL_Delay(10);
-    for(uint8_t i = 0; i < 25; i++) {
+    for (uint8_t i = 0; i < 25; i++) {
         vref += meas.raw / 786432.0f;
         HAL_Delay(1);
     }
     vref /= 25.0f;
     SS_ADS1258_measurements_clear();
-    for(uint8_t i = 0; i < MAX_MEASUREMENT_COUNT; i++) {
-        if(tmp_pointers[i] != NULL) {
+    for (uint8_t i = 0; i < MAX_MEASUREMENT_COUNT; i++) {
+        if (tmp_pointers[i] != NULL) {
             SS_ADS1258_measurement_init(tmp_pointers[i]);
         }
     }
@@ -132,10 +132,15 @@ static float SS_ADS1258_calculate_voltage(Measurement *measurement) {
 
 }
 
-static void SS_ADS1258_measurement_feed(Measurement *meas, ComFrameContent *frame) {
+static float SS_ADS1258_calculate_scaled(Measurement *meas) {
     float voltage = SS_ADS1258_calculate_voltage(meas);
     meas->scaled = voltage * meas->a_coefficient + meas->b_coefficient;
-            /* TODO add macro for priority */
+    return meas->scaled;
+}
+
+static void SS_ADS1258_measurement_feed(Measurement *meas, ComFrameContent *frame) {
+    /* TODO add macro for priority */
+    SS_ADS1258_calculate_scaled(meas);
     frame->priority = 1;
     frame->action = COM_FEED;
     frame->destination = COM_GRAZYNA_ID;
@@ -150,20 +155,29 @@ static void SS_ADS1258_measurement_feed(Measurement *meas, ComFrameContent *fram
 /* Function for transmitting feed values, it returns the number of remaining values to transmit */
 int8_t SS_ADS1258_com_feed(ComFrameContent *frame) {
     static uint8_t counter, meas_num;
-    if(measurements_count == 0) return -1;
-    if(meas_num == 0) {
+    if (measurements_count == 0) return -1;
+    if (meas_num == 0) {
         meas_num = measurements_count;
     }
     Measurement *meas;
     do {
         meas = measurement_pointers[counter++];
-        if(counter >= MAX_MEASUREMENT_COUNT) {
+        if (counter >= MAX_MEASUREMENT_COUNT) {
             counter = 0;
         }
-    } while(meas == NULL);
+    } while (meas == NULL);
     meas_num--;
     SS_ADS1258_measurement_feed(meas, frame);
     return meas_num;
+}
+
+ComStatus SS_ADS1258_com_request(ComFrameContent *frame) {
+    if (frame->id > sizeof(measurement_pointers) / sizeof(measurement_pointers[0])) return COM_ERROR;
+    Measurement *meas = measurement_pointers[frame->id];
+    if(meas == NULL) return COM_ERROR;
+    SS_ADS1258_calculate_scaled(meas);
+    SS_com_add_payload_to_frame(frame, FLOAT, &meas->scaled);
+    return COM_OK;
 }
 
 /* Unnecessary, feed calculates scaled values before sending */

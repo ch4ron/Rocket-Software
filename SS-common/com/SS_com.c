@@ -5,19 +5,25 @@
  *      Author: maciek
  */
 
-#include <grazyna/SS_Grazyna.h>
-#include "SS_error.h"
-#include "SS_com.h"
-#include "stdio.h"
+#ifdef SS_USE_GRAZYNA
+#include "SS_Grazyna.h"
+#endif
+#ifdef SS_USE_ADS1258
+#include "SS_measurements.h"
+#endif
 #ifdef SS_USE_RELAYS
 #include "SS_relays.h"
 #endif
 #ifdef SS_USE_SERVOS
 #include "SS_servos.h"
+#endif
+
 #include "SS_com_debug.h"
 #include "SS_com_feed.h"
+#include "SS_error.h"
+#include "SS_com.h"
+#include "stdio.h"
 
-#endif
 
 static ComFrameContent frame_content;
 static ComBoardID board_id;
@@ -74,8 +80,11 @@ ComStatus SS_com_handle_request(ComFrameContent *frame) {
             res = SS_relays_com_request(frame);
             break;
 #endif
+#ifdef SS_USE_ADS1258
         case COM_MEASUREMENT_ID:
+            res = SS_ADS1258_com_request(frame);
             break;
+#endif
         case COM_SUPPLY_ID:
             break;
         case COM_MEMORY_ID:
@@ -106,8 +115,6 @@ ComStatus SS_com_handle_service(ComFrameContent *frame) {
             res = SS_relay_com_service(frame);
             break;
 #endif
-        case COM_MEASUREMENT_ID:
-            break;
         case COM_SUPPLY_ID:
             break;
         case COM_MEMORY_ID:

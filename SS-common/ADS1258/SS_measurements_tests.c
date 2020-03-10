@@ -19,6 +19,8 @@ TEST_GROUP_RUNNER(measurements) {
 	RUN_TEST_CASE(measurements, start);
 	RUN_TEST_CASE(measurements, values);
 	RUN_TEST_CASE(measurements, read_vcc);
+    RUN_TEST_CASE(measurements, request);
+    RUN_TEST_CASE(measurements, request_uninitialized);
 #endif
 }
 
@@ -181,4 +183,39 @@ TEST(measurements, feed) {
     cnt = SS_ADS1258_com_feed(&frame);
     TEST_ASSERT_EQUAL(2, cnt);
     TEST_ASSERT_EQUAL(STATUS_CHID_OFFSET, frame.id);
+}
+
+TEST(measurements, request) {
+    float vref = SS_ADS1258_measurements_read_VREF();
+    Measurement measurement[] = {
+            {.channel_id = STATUS_CHID_VCC,
+             .a_coefficient = (float) 0x780000 / 786432.0f / vref, .b_coefficient = 0.0f },
+    };
+    SS_ADS1258_measurements_init(measurement, sizeof(measurement) / sizeof(measurement[0]));
+    SS_ADS1258_measurements_start();
+    HAL_Delay(10);
+    ComFrameContent frame = {
+            .action = COM_REQUEST,
+            .device = COM_MEASUREMENT_ID,
+            .id = STATUS_CHID_VCC };
+    ComStatus res = SS_com_handle_action(&frame);
+    TEST_ASSERT_EQUAL(COM_OK, res);
+    float actual = *((float*) &frame.payload);
+    TEST_ASSERT_FLOAT_WITHIN(0.2f, 5.0f,  actual);
+    TEST_ASSERT_EQUAL(FLOAT, frame.data_type);
+}
+
+TEST(measurements, request_uninitialized) {
+    Measurement measurement[] = {
+            {.channel_id = STATUS_CHID_VCC },
+    };
+    SS_ADS1258_measurements_init(measurement, sizeof(measurement) / sizeof(measurement[0]));
+    SS_ADS1258_measurements_start();
+    HAL_Delay(10);
+    ComFrameContent frame = {
+            .action = COM_REQUEST,
+            .device = COM_MEASUREMENT_ID,
+            .id = STATUS_CHID_OFFSET };
+    ComStatus res = SS_com_handle_action(&frame);
+    TEST_ASSERT_EQUAL(COM_ERROR, res);
 }
