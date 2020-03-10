@@ -10,6 +10,8 @@
 #ifdef SS_USE_MS5X
 #include "SS_MS5X.h"
 #endif
+
+#include <S25FL/SS_s25fl.h>
 #include "SS_ADS1258.h"
 #endif
 #ifdef SS_USE_SERVOS
@@ -90,6 +92,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
 //}
 
+void HAL_QSPI_TxCpltCallback(QSPI_HandleTypeDef *hqspi) {
+    SS_s25fl_txcplt_handler();
+}
+
+void HAL_QSPI_RxCpltCallback(QSPI_HandleTypeDef *hqspi) {
+    SS_s25fl_rxcplt_handler();
+}
+
 void HAL_SYSTICK_Callback() {
 #ifdef SS_USE_SERVOS
     SS_servos_SYSTICK();
@@ -108,5 +118,8 @@ void HAL_SYSTICK_Callback() {
 #endif
 #ifdef SS_USE_MS5X
     SS_MS56_SYSTICK_Callback();
+#endif
+#ifdef SS_USE_S25FL
+    SS_s25fl_txcplt_handler();
 #endif
 }

@@ -18,7 +18,7 @@ void SS_init() {
 //    SS_supply_init();
 #endif
 //    test_flash_ctrl();
-    test_s25fl();
+//    test_s25fl();
 #ifdef RUN_TESTS
     SS_run_all_tests();
 #endif

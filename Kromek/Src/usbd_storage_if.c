@@ -20,11 +20,11 @@
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
-#include <S25FL/SS_flash_ctrl.h>
 #include "usbd_storage_if.h"
 
 /* USER CODE BEGIN INCLUDE */
 
+#include "SS_flash_ctrl.h"
 /* USER CODE END INCLUDE */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -253,7 +253,6 @@ int8_t STORAGE_Write_FS(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t b
         // Intentionally do not return failure here.
     }
     return USBD_OK;
-  return (USBD_OK);
   /* USER CODE END 7 */
 }
 
