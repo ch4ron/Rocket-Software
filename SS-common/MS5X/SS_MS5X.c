@@ -6,6 +6,8 @@
  * Modified on: 26.12.2018
  *  	    By: PR
  *
+ * TODO Update instruction
+ *
  *  How to use it:
  *  1. Configure SPI connection in STM32CubeMX.
  *  2. Enter 'MS56_CS' as user label for CPU's pin connected with MS5607's chip select pin (in CubeMX).
@@ -27,6 +29,7 @@
  */
 
 #include "SS_MS5X.h"
+
 #ifdef SS_USE_S25FL
 #include "SS_S25FL.h"
 #endif
@@ -439,19 +442,14 @@ uint8_t SS_MS56_DMA_wait(uint8_t press_or_temp_OSR) {
     switch (press_or_temp_OSR) {
         case MS56_PRESS_256:
             return 1 + 1;
-            break;
         case MS56_PRESS_512:
             return 2 + 1;
-            break;
         case MS56_PRESS_1024:
             return 3 + 1;
-            break;
         case MS56_PRESS_2048:
             return 5 + 1;
-            break;
         case MS56_PRESS_4096:
             return 9 + 1;
-            break;
     }
     return 0;
 }

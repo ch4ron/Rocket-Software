@@ -4,7 +4,7 @@ import os
 import serial
 import sys
 
-boards = ['Kromek', 'Staszek']
+boards = ['Kromek', 'Staszek', 'Czapla', 'Pauek']
 targets = ['Debug', 'Simulate', 'Test']
 
 # Calculates the return value

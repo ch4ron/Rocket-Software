@@ -69,7 +69,7 @@ TEST(parser, SS_json_parse_string) {
 }
 
 TEST(parser, SS_json_parse_int) {
-    int value;
+    int value = 0;
     for(int i = 1; i < r;  i++) {
         SS_json_parse_int(test_json, &t[i], "boardID", &value);
     }
@@ -77,7 +77,7 @@ TEST(parser, SS_json_parse_int) {
 }
 
 TEST(parser, SS_json_parse_float) {
-    float value;
+    float value = 0;
     for(int i = 1; i < r; i++) {
         SS_json_parse_float(test_json, &t[i], "value", &value);
     }
@@ -85,8 +85,8 @@ TEST(parser, SS_json_parse_float) {
 }
 
 TEST(parser, parse_nested) {
-    jsmntok_t *tok;
-    int size = 0, value;
+    jsmntok_t *tok = NULL;
+    int size = 0, value = 0;
     for(int i = 1; i < r; i += SS_json_get_object_length(test_json, &t[i])) {
         int tmp = SS_json_parse_object(test_json, &t[i], "parameters", &tok);
         if(tmp > 0) size = tmp;
@@ -99,8 +99,8 @@ TEST(parser, parse_nested) {
 }
 
 TEST(parser, parse_deep_nested) {
-    jsmntok_t *tok, *tok2;
-    int size = 0, size2 = 0, value;
+    jsmntok_t *tok = NULL, *tok2 = NULL;
+    int size = 0, size2 = 0, value = 0;
     for(int i = 1; i < r; i += SS_json_get_object_length(test_json, &t[i])) {
         int tmp = SS_json_parse_object(test_json, &t[i], "parameters", &tok);
         if(tmp > 0) size = tmp;

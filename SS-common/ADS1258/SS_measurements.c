@@ -87,7 +87,7 @@ float SS_ADS1258_measurements_read_VCC() {
     SS_ADS1258_measurements_start();
     SS_ADS1258_startConversions();
     HAL_Delay(10);
-    float vcc;
+    float vcc = 0.0f;
     for (uint8_t i = 0; i < 25; i++) {
         vcc += meas.raw / 786432.0f;
         HAL_Delay(1);

@@ -6,9 +6,12 @@
  */
 
 
+#ifdef SS_USE_ADS1258
 #include "SS_measurements.h"
+#endif
 #include "SS_com_feed.h"
 #include "SS_com.h"
+#include "stdbool.h"
 
 #define COM_FEED_PERIOD 500
 

@@ -92,6 +92,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
 //}
 
+#ifdef SS_USE_S25FL
 void HAL_QSPI_TxCpltCallback(QSPI_HandleTypeDef *hqspi) {
   SS_s25fl_txcplt_handler();
 }
@@ -99,6 +100,7 @@ void HAL_QSPI_TxCpltCallback(QSPI_HandleTypeDef *hqspi) {
 void HAL_QSPI_RxCpltCallback(QSPI_HandleTypeDef *hqspi) {
   SS_s25fl_rxcplt_handler();
 }
+#endif
 
 void HAL_SYSTICK_Callback() {
 #ifdef SS_USE_SERVOS
