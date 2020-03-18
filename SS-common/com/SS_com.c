@@ -34,7 +34,7 @@ static ComFrame tx_frame;
 void SS_com_init(ComBoardID board) {
     board_id = board;
 #ifndef SIMULATE
-    SS_com_feed_enable();
+//    SS_com_feed_enable();
 #endif
 }
 
