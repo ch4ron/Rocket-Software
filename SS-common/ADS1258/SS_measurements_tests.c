@@ -169,7 +169,7 @@ TEST(measurements, feed) {
             {.channel_id = STATUS_CHID_VCC },
             {.channel_id = STATUS_CHID_TEMP },
     };
-    ComFrameContent frame;
+    ComFrame frame;
     SS_ADS1258_measurements_init(measurement, sizeof(measurement) / sizeof(measurement[0]));
     uint8_t cnt = SS_ADS1258_com_feed(&frame);
     TEST_ASSERT_EQUAL(2, cnt);
@@ -194,7 +194,7 @@ TEST(measurements, request) {
     SS_ADS1258_measurements_init(measurement, sizeof(measurement) / sizeof(measurement[0]));
     SS_ADS1258_measurements_start();
     HAL_Delay(10);
-    ComFrameContent frame = {
+    ComFrame frame = {
             .action = COM_REQUEST,
             .device = COM_MEASUREMENT_ID,
             .id = STATUS_CHID_VCC };
@@ -212,7 +212,7 @@ TEST(measurements, request_uninitialized) {
     SS_ADS1258_measurements_init(measurement, sizeof(measurement) / sizeof(measurement[0]));
     SS_ADS1258_measurements_start();
     HAL_Delay(10);
-    ComFrameContent frame = {
+    ComFrame frame = {
             .action = COM_REQUEST,
             .device = COM_MEASUREMENT_ID,
             .id = STATUS_CHID_OFFSET };

@@ -18,10 +18,10 @@
 /* An array of functions that send feed data
  * The functions should return a number of remaining values to transmit
  * Follow the example from SS_ADS1258_com_feed when adding new modules */
-static ComFrameContent feed_frame;
+static ComFrame feed_frame;
 static volatile bool enabled;
 
-int8_t (*modules[])(ComFrameContent*) = {
+int8_t (*modules[])(ComFrame*) = {
 #ifdef SS_USE_ADS1258
         SS_ADS1258_com_feed
 #endif

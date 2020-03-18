@@ -23,7 +23,7 @@ extern Relay *relay_pointers[MAX_RELAY_COUNT];
 
 static void test_relay_open(Relay *relay) {
     SS_relay_close(relay);
-    ComFrameContent frame = {
+    ComFrame frame = {
             .action = COM_SERVICE,
             .device = COM_RELAY_ID,
             .id = relay->id,
@@ -36,7 +36,7 @@ static void test_relay_open(Relay *relay) {
 
 static void test_relay_close(Relay *relay) {
     SS_relay_close(relay);
-    ComFrameContent frame = {
+    ComFrame frame = {
             .action = COM_SERVICE,
             .device = COM_RELAY_ID,
             .id = relay->id,
@@ -49,7 +49,7 @@ static void test_relay_close(Relay *relay) {
 
 static void test_relay_get_status(Relay *relay) {
     SS_relay_open(relay);
-    ComFrameContent frame = {
+    ComFrame frame = {
             .action = COM_REQUEST,
             .device = COM_RELAY_ID,
             .id = relay->id,

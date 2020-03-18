@@ -197,7 +197,7 @@ void SS_servos_SYSTICK() {
 #endif
 }
 
-ComStatus SS_servos_com_service(ComFrameContent *frame) {
+ComStatus SS_servos_com_service(ComFrame *frame) {
     if(SS_servos_check_id(frame->id) != 0) return COM_ERROR;
     ComServoID msgID = frame->message_type;
     Servo *servo = servo_pointers[frame->id];
@@ -232,7 +232,7 @@ ComStatus SS_servos_com_service(ComFrameContent *frame) {
     return COM_OK;
 }
 
-ComStatus SS_servos_com_request(ComFrameContent *frame) {
+ComStatus SS_servos_com_request(ComFrame *frame) {
     if(SS_servos_check_id(frame->id) != 0) return COM_ERROR;
     ComServoID msgID = frame->message_type;
     Servo *servo = servo_pointers[frame->id];

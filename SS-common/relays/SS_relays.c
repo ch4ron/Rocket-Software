@@ -54,7 +54,7 @@ void SS_relay_close(Relay *relay) {
     relay->state = 0;
 }
 
-ComStatus SS_relay_com_service(ComFrameContent *frame) {
+ComStatus SS_relay_com_service(ComFrame *frame) {
     if(SS_relays_check_id(frame->id) != 0) return COM_ERROR;
     ComRelayID msgID = frame->message_type;
     Relay *relay = relay_pointers[frame->id];
@@ -72,7 +72,7 @@ ComStatus SS_relay_com_service(ComFrameContent *frame) {
     return COM_OK;
 }
 
-ComStatus SS_relays_com_request(ComFrameContent *frame) {
+ComStatus SS_relays_com_request(ComFrame *frame) {
     if(SS_relays_check_id(frame->id) != 0) return COM_ERROR;
     ComRelayID msgID = frame->message_type;
     Relay *relay = relay_pointers[frame->id];

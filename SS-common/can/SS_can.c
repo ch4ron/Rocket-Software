@@ -78,15 +78,15 @@ static uint32_t SS_can_get_header(ComFrame *frame) {
 //    memcpy(data + 1, &frame->message_type, sizeof(ComFrame) - sizeof(frame->header));
 //    return sizeof(ComFrame) - sizeof(frame->header) + sizeof(uint8_t);
 //}
-static uint32_t SS_can_get_filter(ComFrameContent *frame_content) {
-    ComFrame frame = { 0 };
-    SS_com_pack_frame(&frame, frame_content);
-    return frame.header >> 3;
+static uint32_t SS_can_get_filter(ComFrame *frame_content) {
+//    ComFrame frame = { 0 };
+//    SS_com_pack_frame(&frame, frame_content);
+//    return frame.header >> 3;
 }
 
 void SS_can_filters_init(uint8_t board) {
     uint8_t filter_bank = 0;
-    ComFrameContent frame_content = { 0 };
+    ComFrame frame_content = { 0 };
     frame_content.destination = board;
     uint32_t filter = SS_can_get_filter(&frame_content);
     frame_content.destination = 0x1F;

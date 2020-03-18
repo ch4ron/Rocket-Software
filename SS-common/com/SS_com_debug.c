@@ -79,7 +79,7 @@ void print_action(uint32_t action) {
     }
 }
 
-void print_payload(ComFrameContent *frame) {
+void print_payload(ComFrame *frame) {
     if (frame->data_type == NO_DATA) return;
     printf("\t Data: ");
     switch (frame->data_type) {
@@ -105,9 +105,9 @@ void print_payload(ComFrameContent *frame) {
     }
 }
 
-void SS_com_debug_print_frame(ComFrameContent *frame, char *title, char *color) {
-    ComFrameContent buf;
-    memcpy(&buf, frame, sizeof(ComFrameContent));
+void SS_com_debug_print_frame(ComFrame *frame, char *title, char *color) {
+    ComFrame buf;
+    memcpy(&buf, frame, sizeof(ComFrame));
     printf("%s\r\n%s\t", color, title);
     printf("From: ");
     print_board(frame->source, color);
@@ -124,19 +124,19 @@ void SS_com_debug_print_frame(ComFrameContent *frame, char *title, char *color) 
     print_payload(frame);
 }
 
-void SS_com_print_message_received(ComFrameContent *frame) {
+void SS_com_print_message_received(ComFrame *frame) {
     char color[] = "\x01b[48;5;8m";
     char title[] = "Rec:";
     SS_com_debug_print_frame(frame, title, color);
 }
 
-void SS_com_print_message_sent(ComFrameContent *frame) {
+void SS_com_print_message_sent(ComFrame *frame) {
     char color[] = "\x01b[48;5;234m";
     char title[] = "Sent:";
     SS_com_debug_print_frame(frame, title, color);
 }
 
-void SS_com_print_message_error(ComFrameContent *frame, char *error) {
+void SS_com_print_message_error(ComFrame *frame, char *error) {
     char color[] = "\x01b[41m";
     SS_com_debug_print_frame(frame, error, color);
 }

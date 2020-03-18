@@ -138,7 +138,7 @@ static float SS_ADS1258_calculate_scaled(Measurement *meas) {
     return meas->scaled;
 }
 
-static void SS_ADS1258_measurement_feed(Measurement *meas, ComFrameContent *frame) {
+static void SS_ADS1258_measurement_feed(Measurement *meas, ComFrame *frame) {
     /* TODO add macro for priority */
     SS_ADS1258_calculate_scaled(meas);
     frame->priority = 1;
@@ -153,7 +153,7 @@ static void SS_ADS1258_measurement_feed(Measurement *meas, ComFrameContent *fram
 }
 
 /* Function for transmitting feed values, it returns the number of remaining values to transmit */
-int8_t SS_ADS1258_com_feed(ComFrameContent *frame) {
+int8_t SS_ADS1258_com_feed(ComFrame *frame) {
     static uint8_t counter, meas_num;
     if (measurements_count == 0) return -1;
     if (meas_num == 0) {
@@ -171,7 +171,7 @@ int8_t SS_ADS1258_com_feed(ComFrameContent *frame) {
     return meas_num;
 }
 
-ComStatus SS_ADS1258_com_request(ComFrameContent *frame) {
+ComStatus SS_ADS1258_com_request(ComFrame *frame) {
     if (frame->id > sizeof(measurement_pointers) / sizeof(measurement_pointers[0])) return COM_ERROR;
     Measurement *meas = measurement_pointers[frame->id];
     if(meas == NULL) return COM_ERROR;

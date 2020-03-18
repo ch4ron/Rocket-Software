@@ -32,7 +32,7 @@ void SS_relay_open(Relay *relay);
 void SS_relay_close(Relay *relay);
 void SS_relay_init(Relay *relay);
 void SS_relays_init(Relay *relay_array, uint8_t count);
-ComStatus SS_relay_com_service(ComFrameContent *frame);
-ComStatus SS_relays_com_request(ComFrameContent *frame);
+ComStatus SS_relay_com_service(ComFrame *frame);
+ComStatus SS_relays_com_request(ComFrame *frame);
 
 #endif /* SS_RELAYS_H_ */

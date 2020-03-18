@@ -26,7 +26,6 @@ typedef struct {
     GrazynaFrame rx_frame, tx_frame;
     GrazynaState grazyna_state;
     ComFrame frame;
-    ComFrameContent frame_content;
     UART_HandleTypeDef *huart;
 } Grazyna;
 
@@ -70,9 +69,7 @@ static void SS_grazyna_rx_main() {
 
 static void SS_grazyna_tx_main() {
     if(SS_fifo_get_data(&grazyna_tx_fifo, &grazyna.frame)) {
-        ComFrameContent frame_content;
-        SS_com_unpack_frame(&grazyna.frame, &frame_content);
-        SS_com_print_message_sent(&frame_content);
+        SS_com_print_message_sent(&grazyna.frame);
         SS_grazyna_prepare_tx_frame(&grazyna.frame, &grazyna.tx_frame);
 #ifndef SIMULATE
         HAL_UART_Transmit_DMA(grazyna.huart, (uint8_t*) &grazyna.tx_frame, sizeof(grazyna.tx_frame));
@@ -124,7 +121,7 @@ void SS_grazyna_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
     }
 }
 
-#if defined(SIMULATE) || defined (RUN_TESTS)
+#if defined(SIMULATE) && defined (RUN_TESTS)
 // CRC32 lookup table for polynomial 0x04c11db7
 static uint32_t crc_table[256] = {
         0x00000000, 0x04c11db7, 0x09823b6e, 0x0d4326d9, 0x130476dc, 0x17c56b6b,

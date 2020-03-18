@@ -153,7 +153,7 @@ TEST(servos, timeout) {
 
 static void test_grazyna_servo_open(uint8_t servo_id) {
     SS_servo_close(servo_pointers[servo_id]);
-    ComFrameContent frame = {
+    ComFrame frame = {
             .action = COM_SERVICE,
             .device = COM_SERVO_ID,
             .id = servo_id,
@@ -166,7 +166,7 @@ static void test_grazyna_servo_open(uint8_t servo_id) {
 
 static void test_grazyna_servo_close(uint8_t servo_id) {
     SS_servo_open(servo_pointers[servo_id]);
-    ComFrameContent frame = {
+    ComFrame frame = {
             .action = COM_SERVICE,
             .device = COM_SERVO_ID,
             .id = servo_id,
@@ -180,7 +180,7 @@ static void test_grazyna_servo_close(uint8_t servo_id) {
 static void test_grazyna_servo_set_position(uint8_t servo_id) {
     uint16_t target = 300;
     SS_servo_open(servo_pointers[servo_id]);
-    ComFrameContent frame = {
+    ComFrame frame = {
             .action = COM_SERVICE,
             .device = COM_SERVO_ID,
             .id = servo_id,
@@ -194,7 +194,7 @@ static void test_grazyna_servo_set_position(uint8_t servo_id) {
 
 static void test_grazyna_servo_set_opened_position(uint8_t servo_id) {
     uint16_t target = 444;
-    ComFrameContent frame = {
+    ComFrame frame = {
             .action = COM_SERVICE,
             .device = COM_SERVO_ID,
             .id = servo_id,
@@ -207,7 +207,7 @@ static void test_grazyna_servo_set_opened_position(uint8_t servo_id) {
 
 static void test_grazyna_servo_set_closed_position(uint8_t servo_id) {
     uint32_t target = 531;
-    ComFrameContent frame = {
+    ComFrame frame = {
             .action = COM_SERVICE,
             .device = COM_SERVO_ID,
             .id = servo_id,
@@ -221,7 +221,7 @@ static void test_grazyna_servo_set_closed_position(uint8_t servo_id) {
 static void test_grazyna_servo_get_position(uint8_t servo_id) {
     uint16_t target = 777;
     SS_servo_set_position(servo_pointers[servo_id], target);
-    ComFrameContent frame = {
+    ComFrame frame = {
             .action = COM_REQUEST,
             .device = COM_SERVO_ID,
             .id = servo_id,
@@ -235,7 +235,7 @@ static void test_grazyna_servo_get_position(uint8_t servo_id) {
 static void test_grazyna_servo_get_opened_position(uint8_t servo_id) {
     uint16_t target = 3;
     SS_servo_set_opened_position(servo_pointers[servo_id], target);
-    ComFrameContent frame = {
+    ComFrame frame = {
             .action = COM_REQUEST,
             .device = COM_SERVO_ID,
             .id = servo_id,
@@ -249,7 +249,7 @@ static void test_grazyna_servo_get_opened_position(uint8_t servo_id) {
 static void test_grazyna_servo_get_closed_position(uint8_t servo_id) {
     uint16_t target = 1000;
     SS_servo_set_closed_position(servo_pointers[servo_id], target);
-    ComFrameContent frame = {
+    ComFrame frame = {
             .action = COM_REQUEST,
             .device = COM_SERVO_ID,
             .id = servo_id,
@@ -273,7 +273,7 @@ TEST(grazyna_servos, close) {
 }
 
 TEST(grazyna_servos, wrong_id) {
-    ComFrameContent frame = {
+    ComFrame frame = {
             .action = COM_SERVICE,
             .device = COM_SERVO_ID,
             .id = MAX_SERVO_COUNT,
@@ -301,7 +301,7 @@ TEST(grazyna_servos, set_opened_position) {
 }
 
 TEST(grazyna_servos, disable) {
-    ComFrameContent frame = {
+    ComFrame frame = {
             .action = COM_SERVICE,
             .device = COM_SERVO_ID,
             .message_type = COM_SERVO_DISABLE, };
@@ -339,7 +339,7 @@ TEST(grazyna_servos, get_opened_position) {
 
 TEST(grazyna_servos, set_range) {
     uint16_t range = 2000;
-    ComFrameContent frame = {
+    ComFrame frame = {
             .action = COM_SERVICE,
             .device = COM_SERVO_ID,
             .message_type = COM_SERVOS_RANGE,
@@ -351,7 +351,7 @@ TEST(grazyna_servos, set_range) {
 
 TEST(grazyna_servos, get_range) {
     servos_config.SERVO_RANGE = 6999;
-    ComFrameContent frame = {
+    ComFrame frame = {
             .action = COM_REQUEST,
             .device = COM_SERVO_ID,
             .message_type =
@@ -370,7 +370,7 @@ TEST(grazyna_servos, uninitialized_id) {
     memcpy(pointers, servo_pointers, MAX_SERVO_COUNT);
     SS_servos_deinit();
     SS_servo_init(&test_servo);
-    ComFrameContent frame = {
+    ComFrame frame = {
             .action = COM_SERVICE,
             .device = COM_SERVO_ID,
             .id = 3,
