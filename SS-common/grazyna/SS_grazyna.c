@@ -60,7 +60,6 @@ void SS_grazyna_prepare_tx_frame(ComFrame *com_frame, GrazynaFrame *grazyna_fram
     grazyna_frame->header = GRAZYNA_HEADER;
     memcpy(&grazyna_frame->com_frame, com_frame, sizeof(ComFrame));
     grazyna_frame->crc = SS_grazyna_CRC_calculate(grazyna_frame);
-//    printf("\r\ncrc:0x%04x", calculated_crc);
 }
 
 static void SS_grazyna_rx_main() {
@@ -72,7 +71,7 @@ static void SS_grazyna_rx_main() {
 static void SS_grazyna_tx_main() {
     if(SS_fifo_get_data(&grazyna_tx_fifo, &grazyna.frame)) {
         ComFrameContent frame_content;
-        SS_com_parse_frame(&grazyna.frame, &frame_content);
+        SS_com_unpack_frame(&grazyna.frame, &frame_content);
         SS_com_print_message_sent(&frame_content);
         SS_grazyna_prepare_tx_frame(&grazyna.frame, &grazyna.tx_frame);
 #ifndef SIMULATE

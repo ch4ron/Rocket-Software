@@ -25,7 +25,7 @@ TEST_TEAR_DOWN(grazyna) {}
 extern uint32_t SS_grazyna_CRC_calculate(GrazynaFrame *grazyna_frame);
 
 TEST(grazyna, crc) {
-    GrazynaFrame received;
+    GrazynaFrame received = { 0 };
     uint8_t buff[] = { 0x05, 0x26, 0x09, 0x10, 0xa9, 0x05, 0x00, 0x00, 0x00, 0x00, 0xe6, 0xc6, 0x84, 0x4a };
     memcpy(&received, buff, sizeof(buff));
     uint32_t expected = received.crc;
@@ -34,7 +34,7 @@ TEST(grazyna, crc) {
 }
 
 TEST(grazyna, crc_incorrect) {
-    GrazynaFrame received;
+    GrazynaFrame received = { 0 };
     uint8_t buff[] = { 0x05, 0x28, 0x09, 0x10, 0xa9, 0x05, 0x00, 0x00, 0x00, 0x00, 0xe6, 0xc6, 0x84, 0x4a };
     memcpy(&received, buff, sizeof(buff));
     uint32_t expected = received.crc;

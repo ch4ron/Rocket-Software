@@ -12,6 +12,7 @@
 #include "SS_com_ids.h"
 
 typedef struct __attribute__((packed)) {
+    uint8_t data[9];
     uint32_t header;
     uint8_t message_type;
     uint32_t payload;
@@ -37,13 +38,13 @@ typedef enum {
 } ComStatus;
 
 void SS_com_init(ComBoardID board);
-void SS_com_transmit(ComFrameContent *frame_content);
+void SS_com_transmit(ComFrameContent *frame);
 ComStatus SS_com_handle_frame(ComFrame *frame);
 ComStatus SS_com_handle_action(ComFrameContent *frame);
 ComStatus SS_com_handle_request(ComFrameContent *frame);
 ComStatus SS_com_handle_service(ComFrameContent *frame);
 void SS_com_add_payload_to_frame(ComFrameContent *frame, ComDataType type, void *payload);
-void SS_com_parse_frame(ComFrame *frame, ComFrameContent *content);
-void SS_com_create_frame(ComFrame *frame, ComFrameContent *content);
+void SS_com_unpack_frame(ComFrame *frame, ComFrameContent *content);
+void SS_com_pack_frame(ComFrame *frame, ComFrameContent *content);
 
 #endif /* SS_COM_PROTOCOL_H_ */

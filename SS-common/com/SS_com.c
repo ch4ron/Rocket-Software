@@ -19,33 +19,30 @@
 #endif
 
 #include "SS_com_debug.h"
-#include "SS_com_feed.h"
 #include "SS_error.h"
 #include "SS_com.h"
 #include "stdio.h"
+#include "string.h"
 
 
 static ComFrameContent frame_content;
 static ComBoardID board_id;
 static ComFrame tx_frame;
 
-/* The the functions in this module modify the received frame */
+/* Functions in this module modify the received frame */
 
 void SS_com_init(ComBoardID board) {
     board_id = board;
-#ifndef SIMULATE
-//    SS_com_feed_enable();
-#endif
 }
 
-void SS_com_transmit(ComFrameContent *frame_content) {
-    frame_content->source = board_id;
-    SS_com_create_frame(&tx_frame, frame_content);
+void SS_com_transmit(ComFrameContent *frame) {
+    frame->source = board_id;
+    SS_com_pack_frame(&tx_frame, frame);
     SS_grazyna_transmit(&tx_frame);
 }
 
 ComStatus SS_com_handle_frame(ComFrame *frame) {
-    SS_com_parse_frame(frame, &frame_content);
+    SS_com_unpack_frame(frame, &frame_content);
     SS_com_print_message_received(&frame_content);
     ComStatus res = SS_com_handle_action(&frame_content);
     frame_content.destination = frame_content.source;
@@ -95,7 +92,7 @@ ComStatus SS_com_handle_request(ComFrameContent *frame) {
             break;
         default:
             res = COM_ERROR;
-            printf("Unsupported device: %d\r\n", frame->action);
+            printf("Unsupported device: %d\r\n", frame->device);
     }
     frame->action = COM_RESPONSE;
     return res;
@@ -135,32 +132,33 @@ void SS_com_add_payload_to_frame(ComFrameContent *frame, ComDataType type, void 
     frame->data_type = type;
     switch(type) {
         case UINT32:
-            *((uint32_t*) &frame->payload) = *((uint32_t*) payload);
+        case INT32:
+        case FLOAT:
+            memcpy(&frame->payload, payload, 4);
             break;
         case UINT16:
-            *((uint16_t*) &frame->payload) = *((uint16_t*) payload);
+        case INT16:
+            memcpy(&frame->payload, payload, 2);
             break;
         case UINT8:
-            *((uint8_t*) &frame->payload) = *((uint8_t*) payload);
-            break;
-        case INT32:
-            *((int32_t*) &frame->payload) = *((int32_t*) payload);
-            break;
-        case INT16:
-            *((int16_t*) &frame->payload) = *((int16_t*) payload);
-            break;
         case INT8:
-            *((int8_t*) &frame->payload) = *((int8_t*) payload);
-            break;
-        case FLOAT:
-            *((float*) &frame->payload) = *((float*) payload);
+            memcpy(&frame->payload, payload, 1);
             break;
         default:
             break;
     }
 }
+//
+//static void SS_com_frame_add_data(ComFrame *frame, uint32_t data, uint8_t bit_count, bool reset_flag) {
+//    static uint32_t position = 0;
+//    if(reset_flag) {
+//        position = 0;
+//    }
+//    frame->data[position/8] =
+//
+//}
 
-void SS_com_parse_frame(ComFrame *frame, ComFrameContent *content) {
+void SS_com_unpack_frame(ComFrame *frame, ComFrameContent *content) {
     content->priority = (frame->header >> 5) & 0b00000111;
     content->destination = frame->header & 0b00011111;
     content->source = (frame->header >> 11) & 0b00011111;
@@ -173,7 +171,7 @@ void SS_com_parse_frame(ComFrame *frame, ComFrameContent *content) {
     content->payload = frame->payload;
 }
 
-void SS_com_create_frame(ComFrame *frame, ComFrameContent *content) {
+void SS_com_pack_frame(ComFrame *frame, ComFrameContent *content) {
     frame->header = 0;
     frame->header |= content->priority << 5;
     frame->header |= content->destination;

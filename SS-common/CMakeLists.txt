@@ -75,6 +75,10 @@ if(COMPILE_DEFS MATCHES SS_USE_MS5X)
     add_subdirectory(MS5X)
     target_link_libraries(${PROJECT_NAME} PUBLIC MS5X)
 endif()
+if(COMPILE_DEFS MATCHES SS_USE_CAN)
+    add_subdirectory(can)
+    target_link_libraries(${PROJECT_NAME} PUBLIC can)
+endif()
 
 
 if(COMPILE_DEFS MATCHES RUN_TESTS)

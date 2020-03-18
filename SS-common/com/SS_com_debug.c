@@ -9,8 +9,6 @@
 #include "string.h"
 #include "stdio.h"
 
-//#ifdef CAN_DEBUG
-
 //void print_binary(uint32_t number) {
 //    uint8_t bin[32];
 //    uint8_t i = 0;

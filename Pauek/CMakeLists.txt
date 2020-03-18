@@ -71,6 +71,7 @@ add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
 
 # DEFINE YOUR LIBRARIES HERE
 add_compile_definitions(SS_USE_COM)
+add_compile_definitions(SS_USE_CAN)
 add_compile_definitions(SS_USE_GRAZYNA)
 #add_compile_definitions(SS_USE_SUPPLY)
 add_compile_definitions(SS_USE_FIFO)
