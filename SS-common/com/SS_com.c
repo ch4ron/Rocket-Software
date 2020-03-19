@@ -35,7 +35,9 @@ void SS_com_init(ComBoardID board) {
 
 void SS_com_transmit(ComFrame *frame) {
     frame->source = board_id;
+#ifdef SS_USE_GRAZYNA
     SS_grazyna_transmit(frame);
+#endif
 }
 
 ComStatus SS_com_handle_frame(ComFrame *frame) {

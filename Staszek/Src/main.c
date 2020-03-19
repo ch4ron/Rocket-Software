@@ -120,16 +120,19 @@ int main(void) {
     SS_init();
 
     /* USER CODE END 2 */
-    ComFrame frame = { 0 };
-    frame.destination = 0b11111;
-    uint8_t msg[sizeof(ComFrame)];
-    memcpy(msg, &frame, sizeof(msg));
-    printf("");
+    ComFrame frame = {
+            .source = COM_STASZEK_ID,
+            .destination = COM_PAUEK_ID,
+            .priority = 0,
+            .action = COM_SERVICE,
+            .device = COM_RELAY_ID,
+            .id = 3,
+            .message_type = 4};
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
         SS_main();
-        printf("altitude: %ld, pressure: %ld, uncompressed: %ld\r\n", ms5607.altitude, ms5607.press, ms5607.uncomp_press);
+//        printf("altitude: %ld, pressure: %ld, uncompressed: %ld\r\n", ms5607.altitude, ms5607.press, ms5607.uncomp_press);
         HAL_Delay(1000);
         SS_can_transmit(&frame, COM_LOW_PRIORITY);
         /* USER CODE END WHILE */

@@ -74,21 +74,22 @@ static uint32_t SS_can_get_header(ComFrame *frame) {
 
 static void SS_can_filters_init(CAN_HandleTypeDef *hcan, uint8_t board) {
     uint8_t filter_bank = 0;
-    ComFrame frame = { 0 };
-    frame.destination = board;
-    uint32_t filter = SS_can_get_header(&frame);
-    frame.destination = 0x1F;
-    frame.priority = 1;
-    uint32_t mask = 0x1FFFFFFF; //SS_can_get_header(&frame);
+    ComFrame filter_frame = { 0 }, mask_frame = { 0 };
+    filter_frame.destination = board;
+    uint32_t filter = SS_can_get_header(&filter_frame);
+    mask_frame.destination = 0x1F;
+    mask_frame.priority = 0b111;
+    uint32_t mask = SS_can_get_header(&mask_frame);
     SS_can_filter_init(hcan, filter, mask, CAN_FILTER_FIFO1, &filter_bank);
-//    filter = SS_can_get_header(&frame);
-//    SS_can_filter_init(com_hcan, filter, mask, CAN_FILTER_FIFO0, &filter_bank);
-//    frame.destination = COM_BROADCAST_ID;
-//    filter = SS_can_get_header(&frame);
-//    SS_can_filter_init(com_hcan, filter, mask, CAN_FILTER_FIFO0, &filter_bank);
-//    frame.priority = 1;
-//    filter = SS_can_get_header(&frame);
-//    SS_can_filter_init(com_hcan, filter, mask, CAN_FILTER_FIFO1, &filter_bank);
+    filter_frame.priority = 1;
+    filter = SS_can_get_header(&filter_frame);
+    SS_can_filter_init(com_hcan, filter, mask, CAN_FILTER_FIFO0, &filter_bank);
+    filter_frame.destination = COM_BROADCAST_ID;
+    filter = SS_can_get_header(&filter_frame);
+    SS_can_filter_init(com_hcan, filter, mask, CAN_FILTER_FIFO0, &filter_bank);
+    filter_frame.priority = 1;
+    filter = SS_can_get_header(&filter_frame);
+    SS_can_filter_init(com_hcan, filter, mask, CAN_FILTER_FIFO1, &filter_bank);
 }
 
 void SS_can_init(CAN_HandleTypeDef *hcan, ComBoardID board) {

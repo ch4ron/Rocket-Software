@@ -109,9 +109,11 @@ int main(void) {
     SS_platform_init();
     SS_init();
     ComFrame frame = {
-            .destination = COM_RADEK_ID,
+            .source = COM_PAUEK_ID,
+            .destination = COM_STASZEK_ID,
             .action = COM_SERVICE,
             .device = COM_RELAY_ID,
+            .priority = 0,
             .id = 3,
             .message_type = 4};
     /* USER CODE END 2 */
