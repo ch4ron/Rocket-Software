@@ -19,6 +19,7 @@
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
+#include <can/SS_can.h>
 #include "main.h"
 #include "adc.h"
 #include "can.h"
@@ -107,12 +108,20 @@ int main(void) {
     /* USER CODE BEGIN 2 */
     SS_platform_init();
     SS_init();
+    ComFrame frame = {
+            .destination = COM_RADEK_ID,
+            .action = COM_SERVICE,
+            .device = COM_RELAY_ID,
+            .id = 3,
+            .message_type = 4};
     /* USER CODE END 2 */
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
         SS_main();
+        HAL_Delay(500);
+        SS_can_transmit(&frame, COM_LOW_PRIORITY);
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */

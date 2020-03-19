@@ -6,7 +6,7 @@
  */
 
 #ifdef SS_USE_GRAZYNA
-#include "SS_Grazyna.h"
+#include "SS_grazyna.h"
 #endif
 #ifdef SS_USE_ADS1258
 #include "SS_measurements.h"

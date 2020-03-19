@@ -2,7 +2,7 @@
 // Created by maciek on 02.03.2020.
 //
 
-#include "SS_Grazyna.h"
+#include "SS_grazyna.h"
 #include "unity_fixture.h"
 #include "string.h"
 #include "crc.h"

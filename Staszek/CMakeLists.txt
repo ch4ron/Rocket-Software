@@ -74,6 +74,7 @@ add_compile_definitions(SS_USE_ADS1258)
 add_compile_definitions(SS_USE_FIFO)
 #add_compile_definitions(SS_USE_ADC)
 add_compile_definitions(SS_USE_SEQUENCE)
+add_compile_definitions(SS_USE_CAN)
 add_compile_definitions(SS_USE_JSON_SETTINGS)
 add_compile_definitions(SS_USE_MS5X)
 

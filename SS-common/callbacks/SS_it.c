@@ -22,7 +22,7 @@
 #include "SS_dynamixel.h"
 #endif
 #ifdef SS_USE_GRAZYNA
-#include "SS_Grazyna.h"
+#include "SS_grazyna.h"
 #endif
 #ifdef SS_USE_SEQUENCE
 #include "SS_sequence.h"

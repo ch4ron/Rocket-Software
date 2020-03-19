@@ -5,7 +5,7 @@
  *      Author: maciek
  */
 
-#include "SS_Grazyna.h"
+#include "SS_grazyna.h"
 #include "SS_com_debug.h"
 #include "crc.h"
 #include "stdio.h"
@@ -87,6 +87,14 @@ void SS_grazyna_main() {
 void SS_grazyna_transmit(ComFrame *frame) {
     SS_fifo_put_data(&grazyna_tx_fifo, frame);
 }
+
+static void SS_grazyna_print_hex(GrazynaFrame *frame) {
+    for(uint8_t i = 0; i < sizeof(GrazynaFrame); i++) {
+        printf("0x%02x ", ((uint8_t*) frame)[i]);
+    }
+    printf("\r\n");
+}
+
 
 static void SS_grazyna_handle_frame() {
     uint32_t calculated_crc = SS_grazyna_CRC_calculate(&grazyna.rx_frame);

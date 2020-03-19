@@ -5,24 +5,25 @@
  *      Author: maciek
  */
 
-#ifndef SS_COM_PROTOCOL_H_
-#define SS_COM_PROTOCOL_H_
+#ifndef SS_COM_H
+#define SS_COM_H
 
 #include "stm32f4xx_hal.h"
 #include "SS_com_ids.h"
 
 typedef struct __attribute__((packed)) {
-    uint32_t payload;
-    uint8_t message_type :  8;
-    ComDataType data_type :  3;
+    ComActionID action :  3;
+    ComBoardID source :  5;
+    ComBoardID destination :  5;
+    ComPriority priority :  3;
+    ComDeviceID device :  6;
+    uint32_t id :  6;
     /* Set to 1 for frames from and to Grazyna, 0 otherwise */
     uint32_t grazyna_ind :  1;
-    uint32_t id :  6;
-    ComDeviceID device :  6;
-    uint32_t priority :  3;
-    ComBoardID destination :  5;
-    ComBoardID source :  5;
-    ComActionID action :  3;
+
+    ComDataType data_type :  3;
+    uint8_t message_type;
+    uint32_t payload;
 } ComFrame;
 
 typedef enum {
@@ -38,4 +39,4 @@ ComStatus SS_com_handle_request(ComFrame *frame);
 ComStatus SS_com_handle_service(ComFrame *frame);
 void SS_com_add_payload_to_frame(ComFrame *frame, ComDataType type, void *payload);
 
-#endif /* SS_COM_PROTOCOL_H_ */
+#endif /* SS_COM_H */

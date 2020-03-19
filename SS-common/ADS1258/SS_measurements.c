@@ -6,7 +6,7 @@
  */
 
 #include <com/SS_com.h>
-#include <grazyna/SS_Grazyna.h>
+#include <grazyna/SS_grazyna.h>
 #include <com/SS_com_debug.h>
 #include "SS_measurements.h"
 #include "string.h"

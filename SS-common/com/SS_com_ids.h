@@ -9,6 +9,11 @@
 #define SS_COM_IDS_H_
 
 typedef enum {
+    COM_HIGH_PRIORITY  = 0x00,
+    COM_LOW_PRIORITY   = 0x01,
+} ComPriority;
+
+typedef enum {
     /* Data feed from board to Ground Station */
     COM_FEED          = 0x00,
     /* Action which doesn't send any data, respond with ACK */

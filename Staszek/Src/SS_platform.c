@@ -2,6 +2,7 @@
 // Created by maciek on 02.03.2020.
 //
 
+#include "SS_can.h"
 #include "SS_common.h"
 #include "SS_platform.h"
 #include "usart.h"
@@ -66,4 +67,5 @@ void SS_platform_init() {
     SS_platform_ADS1258_init();
 #endif
     SS_MS56_init(&ms5607, MS56_PRESS_4096, MS56_TEMP_4096);
+    SS_can_init(&hcan1, COM_STASZEK_ID);
 }

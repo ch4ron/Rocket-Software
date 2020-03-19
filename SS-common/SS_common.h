@@ -16,7 +16,7 @@
 #include "SS_servos.h"
 #endif
 #ifdef SS_USE_GRAZYNA
-#include "SS_Grazyna.h"
+#include "SS_grazyna.h"
 #endif
 #ifdef SS_USE_ADC
 #include "adc.h"

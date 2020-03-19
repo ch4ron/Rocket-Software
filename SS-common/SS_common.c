@@ -7,6 +7,7 @@
 
 #include <com/SS_com_feed.h>
 #include <S25FL/test.h>
+#include <can/SS_can.h>
 #include "SS_common.h"
 #include "stdio.h"
 
@@ -39,5 +40,9 @@ void SS_main() {
 #ifdef SS_USE_MS5X
     SS_MS56_DMA_read_convert_and_calculate();
     SS_MS56_get_altitude(&ms5607);
+#endif
+#ifdef SS_USE_CAN
+    SS_can_tx_data_fifo(COM_LOW_PRIORITY);
+    SS_can_tx_data_fifo(COM_HIGH_PRIORITY);
 #endif
 }
