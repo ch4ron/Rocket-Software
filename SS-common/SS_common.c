@@ -12,22 +12,13 @@
 #include "stdio.h"
 
 void SS_init() {
-#ifdef SS_USE_DYNAMIXEL
-
-#endif
 #if defined(SS_USE_SUPPLY) && !defined(SIMULATE)
 //    SS_supply_init();
 #endif
 #ifdef RUN_TESTS
     SS_run_all_tests();
 #endif
-
-/* These modules need to be initialized after tests */
-#ifdef SS_USE_ADS1258
-//  SS_ADS1258_measurements_init();
-#endif
     printf("Elon!\r\n");
-//  SS_settings_read_json(settings_json);
 }
 
 void SS_main() {
@@ -35,6 +26,7 @@ void SS_main() {
     SS_grazyna_main();
 #endif
 #ifdef SS_USE_COM
+    SS_com_feed_main();
     SS_com_main();
 #endif
 #ifdef SS_USE_MS5X
@@ -42,7 +34,5 @@ void SS_main() {
     SS_MS56_get_altitude(&ms5607);
 #endif
 #ifdef SS_USE_CAN
-    SS_can_tx_data_fifo(COM_LOW_PRIORITY);
-    SS_can_tx_data_fifo(COM_HIGH_PRIORITY);
 #endif
 }

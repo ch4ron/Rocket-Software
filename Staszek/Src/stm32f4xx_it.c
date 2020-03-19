@@ -22,6 +22,7 @@
 #include "main.h"
 #include "stm32f4xx_it.h"
 /* Private includes ----------------------------------------------------------*/
+#include "SS_error.h"
 /* USER CODE BEGIN Includes */
 /* USER CODE END Includes */
 
@@ -95,6 +96,7 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
+  SS_error("Hard Fault");
 
   /* USER CODE END HardFault_IRQn 0 */
   while (1)

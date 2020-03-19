@@ -10,6 +10,7 @@
 
 #include "stm32f4xx_hal.h"
 #include "SS_com_ids.h"
+#include "SS_fifo.h"
 
 typedef struct __attribute__((packed)) {
     ComActionID action :  3;
@@ -31,6 +32,13 @@ typedef enum {
     COM_ERROR
 } ComStatus;
 
+typedef enum {
+    COM_GROUP_RECEIVE,
+    COM_GROUP_CAN1,
+    COM_GROUP_CAN2,
+    COM_GROUP_GRAZYNA
+} ComGroup;
+
 void SS_com_init(ComBoardID board);
 void SS_com_transmit(ComFrame *frame);
 ComStatus SS_com_handle_frame(ComFrame *frame);
@@ -39,4 +47,7 @@ ComStatus SS_com_handle_request(ComFrame *frame);
 ComStatus SS_com_handle_service(ComFrame *frame);
 void SS_com_add_payload_to_frame(ComFrame *frame, ComDataType type, void *payload);
 
+/* Add fifo and callback to be handled by com manager, set group id to COM_GROUP_RECEIVE and fun to NULL for rx fifos */
+void SS_com_add_fifo(volatile Fifo *fifo, void (*fun)(ComFrame*), ComGroup group_id, ComPriority priority);
+void SS_com_main();
 #endif /* SS_COM_H */

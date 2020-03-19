@@ -139,9 +139,8 @@ static float SS_ADS1258_calculate_scaled(Measurement *meas) {
 }
 
 static void SS_ADS1258_measurement_feed(Measurement *meas, ComFrame *frame) {
-    /* TODO add macro for priority */
     SS_ADS1258_calculate_scaled(meas);
-    frame->priority = 1;
+    frame->priority = COM_LOW_PRIORITY;
     frame->action = COM_FEED;
     frame->destination = COM_GRAZYNA_ID;
     frame->device = COM_MEASUREMENT_ID;
@@ -152,7 +151,7 @@ static void SS_ADS1258_measurement_feed(Measurement *meas, ComFrame *frame) {
     frame->payload = *((uint32_t *) &meas->scaled);
 }
 
-/* Function for transmitting feed values, it returns the number of remaining values to transmit */
+/* Function for transmitting feed values, retval is the number of remaining values to transmit */
 int8_t SS_ADS1258_com_feed(ComFrame *frame) {
     static uint8_t counter, meas_num;
     if (measurements_count == 0) return -1;

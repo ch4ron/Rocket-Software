@@ -35,7 +35,7 @@ void SS_com_feed_disable() {
    enabled = false;
 }
 
-void SS_com_main() {
+void SS_com_feed_main() {
     static uint32_t counter = 0;
     static uint8_t module = 0;
 

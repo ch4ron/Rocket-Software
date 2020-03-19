@@ -5,6 +5,7 @@
  *      Author: maciek
  */
 
+#include <fifo/SS_fifo.h>
 #include "unity_fixture.h"
 #include "SS_com.h"
 #include "string.h"
@@ -12,56 +13,28 @@
 TEST_GROUP(com);
 
 TEST_GROUP_RUNNER(com) {
-//    RUN_TEST_CASE(com, parse_content);
-//    RUN_TEST_CASE(com, create_frame);
-//    RUN_TEST_CASE(com, create_frame2);
-//    RUN_TEST_CASE(com, create_frame3);
+    RUN_TEST_CASE(com, fifo_manager);
 }
 
-TEST_SETUP(com) {}
+static ComFrame mock_frame;
+
+TEST_SETUP(com) {
+    memset(&mock_frame, 0, sizeof(ComFrame));
+}
+
 TEST_TEAR_DOWN(com) {}
 
+static void mock(ComFrame *frame) {
+    memcpy(&mock_frame, frame, sizeof(ComFrame));
+}
 
-//TEST(com, parse_content) {
-//    uint8_t buff[] = { 0x26, 0x09, 0x10, 0xa9, 0x05, 0x00, 0x00, 0x00, 0x00, 0xe6, 0xc6, 0x84, 0x4a };
-//    ComFrame *frame = (ComFrame*) buff;
-//    ComFrame content;
-//    SS_com_unpack_frame(frame, &content);
-//    TEST_ASSERT_EQUAL_HEX(COM_SERVICE, content.action);
-//    TEST_ASSERT_EQUAL_HEX(UINT32, content.data_type);
-//    TEST_ASSERT_EQUAL_HEX(COM_KROMEK_ID, content.destination);
-//    TEST_ASSERT_EQUAL_HEX(COM_GRAZYNA_ID, content.source);
-//    TEST_ASSERT_EQUAL_HEX(0x04, content.device);
-//    TEST_ASSERT_TRUE(content.grazyna_ind);
-//    TEST_ASSERT_EQUAL_HEX(0x05, content.message_type);
-//    TEST_ASSERT_EQUAL_HEX(0x01, content.priority);
-//}
-//
-//TEST(com, create_frame) {
-//    uint8_t buff[] = { 0x26, 0x09, 0x10, 0xa9, 0x05, 0x00, 0x00, 0x00, 0x00, 0xe6, 0xc6, 0x84, 0x4a };
-//    ComFrame *frame = (ComFrame*) buff;
-//    ComFrame content;
-//    SS_com_unpack_frame(frame, &content);
-//    ComFrame com_frame;
-//    SS_com_pack_frame(&com_frame, &content);
-//    TEST_ASSERT_EQUAL_UINT8_ARRAY(frame, (uint8_t*) &com_frame, sizeof(ComFrame));
-//}
-//TEST(com, create_frame2) {
-//    uint8_t buff[] = { 0x26, 0x09, 0x13, 0xe8, 0x05, 0x00, 0x00, 0x00, 0x00, 0x3f, 0x87, 0x58, 0x0d };
-//    ComFrame *frame = (ComFrame*) buff;
-//    ComFrame content;
-//    SS_com_unpack_frame(frame, &content);
-//    ComFrame com_frame;
-//    SS_com_pack_frame(&com_frame, &content);
-//    TEST_ASSERT_EQUAL_UINT8_ARRAY(frame, (uint8_t*) &com_frame, sizeof(ComFrame));
-//}
-//
-//TEST(com, create_frame3) {
-//    uint8_t buff[] = { 0x26, 0x9, 0x12, 0xe8, 0x5, 0x0, 0x0, 0x0, 0x0, 0x39, 0x64, 0xae, 0xa };
-//    ComFrame *frame = (ComFrame*) buff;
-//    ComFrame content;
-//    SS_com_unpack_frame(frame, &content);
-//    ComFrame com_frame;
-//    SS_com_pack_frame(&com_frame, &content);
-//    TEST_ASSERT_EQUAL_UINT8_ARRAY(frame, (uint8_t*) &com_frame, sizeof(ComFrame));
-//}
+TEST(com, fifo_manager) {
+    FIFO_INIT(test, 10, ComFrame)
+    SS_com_add_fifo(&test_fifo, mock, 0, 0);
+    ComFrame frame = { .destination = 3, .payload = 147 };
+    SS_fifo_put_data(&test_fifo, &frame);
+    SS_com_main();
+    TEST_ASSERT_EQUAL(frame.destination, mock_frame.destination);
+    TEST_ASSERT_EQUAL(frame.payload, mock_frame.payload);
+}
+
