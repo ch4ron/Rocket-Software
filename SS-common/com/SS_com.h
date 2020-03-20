@@ -13,10 +13,10 @@
 #include "SS_fifo.h"
 
 typedef struct __attribute__((packed)) {
-    ComActionID action :  3;
-    ComBoardID source :  5;
     ComBoardID destination :  5;
     ComPriority priority :  3;
+    ComActionID action :  3;
+    ComBoardID source :  5;
     ComDeviceID device :  6;
     uint32_t id :  6;
     /* Set to 1 for frames from and to Grazyna, 0 otherwise */

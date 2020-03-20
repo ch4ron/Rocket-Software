@@ -5,7 +5,9 @@
  *      Author: maciek
  */
 
+#ifdef SS_USE_CAN
 #include "SS_can.h"
+#endif
 #include "SS_grazyna.h"
 #include "SS_com_debug.h"
 #include "crc.h"
@@ -34,12 +36,16 @@ typedef struct {
 static Grazyna grazyna;
 
 void SS_grazyna_enable() {
+#ifdef SS_USE_CAN
     SS_can_enable_grazyna();
+#endif
     grazyna.enabled = true;
 }
 
 void SS_grazyna_disable() {
+#ifdef SS_USE_CAN
     SS_can_disable_grazyna();
+#endif
     grazyna.enabled = false;
 }
 

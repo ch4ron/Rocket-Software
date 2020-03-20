@@ -51,7 +51,9 @@ void SS_com_transmit(ComFrame *frame) {
     if(frame->destination == COM_GRAZYNA_ID && SS_grazyna_is_enabled()) {
         SS_grazyna_transmit(frame);
     } else {
+#ifdef SS_USE_CAN
         SS_can_transmit(frame);
+#endif
     }
 #else
     SS_can_transmit(frame);
