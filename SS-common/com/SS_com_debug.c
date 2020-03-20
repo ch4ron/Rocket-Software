@@ -25,6 +25,13 @@
 //    }
 //}
 
+static void SS_com_print_hex(ComFrame *frame) {
+    printf("\r\n");
+    for(uint8_t i = 0; i < sizeof(ComFrame); i++) {
+        printf("0x%02x ", ((uint8_t*) frame)[i]);
+    }
+}
+
 void print_board(uint32_t board, char *color) {
     switch (board) {
         case COM_GRAZYNA_ID:
@@ -124,18 +131,29 @@ void SS_com_debug_print_frame(ComFrame *frame, char *title, char *color) {
     print_payload(frame);
 }
 
-void SS_com_print_message_received(ComFrame *frame) {
-    char color[] = "\x01b[48;5;8m";
-    char title[] = "Rec:";
+void SS_can_print_message_received(ComFrame *frame) {
+    char color[] = "\x01b[48;5;238m";
+    char title[] = "Can Rec:";
     SS_com_debug_print_frame(frame, title, color);
 }
 
-void SS_com_print_message_sent(ComFrame *frame) {
+void SS_can_print_message_sent(ComFrame *frame) {
     char color[] = "\x01b[48;5;234m";
-    char title[] = "Sent:";
+    char title[] = "Can Sent:";
     SS_com_debug_print_frame(frame, title, color);
 }
 
+void SS_grazyna_print_message_received(ComFrame *frame) {
+    char color[] = "\x01b[48;5;240m";
+    char title[] = "Gr  Rec:";
+    SS_com_debug_print_frame(frame, title, color);
+}
+
+void SS_grazyna_print_message_sent(ComFrame *frame) {
+    char color[] = "\x01b[48;5;236m";
+    char title[] = "Gr  Sent:";
+    SS_com_debug_print_frame(frame, title, color);
+}
 void SS_com_print_message_error(ComFrame *frame, char *error) {
     char color[] = "\x01b[41m";
     SS_com_debug_print_frame(frame, error, color);

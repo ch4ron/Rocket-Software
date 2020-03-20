@@ -11,16 +11,61 @@
 
 TEST_GROUP(can);
 
-TEST_GROUP_RUNNER(ccan) {
-//    RUN_TEST_CASE(com, parse_content);
-//    RUN_TEST_CASE(com, create_frame);
-//    RUN_TEST_CASE(com, create_frame2);
-//    RUN_TEST_CASE(com, create_frame3);
+TEST_GROUP_RUNNER(can) {
+    RUN_TEST_CASE(can, pack_unpack1);
+    RUN_TEST_CASE(can, pack_unpack2);
+    RUN_TEST_CASE(can, pack_unpack3);
+    RUN_TEST_CASE(can, pack_unpack4);
 }
 
 TEST_SETUP(can) {}
 
 TEST_TEAR_DOWN(can) {}
+
+extern void SS_can_pack_frame(ComFrame *frame, CAN_TxHeaderTypeDef *header, uint8_t *data);
+extern void SS_can_unpack_frame(ComFrame *frame, CAN_RxHeaderTypeDef *header, uint8_t *data);
+
+static void can_pack_unpack_test(ComFrame *frame) {
+    ComFrame res = { 0 };
+    uint8_t data[sizeof(ComFrame)];
+    CAN_RxHeaderTypeDef rx_header;
+    CAN_TxHeaderTypeDef tx_header;
+    SS_can_pack_frame(frame, &tx_header, data);
+    rx_header.ExtId = tx_header.ExtId;
+    rx_header.DLC = tx_header.DLC;
+    SS_can_unpack_frame(&res, &rx_header, data);
+    TEST_ASSERT_EQUAL_HEX8_ARRAY((uint8_t*) frame, (uint8_t*) &res, sizeof(ComFrame));
+}
+
+TEST(can, pack_unpack1) {
+    ComFrame frame = {
+            .destination = 0x01,
+            .source = 0x12,
+            .priority = 0x02,
+            .message_type = 0x31,
+            .payload = 0xFFAF,
+            .data_type = 0x03,
+            .grazyna_ind = 0x00,
+            .device = 0x13,
+            .id = 0x7
+    };
+    can_pack_unpack_test(&frame);
+}
+
+TEST(can, pack_unpack2) {
+    uint8_t buf[] = { 0x11, 0x05, 0xc1, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00 };
+    can_pack_unpack_test((ComFrame*) buf);
+}
+
+TEST(can, pack_unpack3) {
+    uint8_t buf[] = { 0xFA, 0x15, 0x21, 0xF0, 0x00, 0x10, 0xF0, 0x0C, 0xD3 };
+    can_pack_unpack_test((ComFrame*) buf);
+}
+
+TEST(can, pack_unpack4) {
+    uint8_t buf[] = { 0xCB, 0xD5, 0x21, 0xA7, 0x12, 0x34, 0x81, 0x22, 0x33 };
+    can_pack_unpack_test((ComFrame*) buf);
+}
 
 
 //TEST(com, parse_content) {

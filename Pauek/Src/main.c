@@ -19,7 +19,6 @@
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
-#include <can/SS_can.h>
 #include "main.h"
 #include "adc.h"
 #include "can.h"
@@ -30,10 +29,12 @@
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
+#include "can.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "SS_platform.h"
+#include "SS_error.h"
 #include "SS_common.h"
 /* USER CODE END Includes */
 
@@ -108,22 +109,12 @@ int main(void) {
     /* USER CODE BEGIN 2 */
     SS_platform_init();
     SS_init();
-    ComFrame frame = {
-            .source = COM_PAUEK_ID,
-            .destination = COM_STASZEK_ID,
-            .action = COM_SERVICE,
-            .device = COM_RELAY_ID,
-            .priority = 0,
-            .id = 3,
-            .message_type = 4};
     /* USER CODE END 2 */
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
         SS_main();
-        HAL_Delay(500);
-        SS_can_transmit(&frame, COM_LOW_PRIORITY);
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
@@ -188,6 +179,7 @@ void SystemClock_Config(void) {
 void Error_Handler(void) {
     /* USER CODE BEGIN Error_Handler_Debug */
     /* User can add his own implementation to report the HAL error return state */
+    SS_error("Hal error");
 
     /* USER CODE END Error_Handler_Debug */
 }

@@ -126,7 +126,6 @@ int main(void) {
     while (1) {
         SS_main();
 //        printf("altitude: %ld, pressure: %ld, uncompressed: %ld\r\n", ms5607.altitude, ms5607.press, ms5607.uncomp_press);
-//        HAL_Delay(1000);
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */

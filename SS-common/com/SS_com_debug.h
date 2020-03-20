@@ -10,8 +10,10 @@
 
 #include "SS_com.h"
 
-void SS_com_print_message_received(ComFrame *frame);
-void SS_com_print_message_sent(ComFrame *frame);
+void SS_can_print_message_received(ComFrame *frame);
+void SS_can_print_message_sent(ComFrame *frame);
+void SS_grazyna_print_message_received(ComFrame *frame);
+void SS_grazyna_print_message_sent(ComFrame *frame);
 void SS_com_print_message_error(ComFrame *frame, char *error);
 
 #endif /* SS_COM_DEBUG_H_ */

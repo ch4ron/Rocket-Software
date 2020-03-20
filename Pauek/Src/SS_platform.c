@@ -32,9 +32,6 @@ int _write(int file, char *ptr, int len) {
 //     TODO Supply
 //}
 
-static void SS_platform_can_init() {
-}
-
 /********** MAIN INIT *********/
 
 void SS_platform_init() {

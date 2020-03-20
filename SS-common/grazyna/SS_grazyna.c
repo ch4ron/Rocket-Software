@@ -5,6 +5,7 @@
  *      Author: maciek
  */
 
+#include "SS_can.h"
 #include "SS_grazyna.h"
 #include "SS_com_debug.h"
 #include "crc.h"
@@ -27,11 +28,26 @@ typedef struct {
     GrazynaState grazyna_state;
     ComFrame frame;
     UART_HandleTypeDef *huart;
+    bool enabled;
 } Grazyna;
 
 static Grazyna grazyna;
 
-void SS_grazyna_receive(uint8_t *data, uint16_t length) {
+void SS_grazyna_enable() {
+    SS_can_enable_grazyna();
+    grazyna.enabled = true;
+}
+
+void SS_grazyna_disable() {
+    SS_can_disable_grazyna();
+    grazyna.enabled = false;
+}
+
+bool SS_grazyna_is_enabled() {
+    return grazyna.enabled;
+}
+
+static void SS_grazyna_receive(uint8_t *data, uint16_t length) {
 #ifndef SIMULATE
     HAL_UART_Receive_DMA(grazyna.huart, data, length);
 #else
@@ -53,9 +69,10 @@ void SS_grazyna_init(UART_HandleTypeDef *huart) {
     grazyna.grazyna_state = GRAZYNA_LOOKING_FOR_HEADER;
     grazyna.huart = huart;
     SS_grazyna_receive((uint8_t*) &grazyna.rx_frame, sizeof(grazyna.rx_frame.header));
+    SS_grazyna_enable();
 }
 
-void SS_grazyna_prepare_tx_frame(ComFrame *com_frame, GrazynaFrame *grazyna_frame) {
+static void SS_grazyna_prepare_tx_frame(ComFrame *com_frame, GrazynaFrame *grazyna_frame) {
     grazyna_frame->header = GRAZYNA_HEADER;
     memcpy(&grazyna_frame->com_frame, com_frame, sizeof(ComFrame));
     grazyna_frame->crc = SS_grazyna_CRC_calculate(grazyna_frame);
@@ -63,13 +80,14 @@ void SS_grazyna_prepare_tx_frame(ComFrame *com_frame, GrazynaFrame *grazyna_fram
 
 static void SS_grazyna_rx_main() {
     if(SS_fifo_get_data(&grazyna_rx_fifo, &grazyna.frame)) {
+        SS_grazyna_print_message_received(&grazyna.frame);
         SS_com_handle_frame(&grazyna.frame);
     }
 }
 
 static void SS_grazyna_tx_main() {
     if(SS_fifo_get_data(&grazyna_tx_fifo, &grazyna.frame)) {
-        SS_com_print_message_sent(&grazyna.frame);
+        SS_grazyna_print_message_sent(&grazyna.frame);
         SS_grazyna_prepare_tx_frame(&grazyna.frame, &grazyna.tx_frame);
 #ifndef SIMULATE
         HAL_UART_Transmit_DMA(grazyna.huart, (uint8_t*) &grazyna.tx_frame, sizeof(grazyna.tx_frame));
@@ -94,7 +112,6 @@ static void SS_grazyna_print_hex(GrazynaFrame *frame) {
     }
     printf("\r\n");
 }
-
 
 static void SS_grazyna_handle_frame() {
     uint32_t calculated_crc = SS_grazyna_CRC_calculate(&grazyna.rx_frame);

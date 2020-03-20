@@ -47,6 +47,9 @@ static void tests() {
     RUN_TEST_GROUP(dynamixel);
     RUN_TEST_GROUP(dynamixel_logic);
 #endif
+#ifdef SS_USE_CAN
+    RUN_TEST_GROUP(can);
+#endif
 /* Disable mutex test for now, as it takes a long time and causes troubles
  * (But current implementation works correctly */
 //    RUN_TEST_GROUP(mutex);

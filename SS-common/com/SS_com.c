@@ -19,6 +19,9 @@
 #ifdef SS_USE_SERVOS
 #include "SS_servos.h"
 #endif
+#ifdef SS_USE_CAN
+#include "SS_can.h"
+#endif
 
 #include "SS_com_debug.h"
 #include "SS_error.h"
@@ -44,17 +47,35 @@ void SS_com_init(ComBoardID board) {
 }
 
 void SS_com_transmit(ComFrame *frame) {
-    frame->source = board_id;
 #ifdef SS_USE_GRAZYNA
-    SS_grazyna_transmit(frame);
+    if(frame->destination == COM_GRAZYNA_ID && SS_grazyna_is_enabled()) {
+        SS_grazyna_transmit(frame);
+    } else {
+        SS_can_transmit(frame);
+    }
+#else
+    SS_can_transmit(frame);
 #endif
 }
 
 ComStatus SS_com_handle_frame(ComFrame *frame) {
-    SS_com_print_message_received(frame);
+#ifdef SS_USE_GRAZYNA
+    if(SS_grazyna_is_enabled() && frame->destination != board_id) {
+        SS_com_transmit(frame);
+        return COM_OK;
+    }
+#else
+    if(frame->destination != board_id) {
+        SS_error("Received message with invalid destination: %d", frame->destination);
+    }
+#endif
+    bool response_required = frame->action == COM_REQUEST || frame->source == COM_GRAZYNA_ID ? true : false;
     ComStatus res = SS_com_handle_action(frame);
-    frame->destination = frame->source;
-    SS_com_transmit(frame);
+    if(response_required) {
+        frame->destination = frame->source;
+        frame->source = board_id;
+        SS_com_transmit(frame);
+    }
     return res;
 }
 
@@ -176,6 +197,7 @@ void SS_com_handle_fifo_manager() {
         }
         else if(SS_fifo_get_data(fifo_manager[i].fifo, &frame)) {
             if(fifo_manager[i].group_id == COM_GROUP_RECEIVE) {
+                SS_can_print_message_received(&frame);
                 SS_com_handle_frame(&frame);
             } else if(fifo_manager[i].fun != NULL) {
                 fifo_manager[i].fun(&frame);

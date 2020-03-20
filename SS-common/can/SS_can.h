@@ -13,7 +13,9 @@
 #define CAN_DEBUG_ERRORS
 
 void SS_can_init(CAN_HandleTypeDef *hcan, ComBoardID board);
-void SS_can_transmit(ComFrame *frame, uint8_t priority);
+void SS_can_enable_grazyna();
+void SS_can_disable_grazyna();
+void SS_can_transmit(ComFrame *frame);
 void SS_can_error(char *error);
 
 

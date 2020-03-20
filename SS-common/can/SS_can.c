@@ -13,6 +13,7 @@ volatile uint32_t error = 0;
 #define CAN_FIFO_LENGTH 50
 
 static CAN_HandleTypeDef *com_hcan;
+static ComBoardID board_id;
 
 FIFO_INIT(can_tx, CAN_FIFO_LENGTH, ComFrame)
 FIFO_INIT(can_rx, CAN_FIFO_LENGTH, ComFrame)
@@ -33,15 +34,14 @@ static void SS_can_interrupts_enable(CAN_HandleTypeDef *hcan) {
 }
 
 static void SS_can_filter_init(CAN_HandleTypeDef *hcan, uint32_t filter_id, uint32_t filter_mask, uint32_t fifo_assignment, uint8_t *filter_bank) {
-    uint32_t id = filter_id, mask = filter_mask, bank = *filter_bank;
-    CAN_FilterTypeDef can_filter;
-    can_filter.FilterBank = bank;
+    static CAN_FilterTypeDef can_filter;
+    can_filter.FilterBank = *filter_bank;
     can_filter.FilterMode = CAN_FILTERMODE_IDMASK;
     can_filter.FilterScale = CAN_FILTERSCALE_32BIT;
-    can_filter.FilterIdHigh = (uint16_t) ((id >> 13));
-    can_filter.FilterIdLow = (uint16_t) (((id << 3) & 0xFFF8));
-    can_filter.FilterMaskIdHigh = (uint16_t) (mask >> 13);
-    can_filter.FilterMaskIdLow = (uint16_t) (mask << 3 & 0xFFF8);
+    can_filter.FilterIdHigh = (uint16_t) ((filter_id >> 13));
+    can_filter.FilterIdLow = (uint16_t) (((filter_id << 3) & 0xFFF8));
+    can_filter.FilterMaskIdHigh = (uint16_t) (filter_mask >> 13);
+    can_filter.FilterMaskIdLow = (uint16_t) (filter_mask << 3 & 0xFFF8);
     can_filter.FilterFIFOAssignment = fifo_assignment;
     can_filter.FilterActivation = ENABLE;
     (*filter_bank)++;
@@ -51,15 +51,15 @@ static void SS_can_filter_init(CAN_HandleTypeDef *hcan, uint32_t filter_id, uint
 }
 
 static uint32_t SS_can_get_header(ComFrame *frame) {
-    return *((uint32_t*) frame) >> 3;
+    return *((uint32_t*) frame) & 0x7fffffff;
 }
 
-static void SS_can_filters_init(CAN_HandleTypeDef *hcan, uint8_t board) {
+static void SS_can_filters_init_with_mask(CAN_HandleTypeDef *hcan, ComBoardID board, uint8_t board_mask) {
     uint8_t filter_bank = 0;
     ComFrame filter_frame = { 0 }, mask_frame = { 0 };
     filter_frame.destination = board;
     uint32_t filter = SS_can_get_header(&filter_frame);
-    mask_frame.destination = 0x1F;
+    mask_frame.destination = board_mask;
     mask_frame.priority = 0b111;
     uint32_t mask = SS_can_get_header(&mask_frame);
     SS_can_filter_init(hcan, filter, mask, CAN_FILTER_FIFO1, &filter_bank);
@@ -74,7 +74,27 @@ static void SS_can_filters_init(CAN_HandleTypeDef *hcan, uint8_t board) {
     SS_can_filter_init(com_hcan, filter, mask, CAN_FILTER_FIFO1, &filter_bank);
 }
 
-static void SS_can_pack_frame(ComFrame *frame, CAN_TxHeaderTypeDef *header, uint8_t *data) {
+static void SS_can_filters_init(CAN_HandleTypeDef *hcan, ComBoardID board) {
+    SS_can_filters_init_with_mask(hcan, board, 0x1F);
+}
+
+#ifdef SS_USE_GRAZYNA
+void SS_can_enable_grazyna() {
+    if(com_hcan == NULL) {
+        SS_error("Initialize Can before Grazyna");
+    }
+    SS_can_filters_init_with_mask(com_hcan, board_id, 0);
+}
+
+void SS_can_disable_grazyna() {
+    if(com_hcan == NULL) {
+        SS_error("Initialize Can before Grazyna");
+    }
+    SS_can_filters_init(com_hcan, board_id);
+}
+#endif
+
+void SS_can_pack_frame(ComFrame *frame, CAN_TxHeaderTypeDef *header, uint8_t *data) {
     /* Can frame header has 29 bits, so the remaining 3 header bits are stored in the first byte of data */
     header->ExtId = SS_can_get_header(frame);
     header->RTR = CAN_RTR_DATA;
@@ -85,9 +105,9 @@ static void SS_can_pack_frame(ComFrame *frame, CAN_TxHeaderTypeDef *header, uint
     memcpy(data + 1, &frame->message_type, sizeof(frame->message_type) + sizeof(frame->payload));
 }
 
-static void SS_can_unpack_frame(ComFrame *frame, CAN_RxHeaderTypeDef *header, uint8_t *data) {
+void SS_can_unpack_frame(ComFrame *frame, CAN_RxHeaderTypeDef *header, uint8_t *data) {
     /* Can frame header has 29 bits, so the remaining 3 header bits are stored in the first byte of data */
-    *((uint32_t*) frame) = (header->ExtId << 3);
+    *((uint32_t*) frame) = header->ExtId;
     frame->data_type = data[0];
     memcpy(&frame->message_type, data + 1, header->DLC - 1);
 }
@@ -98,21 +118,11 @@ static void SS_can_handle_tx_fifo(ComFrame *frame) {
     uint8_t data[sizeof(ComFrame)];
     uint32_t mailbox;
     SS_can_pack_frame(frame, &header, data);
+    SS_can_print_message_sent(frame);
     if (HAL_CAN_AddTxMessage(com_hcan, &header, data, &mailbox) != HAL_OK) {
         SS_can_error("HAL_CAN_AddTxMessage failed");
         return;
     }
-}
-
-void SS_can_init(CAN_HandleTypeDef *hcan, ComBoardID board) {
-    com_hcan = hcan;
-    SS_can_filters_init(hcan, board);
-    SS_com_add_fifo(&can_rx_fifo, NULL, COM_GROUP_RECEIVE, COM_LOW_PRIORITY);
-    SS_com_add_fifo(&can_rx_priority_fifo, NULL, COM_GROUP_RECEIVE, COM_LOW_PRIORITY);
-    SS_com_add_fifo(&can_tx_fifo, SS_can_handle_tx_fifo, COM_GROUP_CAN1, COM_LOW_PRIORITY);
-    SS_com_add_fifo(&can_tx_priority_fifo, NULL, COM_GROUP_CAN1, COM_LOW_PRIORITY);
-    HAL_CAN_Start(hcan);
-    SS_can_interrupts_enable(hcan);
 }
 
 void SS_can_handle_received(CAN_HandleTypeDef *hcan, uint8_t priority) {
@@ -129,8 +139,21 @@ void SS_can_handle_received(CAN_HandleTypeDef *hcan, uint8_t priority) {
     }
 }
 
-void SS_can_transmit(ComFrame *frame, uint8_t priority) {
-    volatile Fifo *can_fifo = priority == COM_HIGH_PRIORITY ? &can_tx_priority_fifo : &can_tx_fifo;
+void SS_can_init(CAN_HandleTypeDef *hcan, ComBoardID board) {
+    com_hcan = hcan;
+    board_id = board;
+    SS_can_filters_init(hcan, board);
+    SS_com_add_fifo(&can_rx_fifo, NULL, COM_GROUP_RECEIVE, COM_LOW_PRIORITY);
+    SS_com_add_fifo(&can_rx_priority_fifo, NULL, COM_GROUP_RECEIVE, COM_LOW_PRIORITY);
+    SS_com_add_fifo(&can_tx_fifo, SS_can_handle_tx_fifo, COM_GROUP_CAN1, COM_LOW_PRIORITY);
+    SS_com_add_fifo(&can_tx_priority_fifo, SS_can_handle_tx_fifo, COM_GROUP_CAN1, COM_LOW_PRIORITY);
+    HAL_CAN_Start(hcan);
+    SS_can_interrupts_enable(hcan);
+    SS_com_init(board);
+}
+
+void SS_can_transmit(ComFrame *frame) {
+    volatile Fifo *can_fifo = frame->priority == COM_HIGH_PRIORITY ? &can_tx_priority_fifo : &can_tx_fifo;
     SS_fifo_put_data(can_fifo, frame);
 }
 

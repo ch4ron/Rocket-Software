@@ -20,6 +20,9 @@ typedef struct __attribute__((packed)) {
 } GrazynaFrame;
 
 void SS_grazyna_init(UART_HandleTypeDef *huart);
+void SS_grazyna_enable();
+void SS_grazyna_disable();
+bool SS_grazyna_is_enabled();
 void SS_grazyna_main();
 void SS_grazyna_UART_RxCpltCallback(UART_HandleTypeDef *huart);
 void SS_grazyna_transmit(ComFrame *frame);
