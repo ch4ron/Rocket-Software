@@ -19,10 +19,7 @@ typedef struct __attribute__((packed)) {
     ComBoardID source :  5;
     ComDeviceID device :  6;
     uint32_t id :  6;
-    /* Set to 1 for frames from and to Grazyna, 0 otherwise */
-    uint32_t grazyna_ind :  1;
-
-    ComDataType data_type :  3;
+    ComDataType data_type :  4;
     uint8_t message_type;
     uint32_t payload;
 } ComFrame;

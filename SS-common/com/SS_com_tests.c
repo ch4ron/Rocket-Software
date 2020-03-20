@@ -30,7 +30,7 @@ static void mock(ComFrame *frame) {
 
 TEST(com, fifo_manager) {
     FIFO_INIT(test, 10, ComFrame)
-    SS_com_add_fifo(&test_fifo, mock, 0, 0);
+    SS_com_add_fifo(&test_fifo, mock, 1, 0);
     ComFrame frame = { .destination = 3, .payload = 147 };
     SS_fifo_put_data(&test_fifo, &frame);
     SS_com_main();

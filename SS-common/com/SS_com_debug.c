@@ -125,9 +125,7 @@ void SS_com_debug_print_frame(ComFrame *frame, char *title, char *color) {
     print_action(frame->action);
     printf("\t device: 0x%02x", frame->device);
     printf("\t id: 0x%02x", frame->id);
-    printf("\t type: 0x%02x", frame->message_type);
-    char *grazyna_ind = frame->grazyna_ind ? "\x01b[48;5;34my" : "\x01b[48;5;166mn";
-    printf("\t grazyna ind: %s%s", grazyna_ind, color);
+    printf("\t type: 0x%02x%s", frame->message_type, color);
     print_payload(frame);
 }
 
