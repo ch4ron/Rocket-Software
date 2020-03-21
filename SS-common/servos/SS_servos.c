@@ -107,8 +107,14 @@ uint16_t SS_servo_get_width(uint16_t position) {
 }
 
 /* position range 0 - 1000 */
-void SS_servo_set_position(Servo *servo, uint16_t position) {
+int8_t SS_servo_set_position(Servo *servo, uint16_t position) {
     if(SS_servo_check_initialized(servo) != 0) return;
+    uint16_t min = servo->closed_position < servo->opened_position ? servo->closed_position : servo->opened_position;
+    uint16_t max = servo->closed_position > servo->opened_position ? servo->closed_position : servo->opened_position;
+    if(position > max || position < min) {
+        SS_error("Servo position out of range");
+        return -1;
+    }
 #ifdef SS_USE_SUPPLY
     if(servo->supply != NULL) {
         SS_enable_supply(servo->supply);
@@ -125,6 +131,7 @@ void SS_servo_set_position(Servo *servo, uint16_t position) {
     }
 #endif
 #endif
+    return 0;
 }
 
 void SS_servo_open(Servo *servo) {
@@ -170,14 +177,24 @@ void SS_servo_disable(Servo *servo) {
     *servo->pointer = 0;
 }
 
-void SS_servo_set_closed_position(Servo *servo, uint16_t position) {
+int8_t SS_servo_set_closed_position(Servo *servo, uint16_t position) {
     if(SS_servo_check_initialized(servo) != 0) return;
+    if(position > servos_config.SERVO_RANGE) {
+        SS_error("Servo closed position out of range");
+        return -1;
+    }
     servo->closed_position = position;
+    return 0;
 }
 
-void SS_servo_set_opened_position(Servo *servo, uint16_t position) {
+int8_t SS_servo_set_opened_position(Servo *servo, uint16_t position) {
     if(SS_servo_check_initialized(servo) != 0) return;
+    if(position > servos_config.SERVO_RANGE) {
+        SS_error("Servo opened position out of range");
+        return -1;
+    }
     servo->opened_position = position;
+    return 0;
 }
 
 void SS_servo_SYSTICK(Servo *servo) {
@@ -210,13 +227,19 @@ ComStatus SS_servos_com_service(ComFrame *frame) {
             SS_servo_close(servo);
             break;
         case COM_SERVO_OPENED_POSITION:
-            SS_servo_set_opened_position(servo, value);
+            if(SS_servo_set_opened_position(servo, value) != 0) {
+                return COM_ERROR;
+            }
             break;
         case COM_SERVO_CLOSED_POSITION:
-            SS_servo_set_closed_position(servo, value);
+            if(SS_servo_set_closed_position(servo, value) != 0) {
+                return COM_ERROR;
+            }
             break;
         case COM_SERVO_POSITION:
-            SS_servo_set_position(servo, value);
+            if(SS_servo_set_position(servo, value) != 0) {
+                return COM_ERROR;
+            }
             break;
         case COM_SERVO_DISABLE:
             SS_servo_disable(servo);

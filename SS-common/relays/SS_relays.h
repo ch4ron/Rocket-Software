@@ -21,9 +21,9 @@ typedef struct {
 } Relay;
 
 typedef enum {
-    COM_RELAY_OPEN,
-    COM_RELAY_CLOSE,
-    COM_RELAY_STATUS,
+    COM_RELAY_OPEN = 0x01,
+    COM_RELAY_CLOSE = 0x02,
+    COM_RELAY_STATUS = 0x03,
 } ComRelayID;
 
 extern Relay relays[9];

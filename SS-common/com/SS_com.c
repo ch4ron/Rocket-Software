@@ -148,7 +148,11 @@ ComStatus SS_com_handle_service(ComFrame *frame) {
             res = COM_ERROR;
             SS_error("Unsupported device: %d\r\n", frame->action);
     }
-    frame->action = COM_ACK;
+    if(res == 0) {
+        frame->action = COM_ACK;
+    } else {
+        frame->action = COM_NACK;
+    }
     return res;
 }
 
