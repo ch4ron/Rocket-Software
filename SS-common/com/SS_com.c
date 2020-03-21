@@ -31,14 +31,7 @@
 
 static ComBoardID board_id;
 
-typedef struct {
-    volatile Fifo *fifo;
-    void (*fun)(ComFrame*);
-    uint8_t group_id;
-    ComPriority priority;
-} ComFifoManager;
-
-static ComFifoManager fifo_manager[10];
+ComFifoManager fifo_manager[10];
 
 /* Functions in this module modify the received frame */
 

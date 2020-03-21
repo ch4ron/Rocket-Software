@@ -24,6 +24,14 @@ typedef struct __attribute__((packed)) {
     uint32_t payload;
 } ComFrame;
 
+
+typedef struct {
+    volatile Fifo *fifo;
+    void (*fun)(ComFrame*);
+    uint8_t group_id;
+    ComPriority priority;
+} ComFifoManager;
+
 typedef enum {
     COM_OK,
     COM_ERROR

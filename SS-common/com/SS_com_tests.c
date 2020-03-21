@@ -17,16 +17,22 @@ TEST_GROUP_RUNNER(com) {
 }
 
 static ComFrame mock_frame;
+static ComFifoManager tmp_manager[10];
 
+extern ComFifoManager fifo_manager[10];
 TEST_SETUP(com) {
     memset(&mock_frame, 0, sizeof(ComFrame));
+    memcpy(tmp_manager, fifo_manager, sizeof(fifo_manager));
 }
 
-TEST_TEAR_DOWN(com) {}
+TEST_TEAR_DOWN(com) {
+    memcpy(fifo_manager, tmp_manager, sizeof(fifo_manager));
+}
 
 static void mock(ComFrame *frame) {
     memcpy(&mock_frame, frame, sizeof(ComFrame));
 }
+
 
 TEST(com, fifo_manager) {
     FIFO_INIT(test, 10, ComFrame)
