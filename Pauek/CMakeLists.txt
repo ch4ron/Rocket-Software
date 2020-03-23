@@ -101,7 +101,7 @@ else()
     set(JUMPER $ENV{JUMPER})
 endif()
 
-if(${CMAKE_BUILD_TYPE} STREQUAL Simulate OR ${CMAKE_BUILD_TYPE} STREQUAL Simulate-test)
+if(${CMAKE_BUILD_TYPE} STREQUAL Simulate-test)
     add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
             COMMAND ${JUMPER} run --fw ${PROJECT_NAME}.bin -u UART5 --platform stm32f446)
 endif()

@@ -113,6 +113,7 @@ void print_payload(ComFrame *frame) {
 }
 
 void SS_com_debug_print_frame(ComFrame *frame, char *title, char *color) {
+    /* TODO force flushing or somehow change \r\n to be at the end of line */
     ComFrame buf;
     memcpy(&buf, frame, sizeof(ComFrame));
     printf("%s\r\n%s\t", color, title);

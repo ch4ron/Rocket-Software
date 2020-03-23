@@ -14,16 +14,16 @@ def execute(cmd):
         sys.exit(res)
 
 class Board:
-    def __init__(self, name):
-        self._name = name
-
-    @staticmethod
-    def init(name):
+    def __init__(self, name, port=None):
         board = name.capitalize()
         if board not in boards:
             click.echo('Board {} not supported, choose from: {}'.format(board, boards))
-            return
-        return Board(board)
+            sys.exit(-1)
+        if port:
+            self._port = port
+        else:
+            self._port = '/dev/ttyACM0'
+        self._name = name.capitalize()
 
     def build_target(self, target, verbose=False):
         directory = self._get_build_directory(target)
@@ -54,7 +54,7 @@ class Board:
         res = os.popen(cmd).read()
         if res:
             sys.exit(res)
-        ser = serial.Serial('/dev/ttyACM0', 115200)
+        ser = serial.Serial(self._port, 115200)
         print "\r\nTESTS START\r\n"
         while True:
             line = ser.readline()
@@ -85,57 +85,68 @@ class Board:
 
 
 @click.group()
-def main():
+@click.argument('board')
+@click.pass_context
+def main(ctx, board):
+    ctx.obj['board'] = board
     pass
 
 
-@main.command()
-@click.argument('board')
-def build(board):
-    b = Board.init(board)
-    b.build_target('Debug')
+@main.command(help='Build target for board')
+@click.option('-s', '--simulate', is_flag=True, help='Build simulation target')
+@click.option('-t', '--test', is_flag=True, help='Build test target')
+@click.pass_context
+def build(ctx, simulate, test):
+    board = ctx.obj['board']
+    b = Board(board)
+    if not simulate:
+        b.build_target('Debug')
+    else:
+        b.build_target('Simulate')
 
 
-@main.command()
-@click.argument('board')
-def clean(board):
-    b = Board.init(board)
+@main.command(help='Clean all targets for board')
+@click.pass_context
+def clean(ctx):
+    board = ctx.obj['board']
+    b = Board(board)
     b.clean()
 
 
-@main.command()
-@click.argument('board')
-def purge(board):
-    b = Board.init(board)
+@main.command(help='Purge all targets for board')
+@click.pass_context
+def purge(ctx):
+    board = ctx.obj['board']
+    b = Board(board)
     b.purge()
 
 
-@main.command()
-@click.argument('board')
-@click.option('-v', '--verbose', is_flag=True)
-@click.option('-t', '--test', is_flag=True)
-def simulate(board, verbose, test):
-    b = Board.init(board)
-    if test:
-        b.build_target('Simulate-test', verbose)
-    else:
-        b.build_target('Simulate', verbose)
+@main.command(help='Run test on simulator for board')
+@click.pass_context
+@click.option('-v', '--verbose', is_flag=True, help='Show verbose test output')
+def simulate(ctx, verbose):
+    board = ctx.obj['board']
+    b = Board(board)
+    b.build_target('Simulate-test', verbose)
 
 
-@main.command()
-@click.argument('board')
-def flash(board):
-    b = Board.init(board)
+@main.command(help='Build and flash target')
+@click.pass_context
+def flash(ctx):
+    board = ctx.obj['board']
+    b = Board(board)
     b.flash()
 
 
-@main.command()
-@click.argument('board')
+@main.command(help='Run tests on board')
+@click.pass_context
 @click.option('-v', '--verbose', is_flag=True)
-def test(board, verbose):
-    b = Board.init(board)
+@click.option('-p', '--port', type=str, help='Port the board is on')
+def test(ctx, verbose, port):
+    board = ctx.obj['board']
+    b = Board(board, port)
     b.test(verbose)
 
 
 if __name__ == '__main__':
-    main()
+    main(obj={})

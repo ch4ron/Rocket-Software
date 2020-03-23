@@ -45,7 +45,6 @@ TEST(can, pack_unpack1) {
             .message_type = 0x31,
             .payload = 0xFFAF,
             .data_type = 0x03,
-            .grazyna_ind = 0x00,
             .device = 0x13,
             .id = 0x7
     };

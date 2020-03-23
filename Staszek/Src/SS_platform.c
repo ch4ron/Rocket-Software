@@ -7,6 +7,8 @@
 #include "SS_platform.h"
 #include "usart.h"
 #include "SS_MS5X.h"
+#include "tim.h"
+#include "SS_servos.h"
 
 
 /********** PRINTF *********/
@@ -19,20 +21,22 @@ int _write(int file, char *ptr, int len) {
 
 /********** SERVOS *********/
 
-//Servo servos[] = {
-//        {.id = 0, .tim = &htim3, .channel = TIM_CHANNEL_2, .supply = &servos1_supply},
-//        {.id = 1, .tim = &htim1, .channel = TIM_CHANNEL_3, .supply = &servos1_supply},
-//        {.id = 2, .tim = &htim1, .channel = TIM_CHANNEL_2, .supply = &servos1_supply},
-//        {.id = 3, .tim = &htim1, .channel = TIM_CHANNEL_1, .supply = &servos1_supply},
-//        {.id = 4, .tim = &htim3, .channel = TIM_CHANNEL_4, .supply = &servos2_supply},
-//        {.id = 5, .tim = &htim3, .channel = TIM_CHANNEL_3, .supply = &servos2_supply},
-//        {.id = 6, .tim = &htim8, .channel = TIM_CHANNEL_2, .supply = &servos2_supply},
-//        {.id = 7, .tim = &htim3, .channel = TIM_CHANNEL_1, .supply = &servos2_supply},
-//};
-//
-//void SS_platform_servos_init() {
-//    SS_servos_init(servos, sizeof(servos) / sizeof(servos[0]));
-//}
+/* TODO Mock servos, init with actual values */
+
+Servo servos[] = {
+        {.id = 0, .tim = &htim1, .channel = TIM_CHANNEL_2 },
+        {.id = 1, .tim = &htim1, .channel = TIM_CHANNEL_3 },
+        {.id = 2, .tim = &htim1, .channel = TIM_CHANNEL_2 },
+        {.id = 3, .tim = &htim1, .channel = TIM_CHANNEL_1 },
+        {.id = 4, .tim = &htim1, .channel = TIM_CHANNEL_4 },
+        {.id = 5, .tim = &htim1, .channel = TIM_CHANNEL_3 },
+        {.id = 6, .tim = &htim8, .channel = TIM_CHANNEL_2 },
+        {.id = 7, .tim = &htim1, .channel = TIM_CHANNEL_1 }
+};
+
+void SS_platform_servos_init() {
+    SS_servos_init(servos, sizeof(servos) / sizeof(servos[0]));
+}
 
 /********** ADC *********/
 
@@ -62,7 +66,7 @@ static void SS_platform_ADS1258_init() {
 
 void SS_platform_init() {
 //    SS_platform_adc_init();
-//    SS_platform_servos_init();
+    SS_platform_servos_init();
 #ifndef SIMULATE
     SS_platform_ADS1258_init();
 #endif
