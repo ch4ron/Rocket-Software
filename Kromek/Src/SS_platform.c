@@ -3,6 +3,7 @@
 //
 
 #include <S25FL/SS_s25fl.h>
+#include <can/SS_can.h>
 #include "SS_common.h"
 #include "SS_platform.h"
 #include "usart.h"
@@ -137,8 +138,8 @@ void SS_platform_init() {
     SS_platform_relays_init();
 #ifndef SIMULATE
     SS_platform_ADS1258_init();
+    SS_can_init(&hcan1, COM_KROMEK_ID);
 #endif
-    SS_com_init(COM_KROMEK_ID);
     SS_grazyna_init(&huart2);
     SS_s25fl_init();
 }

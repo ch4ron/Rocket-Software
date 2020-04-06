@@ -71,5 +71,5 @@ void SS_platform_init() {
     SS_platform_ADS1258_init();
 #endif
     SS_MS56_init(&ms5607, MS56_PRESS_4096, MS56_TEMP_4096);
-    SS_can_init(&hcan1, COM_STASZEK_ID);
+    SS_can_init(&hcan2, COM_STASZEK_ID);
 }

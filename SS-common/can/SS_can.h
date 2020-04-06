@@ -17,6 +17,10 @@ void SS_can_enable_grazyna();
 void SS_can_disable_grazyna();
 void SS_can_transmit(ComFrame *frame);
 void SS_can_error(char *error);
+#ifdef SS_USE_EXT_CAN
+void SS_can_ext_init(CAN_HandleTypeDef *hcan);
+void SS_can_ext_transmit(ComFrame *frame);
+#endif
 
 
 #endif // SS_CAN_H

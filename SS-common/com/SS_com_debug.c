@@ -116,7 +116,7 @@ void SS_com_debug_print_frame(ComFrame *frame, char *title, char *color) {
     /* TODO force flushing or somehow change \r\n to be at the end of line */
     ComFrame buf;
     memcpy(&buf, frame, sizeof(ComFrame));
-    printf("%s\r\n%s\t", color, title);
+    printf("%s%s\t", color, title);
     printf("From: ");
     print_board(frame->source, color);
     printf("\t To: ");
@@ -126,7 +126,7 @@ void SS_com_debug_print_frame(ComFrame *frame, char *title, char *color) {
     print_action(frame->action);
     printf("\t device: 0x%02x", frame->device);
     printf("\t id: 0x%02x", frame->id);
-    printf("\t type: 0x%02x%s", frame->message_type, color);
+    printf("\t type: 0x%02x%s\r\n", frame->message_type, color);
     print_payload(frame);
 }
 

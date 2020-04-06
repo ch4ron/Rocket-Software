@@ -32,6 +32,16 @@ int _write(int file, char *ptr, int len) {
 //     TODO Supply
 //}
 
+void SS_com_transmit(ComFrame *frame) {
+    if(frame->destination == COM_GRAZYNA_ID && SS_grazyna_is_enabled()) {
+        SS_grazyna_transmit(frame);
+    } else if(frame->destination == COM_KROMEK_ID || frame->destination == COM_GRAZYNA_ID) {
+        SS_can_ext_transmit(frame);
+    } else {
+        SS_can_transmit(frame);
+    }
+}
+
 /********** MAIN INIT *********/
 
 void SS_platform_init() {
@@ -39,5 +49,6 @@ void SS_platform_init() {
 //    SS_platform_supply_init();
     SS_com_init(COM_PAUEK_ID);
     SS_can_init(&hcan2, COM_PAUEK_ID);
+    SS_can_ext_init(&hcan1);
     SS_grazyna_init(&huart1);
 }

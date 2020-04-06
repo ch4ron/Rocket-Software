@@ -29,6 +29,8 @@
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
+#include "SS_common.h"
+#include "SS_platform.h"
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
@@ -101,6 +103,8 @@ int main(void)
   MX_CAN2_Init();
   MX_CRC_Init();
   /* USER CODE BEGIN 2 */
+  SS_platform_init();
+  SS_init();
 
   /* USER CODE END 2 */
 
@@ -108,6 +112,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    SS_main();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

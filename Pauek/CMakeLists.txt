@@ -1,4 +1,3 @@
-#THIS FILE IS AUTO GENERATED FROM THE TEMPLATE! DO NOT CHANGE!
 SET(CMAKE_SYSTEM_NAME Generic)
 SET(CMAKE_SYSTEM_VERSION 1)
 cmake_minimum_required(VERSION 3.11)
@@ -76,7 +75,7 @@ add_compile_definitions(SS_USE_GRAZYNA)
 #add_compile_definitions(SS_USE_SUPPLY)
 add_compile_definitions(SS_USE_FIFO)
 #add_compile_definitions(SS_USE_ADC)
-
+add_compile_definitions(SS_USE_EXT_CAN)
 
 add_subdirectory(../SS-common common)
 

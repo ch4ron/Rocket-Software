@@ -12,13 +12,33 @@ volatile uint32_t error = 0;
 
 #define CAN_FIFO_LENGTH 50
 
-static CAN_HandleTypeDef *com_hcan;
 static ComBoardID board_id;
+
+//typedef struct {
+//    CAN_HandleTypeDef *com_hcan;
+//    ComBoardID board_ids[5]; // Maximum of 5 different board filters
+//    Fifo tx_fifo;
+//    Fifo rx_fifo;
+//    uint8_t tx_fifo_array[CAN_FIFO_LENGTH * sizeof(ComFrame)];
+//    uint8_t rx_fifo_array[CAN_FIFO_LENGTH * sizeof(ComFrame)];
+//} Can;
+//
+static CAN_HandleTypeDef *com_hcan;
 
 FIFO_INIT(can_tx, CAN_FIFO_LENGTH, ComFrame)
 FIFO_INIT(can_rx, CAN_FIFO_LENGTH, ComFrame)
 FIFO_INIT(can_tx_priority, CAN_FIFO_LENGTH, ComFrame)
 FIFO_INIT(can_rx_priority, CAN_FIFO_LENGTH, ComFrame)
+
+#ifdef SS_USE_EXT_CAN
+
+static CAN_HandleTypeDef *ext_hcan;
+
+FIFO_INIT(ext_can_tx, CAN_FIFO_LENGTH, ComFrame)
+FIFO_INIT(ext_can_rx, CAN_FIFO_LENGTH, ComFrame)
+FIFO_INIT(ext_can_tx_priority, CAN_FIFO_LENGTH, ComFrame)
+FIFO_INIT(ext_can_rx_priority, CAN_FIFO_LENGTH, ComFrame)
+#endif
 
 static void SS_can_interrupts_enable(CAN_HandleTypeDef *hcan) {
     HAL_CAN_ActivateNotification(hcan,
@@ -112,26 +132,37 @@ void SS_can_unpack_frame(ComFrame *frame, CAN_RxHeaderTypeDef *header, uint8_t *
     memcpy(&frame->message_type, data + 1, header->DLC - 1);
 }
 
-
-static void SS_can_handle_tx_fifo(ComFrame *frame) {
+static void SS_can_handle_tx_fifo_common(ComFrame *frame, CAN_HandleTypeDef *hcan) {
     CAN_TxHeaderTypeDef header;
     uint8_t data[sizeof(ComFrame)];
     uint32_t mailbox;
     SS_can_pack_frame(frame, &header, data);
     SS_can_print_message_sent(frame);
-    if (HAL_CAN_AddTxMessage(com_hcan, &header, data, &mailbox) != HAL_OK) {
+    if (HAL_CAN_AddTxMessage(hcan, &header, data, &mailbox) != HAL_OK) {
         SS_can_error("HAL_CAN_AddTxMessage failed");
         return;
     }
+}
+
+static void SS_can_handle_tx_fifo(ComFrame *frame) {
+    SS_can_handle_tx_fifo_common(frame, com_hcan);
 }
 
 void SS_can_handle_received(CAN_HandleTypeDef *hcan, uint8_t priority) {
     static ComFrame buff;
     static CAN_RxHeaderTypeDef header;
     static uint8_t data[sizeof(ComFrame)];
-
+    volatile Fifo *can_fifo;
     uint32_t internal_fifo = (priority == COM_HIGH_PRIORITY ? CAN_RX_FIFO0 : CAN_RX_FIFO1);
-    volatile Fifo *can_fifo = (priority == COM_HIGH_PRIORITY ? &can_rx_priority_fifo : &can_rx_fifo);
+#ifdef SS_USE_EXT_CAN
+    if(hcan == ext_hcan) {
+        can_fifo = (priority == COM_HIGH_PRIORITY ? &ext_can_rx_priority_fifo : &ext_can_rx_fifo);
+    } else {
+        can_fifo = (priority == COM_HIGH_PRIORITY ? &can_rx_priority_fifo : &can_rx_fifo);
+    }
+#else
+    can_fifo = (priority == COM_HIGH_PRIORITY ? &can_rx_priority_fifo : &can_rx_fifo);
+#endif
     HAL_CAN_GetRxMessage(hcan, internal_fifo, &header, data);
     SS_can_unpack_frame(&buff, &header, data);
     if((!SS_fifo_put_data(can_fifo, &buff))) {
@@ -152,13 +183,35 @@ void SS_can_init(CAN_HandleTypeDef *hcan, ComBoardID board) {
     SS_com_init(board);
 }
 
+#ifdef SS_USE_EXT_CAN
+static void SS_can_ext_handle_tx_fifo(ComFrame *frame) {
+    SS_can_handle_tx_fifo_common(frame, ext_hcan);
+}
+
+void SS_can_ext_init(CAN_HandleTypeDef *hcan) {
+    ext_hcan = hcan;
+    SS_can_filters_init_with_mask(hcan, 0, 0);
+    SS_com_add_fifo(&ext_can_rx_fifo, NULL, COM_GROUP_RECEIVE, COM_LOW_PRIORITY);
+    SS_com_add_fifo(&ext_can_rx_priority_fifo, NULL, COM_GROUP_RECEIVE, COM_LOW_PRIORITY);
+    SS_com_add_fifo(&ext_can_tx_fifo, SS_can_ext_handle_tx_fifo, COM_GROUP_CAN2, COM_LOW_PRIORITY);
+    SS_com_add_fifo(&ext_can_tx_priority_fifo, SS_can_ext_handle_tx_fifo, COM_GROUP_CAN2, COM_LOW_PRIORITY);
+    HAL_CAN_Start(hcan);
+    SS_can_interrupts_enable(hcan);
+}
+
+void SS_can_ext_transmit(ComFrame *frame) {
+    volatile Fifo *can_fifo = frame->priority == COM_HIGH_PRIORITY ? &ext_can_tx_priority_fifo : &ext_can_tx_fifo;
+    SS_fifo_put_data(can_fifo, frame);
+}
+#endif
+
 void SS_can_transmit(ComFrame *frame) {
     volatile Fifo *can_fifo = frame->priority == COM_HIGH_PRIORITY ? &can_tx_priority_fifo : &can_tx_fifo;
     SS_fifo_put_data(can_fifo, frame);
 }
 
 void SS_can_error(char *error) {
-    HAL_GPIO_WritePin(COM_RED_GPIO_Port, COM_RED_Pin, SET);
+    HAL_GPIO_WritePin(COM_RED_GPIO_Port, COM_RED_Pin, GPIO_PIN_SET);
 #ifdef CAN_DEBUG_ERRORS
     SS_error(error);
 #endif
@@ -203,13 +256,11 @@ void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan) {
 }
 
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
-    if(hcan == com_hcan)
-        SS_can_handle_received(hcan, COM_HIGH_PRIORITY);
+    SS_can_handle_received(hcan, COM_HIGH_PRIORITY);
     HAL_GPIO_TogglePin(COM_BLUE_GPIO_Port, COM_BLUE_Pin);
 }
 
 void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan) {
-    if (hcan == com_hcan)
-        SS_can_handle_received(hcan, COM_LOW_PRIORITY);
+    SS_can_handle_received(hcan, COM_LOW_PRIORITY);
     HAL_GPIO_TogglePin(COM_BLUE_GPIO_Port, COM_BLUE_Pin);
 }
