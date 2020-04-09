@@ -16,9 +16,10 @@ class SerialEmulator:
         return os.read(self.master, 1)
 
 
+abs_kromek_dir = os.path.dirname(os.path.abspath(__file__))
 #  set up the device simulation
 v = Vlab(working_directory=".", print_uart=True, uarts_to_print=['UART5'], platform="stm32f446", gdb_mode=False)
-v.load("cmake-build-simulate/Kromek.bin")
+v.load(abs_kromek_dir + "/cmake-build-simulate/Kromek.bin")
 v.start()
 
 
