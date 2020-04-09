@@ -108,7 +108,7 @@ uint16_t SS_servo_get_width(uint16_t position) {
 
 /* position range 0 - 1000 */
 int8_t SS_servo_set_position(Servo *servo, uint16_t position) {
-    if(SS_servo_check_initialized(servo) != 0) return;
+    if(SS_servo_check_initialized(servo) != 0) return -1;
     uint16_t min = servo->closed_position < servo->opened_position ? servo->closed_position : servo->opened_position;
     uint16_t max = servo->closed_position > servo->opened_position ? servo->closed_position : servo->opened_position;
     if(position > max || position < min) {
@@ -178,7 +178,7 @@ void SS_servo_disable(Servo *servo) {
 }
 
 int8_t SS_servo_set_closed_position(Servo *servo, uint16_t position) {
-    if(SS_servo_check_initialized(servo) != 0) return;
+    if(SS_servo_check_initialized(servo) != 0) return -1;
     if(position > servos_config.SERVO_RANGE) {
         SS_error("Servo closed position out of range");
         return -1;
@@ -188,7 +188,7 @@ int8_t SS_servo_set_closed_position(Servo *servo, uint16_t position) {
 }
 
 int8_t SS_servo_set_opened_position(Servo *servo, uint16_t position) {
-    if(SS_servo_check_initialized(servo) != 0) return;
+    if(SS_servo_check_initialized(servo) != 0) return -1;
     if(position > servos_config.SERVO_RANGE) {
         SS_error("Servo opened position out of range");
         return -1;

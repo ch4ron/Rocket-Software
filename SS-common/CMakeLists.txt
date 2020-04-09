@@ -1,19 +1,10 @@
 cmake_minimum_required(VERSION 3.11.1)
 
 project(common C)
-# TODO - a workaround for including unity without modifying its CMakeLists.txt, find a better way
-file(GLOB_RECURSE UNITY_SOURCES
-        ../Unity/extras/fixture/src/unity_fixture.c
-        ../Unity/extras/memory/src/unity_memory.c)
+
+set(CMAKE_C_CLANG_TIDY "clang-tidy")
 
 add_library(${PROJECT_NAME}  ${UNITY_SOURCES})
-
-target_include_directories(
-        ${PROJECT_NAME}
-        PUBLIC
-        ../Unity/src
-        ../Unity/extras/fixture/src
-        ../Unity/extras/memory/src)
 
 set(SS_COMMON_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -100,7 +91,3 @@ target_link_libraries(${PROJECT_NAME} PUBLIC error)
 
 add_subdirectory(callbacks)
 target_link_libraries(${PROJECT_NAME} PUBLIC callbacks)
-
-add_subdirectory(../Unity unity)
-target_link_libraries(${PROJECT_NAME} PUBLIC unity)
-

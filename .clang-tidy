@@ -1,0 +1,4 @@
+Checks: 'redability-*'
+CheckOptions:
+  - key: readability-identifier-naming.EnumCase
+    value: CamelCase
