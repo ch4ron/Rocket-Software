@@ -20,6 +20,7 @@ set(SIZE arm-none-eabi-size)
 #SET(FPU_FLAGS "-mfloat-abi=soft")
 
 #add_definitions(-DARM_MATH_CM4 -DARM_MATH_MATRIX_CHECK -DARM_MATH_ROUNDING -D__FPU_PRESENT=1)
+
 SET(COMMON_FLAGS
     "-mcpu=cortex-m4 ${FPU_FLAGS} -mthumb -ffunction-sections -fdata-sections \
     -g -fno-common -fmessage-length=0 -specs=nosys.specs -specs=nano.specs")
@@ -59,19 +60,11 @@ include_directories(Inc
                     Drivers/CMSIS/Device/ST/STM32F4xx/Include
                     Drivers/CMSIS/Include
                     Middlewares/ST/STM32_USB_Device_Library/Core/Inc
-                    Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc)
+                    Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc
+                    ../Unity/src
+                    ../Unity/extras/fixture/src
+                    ../Unity/extras/memory/src)
 
-
-# TODO - a workaround for including unity without modifying its CMakeLists.txt, find a better way
-# file(GLOB_RECURSE UNITY_SOURCES
-        # ../Unity/extras/fixture/src/unity_fixture.c
-        # ../Unity/extras/memory/src/unity_memory.c
-        # ../Unity/src)
-
-include_directories(
-        ../Unity/src
-        ../Unity/extras/fixture/src
-        ../Unity/extras/memory/src)
 
 macro(create_target)
     add_subdirectory(../SS-common common)
