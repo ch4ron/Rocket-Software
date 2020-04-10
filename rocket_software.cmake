@@ -51,7 +51,9 @@ file(GLOB_RECURSE SOURCES
                 "Inc/*.*"
                 "Src/*.*"
                 "startup/*.*"
-                "Middlewares/*.*")
+                "Middlewares/*.*"
+                "../Unity/extras/fixture/src/*.*"
+                "../Unity/extras/memory/src/*.*")
 
 include_directories(Inc
                     Test
