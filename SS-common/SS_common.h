@@ -19,14 +19,16 @@
 #include "SS_grazyna.h"
 #endif
 #ifdef SS_USE_ADC
-#include "adc.h"
 #include "SS_adc.h"
+#include "adc.h"
 #endif
 
-void SS_init();
-void SS_main();
+void SS_init(void);
+void SS_main(void);
+void SS_FreeRTOS_init(void);
+
 #ifdef RUN_TESTS
 int SS_run_all_tests(void);
 #endif
 
-#endif //SS_COMMON_H
+#endif  // SS_COMMON_H

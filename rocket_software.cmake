@@ -1,6 +1,5 @@
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_VERSION 1)
-cmake_minimum_required(VERSION 3.11)
 
 set(CMAKE_C_COMPILER_WORKS 1)
 set(CMAKE_C_COMPILER arm-none-eabi-gcc)
@@ -13,20 +12,18 @@ set(CMAKE_OBJDUMP arm-none-eabi-objdump)
 set(SIZE arm-none-eabi-size)
 
 #Uncomment for hardware floating point
-#SET(FPU_FLAGS "-mfloat-abi=hard -mfpu=fpv4-sp-d16")
-#add_definitions(-DARM_MATH_CM4 -DARM_MATH_MATRIX_CHECK -DARM_MATH_ROUNDING -D__FPU_PRESENT=1)
+set(FPU_FLAGS "-mfloat-abi=hard -mfpu=fpv4-sp-d16")
+# add_definitions(-DARM_MATH_CM4 -DARM_MATH_MATRIX_CHECK -DARM_MATH_ROUNDING -D__FPU_PRESENT=1)
 
 #Uncomment for software floating point
-#SET(FPU_FLAGS "-mfloat-abi=soft")
+# set(FPU_FLAGS "-mfloat-abi=soft")
 
-#add_definitions(-DARM_MATH_CM4 -DARM_MATH_MATRIX_CHECK -DARM_MATH_ROUNDING -D__FPU_PRESENT=1)
-
-SET(COMMON_FLAGS
+set(COMMON_FLAGS
     "-mcpu=cortex-m4 ${FPU_FLAGS} -mthumb -ffunction-sections -fdata-sections \
     -g -fno-common -fmessage-length=0 -specs=nosys.specs -specs=nano.specs")
 
-SET(CMAKE_CXX_FLAGS_INIT "${COMMON_FLAGS} -std=c++11")
-SET(CMAKE_C_FLAGS_INIT "${COMMON_FLAGS} -std=gnu99")
+set(CMAKE_CXX_FLAGS_INIT "${COMMON_FLAGS} -std=c++11")
+set(CMAKE_C_FLAGS_INIT "${COMMON_FLAGS} -std=gnu99")
 
 add_definitions(-D__weak=__attribute__\(\(weak\)\) -D__packed=__attribute__\(\(__packed__\)\) -DUSE_HAL_DRIVER -DSTM32F446xx)
 add_compile_options(-Wall)
@@ -52,6 +49,8 @@ file(GLOB_RECURSE SOURCES
                 "Src/*.*"
                 "startup/*.*"
                 "Middlewares/*.*"
+                # TODO For some reason it reasons code doesn't link correctly without tasks.c listed here
+                "../FreeRTOS/Source/tasks.c"
                 "../Unity/extras/fixture/src/*.*"
                 "../Unity/extras/memory/src/*.*")
 
@@ -63,6 +62,9 @@ include_directories(Inc
                     Drivers/CMSIS/Include
                     Middlewares/ST/STM32_USB_Device_Library/Core/Inc
                     Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc
+                    ../FreeRTOS/Source/include
+                    ../FreeRTOS/Source/portable/GCC/ARM_CM4F
+                    ../FreeRTOS
                     ../Unity/src
                     ../Unity/extras/fixture/src
                     ../Unity/extras/memory/src)
@@ -70,10 +72,10 @@ include_directories(Inc
 
 macro(create_target)
     add_subdirectory(../SS-common common)
-
     add_subdirectory(../Unity unity)
+    add_subdirectory(../FreeRTOS FreeRTOS)
 
-    target_link_libraries(${PROJECT_NAME}.elf unity common)
+    target_link_libraries(${PROJECT_NAME}.elf unity FreeRTOS common)
 
     set(CMAKE_EXE_LINKER_FLAGS
         "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Map=${PROJECT_BINARY_DIR}/${PROJECT_NAME}.map")

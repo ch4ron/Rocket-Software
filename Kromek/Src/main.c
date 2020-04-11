@@ -107,7 +107,6 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART3_UART_Init();
   MX_TIM13_Init();
-  MX_TIM14_Init();
   /* USER CODE BEGIN 2 */
 
     /* STM32 CubeMX v5.4.0 bug - MX functions using DMA need to be initialized
@@ -126,22 +125,35 @@ int main(void)
     MX_TIM8_Init();
     MX_CRC_Init();
 #endif
+    HAL_GPIO_WritePin(COM_RED_GPIO_Port, COM_RED_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(COM_BLUE_GPIO_Port, COM_BLUE_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(COM_GREEN_GPIO_Port, COM_GREEN_Pin, GPIO_PIN_SET);
 
+    HAL_GPIO_WritePin(MEM_RED_GPIO_Port, MEM_RED_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(MEM_BLUE_GPIO_Port, MEM_BLUE_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(MEM_GREEN_GPIO_Port, MEM_GREEN_Pin, GPIO_PIN_SET);
     SS_platform_init();
     SS_init();
     //  SS_settings_read_json(settings_json);
     /* ComFrame frame = { */
-      /* .source = COM_KROMEK_ID, */
-                      /* .destination = COM_PAUEK_ID, */
-                      /* .priority = COM_LOW_PRIORITY, */
-                      /* .payload = 0xDDDD1111 */
+    /* .source = COM_KROMEK_ID, */
+    /* .destination = COM_PAUEK_ID, */
+    /* .priority = COM_LOW_PRIORITY, */
+    /* .payload = 0xDDDD1111 */
     /* }; */
-    ComFrame frame = { .source = COM_KROMEK_ID, .destination = COM_PAUEK_ID, .priority = 1, .payload = 0xFFAABBCC};
+    ComFrame frame = {.source = COM_KROMEK_ID,
+                      .destination = COM_PAUEK_ID,
+                      .priority = 1,
+                      .payload = 0xFFAABBCC};
+    HAL_GPIO_WritePin(COM_BLUE_GPIO_Port, COM_BLUE_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(COM_RED_GPIO_Port, COM_RED_Pin, RESET);
+    HAL_GPIO_WritePin(ADC_RED_GPIO_Port, ADC_RED_Pin, RESET);
+    HAL_GPIO_WritePin(MEM_RED_GPIO_Port, MEM_RED_Pin, RESET);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-    while (1) {
+    while(1) {
         SS_main();
         SS_com_transmit(&frame);
         HAL_Delay(1000);
@@ -257,6 +269,27 @@ void SimulationClock_Config(void) {
     }
 }
 /* USER CODE END 4 */
+
+ /**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM14 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+    /* USER CODE BEGIN Callback 0 */
+
+    /* USER CODE END Callback 0 */
+    if(htim->Instance == TIM14) {
+        HAL_SYSTICK_IRQHandler();
+        HAL_IncTick();
+    }
+    /* USER CODE BEGIN Callback 1 */
+
+    /* USER CODE END Callback 1 */
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.

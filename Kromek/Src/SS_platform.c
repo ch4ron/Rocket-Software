@@ -2,7 +2,7 @@
 // Created by maciek on 28.02.2020.
 //
 
-#include <S25FL/SS_s25fl.h>
+/* #include "SS_s25fl.h" */
 #include <can/SS_can.h>
 #include "SS_common.h"
 #include "SS_platform.h"
@@ -141,5 +141,5 @@ void SS_platform_init() {
     SS_can_init(&hcan1, COM_KROMEK_ID);
 #endif
     SS_grazyna_init(&huart2);
-    SS_s25fl_init();
+    /* SS_s25fl_init(); */
 }

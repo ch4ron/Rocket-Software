@@ -24,7 +24,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stdio.h"
-#include "SS_support.h"
+#include "FreeRTOS.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -34,7 +34,11 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
- 
+
+#define SVC_Handler Dummy_SVC_Handler
+#define PendSV_Handler Dummy_PendSV_Handler
+#define SysTick_Handler Dummy_SysTick_Handler
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -76,13 +80,14 @@ extern SPI_HandleTypeDef hspi2;
 extern SPI_HandleTypeDef hspi4;
 extern TIM_HandleTypeDef htim8;
 extern TIM_HandleTypeDef htim13;
-extern TIM_HandleTypeDef htim14;
 extern DMA_HandleTypeDef hdma_usart1_rx;
 extern DMA_HandleTypeDef hdma_usart2_rx;
 extern DMA_HandleTypeDef hdma_usart2_tx;
 extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart3;
+extern TIM_HandleTypeDef htim14;
+
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -109,10 +114,7 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
-    printf("Hard Fault\r\n");
-    SS_support_set_mem_led(1, 0, 0);
-    SS_support_set_com_led(1, 0, 0);
-    SS_support_set_adc_led(1, 0, 0);
+  printf("Hard Fault\r\n");
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
   {
@@ -211,9 +213,8 @@ void PendSV_Handler(void)
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
-  HAL_SYSTICK_IRQHandler();
+
   /* USER CODE END SysTick_IRQn 0 */
-  HAL_IncTick();
   /* USER CODE BEGIN SysTick_IRQn 1 */
 
   /* USER CODE END SysTick_IRQn 1 */

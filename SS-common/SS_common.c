@@ -11,7 +11,7 @@
 #include "SS_common.h"
 #include "stdio.h"
 
-void SS_init() {
+void SS_init(void) {
 #if defined(SS_USE_SUPPLY) && !defined(SIMULATE)
 //    SS_supply_init();
 #endif
@@ -19,9 +19,10 @@ void SS_init() {
     SS_run_all_tests();
 #endif
     printf("Elon!\r\n");
+    SS_FreeRTOS_init();
 }
 
-void SS_main() {
+void SS_main(void) {
 #ifdef SS_USE_GRAZYNA
     SS_grazyna_main();
 #endif
