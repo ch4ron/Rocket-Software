@@ -80,7 +80,7 @@ if(COMPILE_DEFS MATCHES SS_USE_CAN)
 endif()
 
 
-if(COMPILE_DEFS MATCHES RUN_TESTS)
+if(COMPILE_DEFS MATCHES SS_RUN_TESTS)
     add_subdirectory(test)
     target_link_libraries(${TARGET} PUBLIC SS_test)
 endif()

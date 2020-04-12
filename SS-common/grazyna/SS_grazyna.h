@@ -1,5 +1,5 @@
 /*
- * SS_Grazyna_com.h
+ * SS_grazyna_com.h
  *
  *  Created on: Jan 18, 2020
  *      Author: maciek
@@ -8,23 +8,38 @@
 #ifndef SS_GRAZYNA_H_
 #define SS_GRAZYNA_H_
 
+/* ==================================================================== */
+/* ============================= Includes ============================= */
+/* ==================================================================== */
 #include "SS_com.h"
 #include "usart.h"
 
+/* ==================================================================== */
+/* ============================= Defines ============================== */
+/* ==================================================================== */
 #define GRAZYNA_HEADER 0x05
 
+/* ==================================================================== */
+/* ============================ Datatypes ============================= */
+/* ==================================================================== */
 typedef struct __attribute__((packed)) {
     uint8_t header;
     ComFrame com_frame;
     uint32_t crc;
 } GrazynaFrame;
 
+/* ==================================================================== */
+/* ==================== Global function prototypes ==================== */
+/* ==================================================================== */
 void SS_grazyna_init(UART_HandleTypeDef *huart);
-void SS_grazyna_enable();
 void SS_grazyna_disable();
+void SS_grazyna_enable();
 bool SS_grazyna_is_enabled();
-void SS_grazyna_main();
+void SS_grazyna_send(ComFrame *frame);
+
+/* ==================================================================== */
+/* ============================ Callbacks ============================= */
+/* ==================================================================== */
 void SS_grazyna_UART_RxCpltCallback(UART_HandleTypeDef *huart);
-void SS_grazyna_transmit(ComFrame *frame);
 
 #endif /* SS_GRAZYNA_COM_H_ */

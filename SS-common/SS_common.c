@@ -16,7 +16,7 @@ void SS_init(void) {
 #if defined(SS_USE_SUPPLY) && !defined(SIMULATE)
 //    SS_supply_init();
 #endif
-#ifdef RUN_TESTS
+#ifdef SS_RUN_TESTS
     SS_run_all_tests();
 #endif
     printf("Elon!\r\n");
@@ -25,7 +25,7 @@ void SS_init(void) {
 
 void SS_main(void) {
 #ifdef SS_USE_GRAZYNA
-    SS_grazyna_main();
+    /* SS_grazyna_main(); */
 #endif
 #ifdef SS_USE_COM
     SS_com_feed_main();

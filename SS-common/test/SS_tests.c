@@ -18,42 +18,42 @@
 
 static void tests() {
 #ifdef SS_USE_ADS1258
-    SS_ADS1258_run_tests();
-    RUN_TEST_GROUP(measurements);
+    /* SS_ADS1258_run_tests(); */
+    /* RUN_TEST_GROUP(measurements); */
 #endif
 #ifdef SS_USE_GRAZYNA
-//    RUN_TEST_GROUP(grazyna);
+    RUN_TEST_GROUP(grazyna);
 #endif
 #ifdef SS_USE_SERVOS
-    RUN_TEST_GROUP(servos);
-    RUN_TEST_GROUP(grazyna_servos);
+    /* RUN_TEST_GROUP(servos); */
+    /* RUN_TEST_GROUP(grazyna_servos); */
 #endif
 #ifdef SS_USE_SEQUENCE
-    RUN_TEST_GROUP(sequence);
+    /* RUN_TEST_GROUP(sequence); */
 #endif
 #ifdef SS_USE_COM
-    RUN_TEST_GROUP(com);
+    /* RUN_TEST_GROUP(com); */
 #endif
 #ifdef SS_USE_JSON_SETTINGS
-    RUN_TEST_GROUP(parser);
+    /* RUN_TEST_GROUP(parser); */
 #endif
 #ifdef SS_USE_FIFO
-    RUN_TEST_GROUP(fifo);
+    /* RUN_TEST_GROUP(fifo); */
 #endif
 #ifdef SS_USE_RELAYS
-    RUN_TEST_GROUP(relays);
+    /* RUN_TEST_GROUP(relays); */
 #endif
 #ifdef SS_USE_DYNAMIXEL
-    RUN_TEST_GROUP(dynamixel);
-    RUN_TEST_GROUP(dynamixel_logic);
+    /* RUN_TEST_GROUP(dynamixel); */
+    /* RUN_TEST_GROUP(dynamixel_logic); */
 #endif
 #ifdef SS_USE_CAN
-    RUN_TEST_GROUP(can);
+    /* RUN_TEST_GROUP(can); */
 #endif
-/* Disable mutex test for now, as it takes a long time and causes troubles
+    /* Disable mutex test for now, as it takes a long time and causes troubles
  * (But current implementation works correctly */
-//    RUN_TEST_GROUP(mutex);
-//    RUN_TEST_GROUP(supply_control);
+    //    RUN_TEST_GROUP(mutex);
+    //    RUN_TEST_GROUP(supply_control);
 }
 
 /* Enable verbose output */
