@@ -3,6 +3,6 @@ Device STM32F446VE
 speed 4000
 r
 h
-loadfile cmake-buid-debug/Kromek.hex
+loadfile Kromek.hex
 r
 exit

@@ -9,7 +9,7 @@ find_program(
 )
 
 if(CLANG_TIDY_EXE)
-    set(CMAKE_C_CLANG_TIDY "${CLANG_TIDY_EXE}")
+    # set(CMAKE_C_CLANG_TIDY "${CLANG_TIDY_EXE}")
 endif()
 
 add_library(${TARGET} SS_FreeRTOS.c SS_common.c SS_common.h)

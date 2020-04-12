@@ -125,9 +125,11 @@ void SS_can_pack_frame(ComFrame *frame, CAN_TxHeaderTypeDef *header, uint8_t *da
     memcpy(data + 1, &frame->message_type, sizeof(frame->message_type) + sizeof(frame->payload));
 }
 
-void SS_can_unpack_frame(ComFrame *frame, CAN_RxHeaderTypeDef *header, uint8_t *data) {
-    /* Can frame header has 29 bits, so the remaining 3 header bits are stored in the first byte of data */
-    *((uint32_t*) frame) = header->ExtId;
+void SS_can_unpack_frame(ComFrame *frame, CAN_RxHeaderTypeDef *header,
+                         uint8_t *data) {
+    /* Can frame header has 29 bits, so the remaining 3 header bits are stored
+     * in the first byte of data */
+    *((uint32_t *)frame) = header->ExtId;
     frame->data_type = data[0];
     memcpy(&frame->message_type, data + 1, header->DLC - 1);
 }
