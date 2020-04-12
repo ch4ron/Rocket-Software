@@ -24,5 +24,6 @@ __weak void vApplicationStackOverflowHook(xTaskHandle xTask,
 void SS_FreeRTOS_init(void) {
     /* HAL_TIM_Base_Start_IT(&htim14); */
     xTaskCreate(vLEDFlashTask, "LEDx", 1024, NULL, 2, (TaskHandle_t *)NULL);
+    vTraceEnable(TRC_START);
     vTaskStartScheduler();
 }

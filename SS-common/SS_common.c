@@ -5,9 +5,10 @@
 #include "SS_MS5X.h"
 #endif
 
-#include <com/SS_com_feed.h>
 #include <S25FL/test.h>
 #include <can/SS_can.h>
+#include <com/SS_com_feed.h>
+
 #include "SS_common.h"
 #include "stdio.h"
 

@@ -16,3 +16,7 @@ target_include_directories(FreeRTOS PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}
   Source/include
   Source/portable/GCC/ARM_CM4F)
+
+add_subdirectory(TraceRecorder)
+
+target_link_libraries(FreeRTOS tracerecorder)

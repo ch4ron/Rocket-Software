@@ -94,6 +94,9 @@ if(${CMAKE_BUILD_TYPE} STREQUAL Simulate-test)
 endif()
 endmacro()
 
+add_custom_target(flash
+  COMMAND jlink -CommandFile ../commands.jlink)
+
 if(NOT DEFINED ENV{JUMPER})
     set(JUMPER ../../.venv/bin/jumper)
 else()
