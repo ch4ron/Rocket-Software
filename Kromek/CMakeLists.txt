@@ -23,5 +23,6 @@ add_compile_definitions(SS_USE_SEQUENCE)
 add_compile_definitions(SS_USE_JSON_SETTINGS)
 add_compile_definitions(SS_USE_S25FL)
 add_compile_definitions(SS_USE_CAN)
+# add_compile_definitions(SS_USE_MOCK)
 
 create_target()

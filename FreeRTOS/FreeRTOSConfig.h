@@ -164,8 +164,10 @@ standard names. */
 
 #define xPortSysTickHandler SysTick_Handler
 
+#ifdef SS_FREERTOS_TRACE
 #include "TraceRecorder/config/trcConfig.h"
 #include "TraceRecorder/include/trcRecorder.h"
+#endif
 /* USER CODE BEGIN Defines */
 /* Section where parameter definitions can be added (for instance, to override
  * default ones in FreeRTOS.h) */

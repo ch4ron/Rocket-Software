@@ -14,8 +14,8 @@ file(GLOB INCLUDE_DIRS
 get_directory_property(COMPILE_DEFS COMPILE_DEFINITIONS)
 
 if(COMPILE_DEFS MATCHES SS_USE_MOCK)
-    set(INCLUDE_DIRS ${INCLUDE_DIRS} CMock/src)
-    target_sources(ThrowTheSwitch CMock/src/cmock.c)
+    set(INCLUDE_DIRS ${INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/CMock/src)
+    target_sources(ThrowTheSwitch PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/CMock/src/cmock.c)
 endif()
 
 include_directories("${INCLUDE_DIRS}")

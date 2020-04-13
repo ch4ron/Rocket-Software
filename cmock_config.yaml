@@ -1,0 +1,6 @@
+:cmock:
+  :plugins:
+    - :array
+  :strippables:
+  - :portDONT_DISCARD 
+  - :PRIVILEGED_FUNCTION
