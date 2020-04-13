@@ -7,7 +7,8 @@ target_include_directories(
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 
 target_sources(grazyna INTERFACE
-        ${CMAKE_CURRENT_SOURCE_DIR}/SS_grazyna.c)
+        ${CMAKE_CURRENT_SOURCE_DIR}/SS_grazyna.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/SS_grazyna_hal.c)
 
 if(COMPILE_DEFS MATCHES SS_RUN_TESTS)
     target_sources(grazyna INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/SS_grazyna_tests.c)

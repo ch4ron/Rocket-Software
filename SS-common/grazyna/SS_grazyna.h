@@ -1,27 +1,30 @@
 /*
- * SS_grazyna_com.h
+ * SS_grazyna.h
  *
  *  Created on: Jan 18, 2020
  *      Author: maciek
  */
 
-#ifndef SS_GRAZYNA_H_
-#define SS_GRAZYNA_H_
+#ifndef SS_GRAZYNA_H
+#define SS_GRAZYNA_H
 
 /* ==================================================================== */
 /* ============================= Includes ============================= */
 /* ==================================================================== */
+
 #include "SS_com.h"
-#include "usart.h"
+#include "stdbool.h"
 
 /* ==================================================================== */
 /* ============================= Defines ============================== */
 /* ==================================================================== */
+
 #define GRAZYNA_HEADER 0x05
 
 /* ==================================================================== */
 /* ============================ Datatypes ============================= */
 /* ==================================================================== */
+
 typedef struct __attribute__((packed)) {
     uint8_t header;
     ComFrame com_frame;
@@ -29,17 +32,14 @@ typedef struct __attribute__((packed)) {
 } GrazynaFrame;
 
 /* ==================================================================== */
-/* ==================== Global function prototypes ==================== */
+/* ==================== Public function prototypes ==================== */
 /* ==================================================================== */
-void SS_grazyna_init(UART_HandleTypeDef *huart);
+
+/* huart is of type UART_HandleTypedef */
+void SS_grazyna_init(void *huart);
+void SS_grazyna_transmit(ComFrame *frame);
 void SS_grazyna_disable();
 void SS_grazyna_enable();
 bool SS_grazyna_is_enabled();
-void SS_grazyna_send(ComFrame *frame);
 
-/* ==================================================================== */
-/* ============================ Callbacks ============================= */
-/* ==================================================================== */
-void SS_grazyna_UART_RxCpltCallback(UART_HandleTypeDef *huart);
-
-#endif /* SS_GRAZYNA_COM_H_ */
+#endif /* SS_GRAZYNA_H */

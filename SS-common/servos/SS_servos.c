@@ -23,13 +23,13 @@ Servo *servo_pointers[MAX_SERVO_COUNT];
 
 static int8_t SS_servos_check_id(uint8_t id) {
     if(id >= MAX_SERVO_COUNT) {
-#ifndef RUN_TESTS
+#ifndef SS_RUN_TESTS
         SS_error("Servo id: %d too high, max supported id: %d", id, MAX_SERVO_COUNT);
 #endif
         return -1;
     }
     if(servo_pointers[id] == NULL) {
-#ifndef RUN_TESTS
+#ifndef SS_RUN_TESTS
         SS_error("Servo id: %d not initialized", id);
 #endif
         return -1;

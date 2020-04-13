@@ -13,8 +13,8 @@
 
 #include <S25FL/SS_flash_ctrl.h>
 #include <S25FL/SS_s25fl.h>
-#include "FreeRTOS.h"
 
+#include "FreeRTOS.h"
 #include "SS_ADS1258.h"
 #endif
 #ifdef SS_USE_SERVOS
@@ -30,7 +30,7 @@
 #include "SS_sequence.h"
 #endif
 
-extern void xPortPendSVHandler( void ) __attribute__ (( naked ));
+extern void SS_grazyna_UART_RxCpltCallback(UART_HandleTypeDef *huart);
 
 #ifdef RUN_TESTS
 #include "SS_ADS1258_unit_tests.h"

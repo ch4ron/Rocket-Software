@@ -111,7 +111,7 @@ void SS_com_add_to_queue(ComFrame *frame, void (*sender_fun)(ComFrame *), QueueH
 void __attribute__((weak)) SS_com_transmit(ComFrame *frame) {
 #ifdef SS_USE_GRAZYNA
     if(frame->destination == COM_GRAZYNA_ID && SS_grazyna_is_enabled()) {
-        SS_grazyna_send(frame);
+        SS_grazyna_transmit(frame);
     } else {
 #ifdef SS_USE_CAN
         SS_can_transmit(frame);
