@@ -12,10 +12,15 @@ add_library(FreeRTOS
   Source/portable/MemMang/heap_4.c
   Source/portable/GCC/ARM_CM4F/port.c)
 
-target_include_directories(FreeRTOS PUBLIC
+
+file(GLOB INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}
   Source/include
   Source/portable/GCC/ARM_CM4F)
+
+include_directories(${INCLUDE_DIRS})
+
+set(INCLUDE_DIRS "${INCLUDE_DIRS}" PARENT_SCOPE)
 
 add_subdirectory(TraceRecorder)
 

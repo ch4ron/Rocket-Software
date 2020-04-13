@@ -44,38 +44,31 @@ if(${CMAKE_BUILD_TYPE} STREQUAL Simulate)
 endif()
 
 file(GLOB_RECURSE SOURCES
-                "Drivers/*.*"
-                "Inc/*.*"
-                "Src/*.*"
-                "startup/*.*"
-                "Middlewares/*.*"
-                # TODO For some reason it reasons code doesn't link correctly without tasks.c listed here
-                "../FreeRTOS/Source/tasks.c"
-                "../Unity/extras/fixture/src/*.*"
-                "../Unity/extras/memory/src/*.*")
+  "Drivers/*.*"
+  "Inc/*.*"
+  "Src/*.*"
+  "startup/*.*"
+  "Middlewares/*.*")
 
-include_directories(Inc
-                    Test
-                    Drivers/STM32F4xx_HAL_Driver/Inc
-                    Drivers/STM32F4xx_HAL_Driver/Inc/Legacy
-                    Drivers/CMSIS/Device/ST/STM32F4xx/Include
-                    Drivers/CMSIS/Include
-                    Middlewares/ST/STM32_USB_Device_Library/Core/Inc
-                    Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc
-                    ../FreeRTOS/Source/include
-                    ../FreeRTOS/Source/portable/GCC/ARM_CM4F
-                    ../FreeRTOS
-                    ../Unity/src
-                    ../Unity/extras/fixture/src
-                    ../Unity/extras/memory/src)
+include_directories(
+  Inc
+  Test
+  Drivers/STM32F4xx_HAL_Driver/Inc
+  Drivers/STM32F4xx_HAL_Driver/Inc/Legacy
+  Drivers/CMSIS/Device/ST/STM32F4xx/Include
+  Drivers/CMSIS/Include
+  Middlewares/ST/STM32_USB_Device_Library/Core/Inc
+  Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc)
 
 
 macro(create_target)
-    add_subdirectory(../SS-common common)
-    add_subdirectory(../Unity unity)
+    add_subdirectory(../External ThrowTheSwitch)
+    include_directories(${INCLUDE_DIRS})
     add_subdirectory(../FreeRTOS FreeRTOS)
+    include_directories(${INCLUDE_DIRS})
+    add_subdirectory(../SS-common common)
 
-    target_link_libraries(${PROJECT_NAME}.elf unity FreeRTOS common)
+    target_link_libraries(${PROJECT_NAME}.elf ThrowTheSwitch FreeRTOS common)
 
     set(CMAKE_EXE_LINKER_FLAGS
         "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Map=${PROJECT_BINARY_DIR}/${PROJECT_NAME}.map")
