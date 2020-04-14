@@ -136,10 +136,8 @@ void SS_platform_init() {
     SS_platform_servos_init();
     SS_platform_supply_init();
     SS_platform_relays_init();
-#ifndef SIMULATE
     SS_platform_ADS1258_init();
     SS_can_init(&hcan1, COM_KROMEK_ID);
-#endif
     SS_grazyna_init(&huart2);
     /* SS_s25fl_init(); */
 }

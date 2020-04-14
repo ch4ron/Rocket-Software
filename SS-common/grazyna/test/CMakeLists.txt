@@ -16,8 +16,7 @@ add_executable(grazyna_test
   SS_grazyna_tests.c
   ${MOCK_DIRECTORY}/MockSS_grazyna_hal.c
   ${MOCK_DIRECTORY}/MockSS_grazyna_hal.h
-  ${MOCK_DIRECTORY}/MockSS_com.c
-  ../SS_grazyna.c)
+  ${MOCK_DIRECTORY}/MockSS_com.c)
 
 target_include_directories(
   grazyna_test

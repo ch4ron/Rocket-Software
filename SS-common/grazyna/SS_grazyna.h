@@ -38,8 +38,8 @@ typedef struct __attribute__((packed)) {
 /* huart is of type UART_HandleTypedef */
 void SS_grazyna_init(void *huart);
 void SS_grazyna_transmit(ComFrame *frame);
-void SS_grazyna_disable();
-void SS_grazyna_enable();
-bool SS_grazyna_is_enabled();
+void SS_grazyna_disable(void);
+void SS_grazyna_enable(void);
+bool SS_grazyna_is_enabled(void);
 
 #endif /* SS_GRAZYNA_H */

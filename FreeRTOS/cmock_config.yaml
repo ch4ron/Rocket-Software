@@ -1,4 +1,0 @@
-:cmock:
-  :strippables:
-    - :PRIVILEGED_FUNCTION
-    - :portDONT_DISCARD

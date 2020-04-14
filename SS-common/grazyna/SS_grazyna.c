@@ -43,11 +43,11 @@ typedef struct {
 /* =================== Private function prototypes ==================== */
 /* ==================================================================== */
 
-static void SS_grazyna_handle_frame();
-static void SS_grazyna_handle_header();
+static void SS_grazyna_handle_frame(void);
+static void SS_grazyna_handle_header(void);
 static void SS_grazyna_tx(ComFrame *frame);
-void SS_grazyna_prepare_tx_frame(ComFrame *com_frame, GrazynaFrame *grazyna_frame);
-uint32_t SS_grazyna_crc_calculate(GrazynaFrame *grazyna_frame);
+static void SS_grazyna_prepare_tx_frame(ComFrame *com_frame, GrazynaFrame *grazyna_frame);
+static uint32_t SS_grazyna_crc_calculate(GrazynaFrame *grazyna_frame);
 
 /* ==================================================================== */
 /* ========================= Global variables ========================= */
@@ -68,21 +68,21 @@ void SS_grazyna_init(void *huart) {
     SS_grazyna_enable();
 }
 
-void SS_grazyna_enable() {
+void SS_grazyna_enable(void) {
 #ifdef SS_USE_CAN
     SS_can_enable_grazyna();
 #endif
     grazyna.enabled = true;
 }
 
-void SS_grazyna_disable() {
+void SS_grazyna_disable(void) {
 #ifdef SS_USE_CAN
     SS_can_disable_grazyna();
 #endif
     grazyna.enabled = false;
 }
 
-bool SS_grazyna_is_enabled() {
+bool SS_grazyna_is_enabled(void) {
     return grazyna.enabled;
 }
 
@@ -120,14 +120,14 @@ static void SS_grazyna_handle_header() {
     }
 }
 
-void SS_grazyna_prepare_tx_frame(ComFrame *com_frame, GrazynaFrame *grazyna_frame) {
+static void SS_grazyna_prepare_tx_frame(ComFrame *com_frame, GrazynaFrame *grazyna_frame) {
     grazyna_frame->header = GRAZYNA_HEADER;
     memcpy(&grazyna_frame->com_frame, com_frame, sizeof(ComFrame));
     /* TODO Defer CRC calculation to task */
     grazyna_frame->crc = SS_grazyna_crc_calculate(grazyna_frame);
 }
 
-uint32_t SS_grazyna_crc_calculate(GrazynaFrame *grazyna_frame) {
+static uint32_t SS_grazyna_crc_calculate(GrazynaFrame *grazyna_frame) {
     static uint32_t buff[3];
     memcpy(buff, grazyna_frame, sizeof(GrazynaFrame) - sizeof(grazyna_frame->crc));
     return SS_grazyna_crc_hal(buff, 3);
@@ -137,7 +137,7 @@ uint32_t SS_grazyna_crc_calculate(GrazynaFrame *grazyna_frame) {
 /* ============================ Callbacks ============================= */
 /* ==================================================================== */
 
-void SS_grazyna_rx_isr() {
+void SS_grazyna_rx_isr(void) {
     switch(grazyna.grazyna_state) {
         case GRAZYNA_LOOKING_FOR_HEADER:
             SS_grazyna_handle_header();

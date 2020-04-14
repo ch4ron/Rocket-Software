@@ -16,21 +16,21 @@ volatile uint32_t error = 0;
 
 static ComBoardID board_id;
 
-//typedef struct {
-//    CAN_HandleTypeDef *com_hcan;
-//    ComBoardID board_ids[5]; // Maximum of 5 different board filters
-//    Fifo tx_fifo;
-//    Fifo rx_fifo;
-//    uint8_t tx_fifo_array[CAN_FIFO_LENGTH * sizeof(ComFrame)];
-//    uint8_t rx_fifo_array[CAN_FIFO_LENGTH * sizeof(ComFrame)];
-//} Can;
-//
+typedef struct {
+    CAN_HandleTypeDef *com_hcan;
+    ComBoardID board_ids[5];  // Maximum of 5 different board filters
+    Fifo tx_fifo;
+    Fifo rx_fifo;
+    uint8_t tx_fifo_array[CAN_FIFO_LENGTH * sizeof(ComFrame)];
+    uint8_t rx_fifo_array[CAN_FIFO_LENGTH * sizeof(ComFrame)];
+} Can;
+
 static CAN_HandleTypeDef *com_hcan;
 
-/* FIFO_INIT(can_tx, CAN_FIFO_LENGTH, ComFrame) */
-/* FIFO_INIT(can_rx, CAN_FIFO_LENGTH, ComFrame) */
-/* FIFO_INIT(can_tx_priority, CAN_FIFO_LENGTH, ComFrame) */
-/* FIFO_INIT(can_rx_priority, CAN_FIFO_LENGTH, ComFrame) */
+FIFO_INIT(can_tx, CAN_FIFO_LENGTH, ComFrame)
+FIFO_INIT(can_rx, CAN_FIFO_LENGTH, ComFrame)
+FIFO_INIT(can_tx_priority, CAN_FIFO_LENGTH, ComFrame)
+FIFO_INIT(can_rx_priority, CAN_FIFO_LENGTH, ComFrame)
 
 #ifdef SS_USE_EXT_CAN
 
@@ -153,38 +153,38 @@ static void SS_can_handle_tx_fifo(ComFrame *frame) {
 }
 
 void SS_can_handle_received(CAN_HandleTypeDef *hcan, uint8_t priority) {
-    /*     static ComFrame buff; */
-    /*     static CAN_RxHeaderTypeDef header; */
-    /*     static uint8_t data[sizeof(ComFrame)]; */
-    /*     volatile Fifo *can_fifo; */
-    /*     uint32_t internal_fifo = (priority == COM_HIGH_PRIORITY ? CAN_RX_FIFO0 : CAN_RX_FIFO1); */
-    /* #ifdef SS_USE_EXT_CAN */
-    /*     if(hcan == ext_hcan) { */
-    /*         can_fifo = (priority == COM_HIGH_PRIORITY ? &ext_can_rx_priority_fifo : &ext_can_rx_fifo); */
-    /*     } else { */
-    /*         can_fifo = (priority == COM_HIGH_PRIORITY ? &can_rx_priority_fifo : &can_rx_fifo); */
-    /*     } */
-    /* #else */
-    /*     can_fifo = (priority == COM_HIGH_PRIORITY ? &can_rx_priority_fifo : &can_rx_fifo); */
-    /* #endif */
-    /*     HAL_CAN_GetRxMessage(hcan, internal_fifo, &header, data); */
-    /*     SS_can_unpack_frame(&buff, &header, data); */
-    /*     if((!SS_fifo_put_data(can_fifo, &buff))) { */
-    /*         SS_can_error("can RX fifo full"); */
-    /*     } */
+    static ComFrame buff;
+    static CAN_RxHeaderTypeDef header;
+    static uint8_t data[sizeof(ComFrame)];
+    volatile Fifo *can_fifo;
+    uint32_t internal_fifo = (priority == COM_HIGH_PRIORITY ? CAN_RX_FIFO0 : CAN_RX_FIFO1);
+#ifdef SS_USE_EXT_CAN
+    if(hcan == ext_hcan) {
+        can_fifo = (priority == COM_HIGH_PRIORITY ? &ext_can_rx_priority_fifo : &ext_can_rx_fifo);
+    } else {
+        can_fifo = (priority == COM_HIGH_PRIORITY ? &can_rx_priority_fifo : &can_rx_fifo);
+    }
+#else
+    can_fifo = (priority == COM_HIGH_PRIORITY ? &can_rx_priority_fifo : &can_rx_fifo);
+#endif
+    HAL_CAN_GetRxMessage(hcan, internal_fifo, &header, data);
+    SS_can_unpack_frame(&buff, &header, data);
+    if((!SS_fifo_put_data(can_fifo, &buff))) {
+        SS_can_error("can RX fifo full");
+    }
 }
 
 void SS_can_init(CAN_HandleTypeDef *hcan, ComBoardID board) {
-    /* com_hcan = hcan; */
-    /* board_id = board; */
-    /* SS_can_filters_init(hcan, board); */
+    com_hcan = hcan;
+    board_id = board;
+    SS_can_filters_init(hcan, board);
     /* SS_com_add_fifo(&can_rx_fifo, NULL, COM_GROUP_RECEIVE, COM_LOW_PRIORITY); */
     /* SS_com_add_fifo(&can_rx_priority_fifo, NULL, COM_GROUP_RECEIVE, COM_LOW_PRIORITY); */
     /* SS_com_add_fifo(&can_tx_fifo, SS_can_handle_tx_fifo, COM_GROUP_CAN1, COM_LOW_PRIORITY); */
     /* SS_com_add_fifo(&can_tx_priority_fifo, SS_can_handle_tx_fifo, COM_GROUP_CAN1, COM_LOW_PRIORITY); */
-    /* HAL_CAN_Start(hcan); */
-    /* SS_can_interrupts_enable(hcan); */
-    /* SS_com_init(board); */
+    HAL_CAN_Start(hcan);
+    SS_can_interrupts_enable(hcan);
+    SS_com_init(board);
 }
 
 #ifdef SS_USE_EXT_CAN
@@ -210,8 +210,8 @@ void SS_can_ext_transmit(ComFrame *frame) {
 #endif
 
 void SS_can_transmit(ComFrame *frame) {
-    /* volatile Fifo *can_fifo = frame->priority == COM_HIGH_PRIORITY ? &can_tx_priority_fifo : &can_tx_fifo; */
-    /* SS_fifo_put_data(can_fifo, frame); */
+    volatile Fifo *can_fifo = frame->priority == COM_HIGH_PRIORITY ? &can_tx_priority_fifo : &can_tx_fifo;
+    SS_fifo_put_data(can_fifo, frame);
 }
 
 void SS_can_error(char *error) {

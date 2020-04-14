@@ -1,14 +1,13 @@
+#include <string.h>
+#include <stdlib.h>
+#include <setjmp.h>
+#include "cmock.h"
 #include "Mocksemphr.h"
 
-#include <setjmp.h>
-#include <stdlib.h>
-#include <string.h>
 
-#include "FreeRTOS.h"
-#include "cmock.h"
-
-static struct MocksemphrInstance {
-    unsigned char placeHolder;
+static struct MocksemphrInstance
+{
+  unsigned char placeHolder;
 } Mock;
 
 extern jmp_buf AbortFrame;
