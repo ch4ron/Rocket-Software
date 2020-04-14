@@ -9,22 +9,26 @@ jobs:
           name: "Pull Submodules"
           command: |
             git submodule init
-            git submodule update --remote
+            git submodule update --remote --init --recursive
+      # - run:
+          # name: "Build Staszek"
+          # command:
+              # ./build.py staszek build
+      # - run:
+          # name: "Build Pauek"
+          # command:
+              # ./build.py pauek build
+      # - run:
+          # name: "Build Czapla"
+          # command:
+              # ./build.py czapla build
       - run:
-          name: "Build Staszek"
+          name: "Build Kromek"
           command:
-              ./build.py staszek build
+              ./build.py kromek build
       - run:
-          name: "Build Pauek"
+          name: "Run tests"
           command:
-              ./build.py pauek build
-      - run:
-          name: "Build Czapla"
-          command:
-              ./build.py czapla build
-      - run:
-          name: "Simulate Kromek"
-          command:
-              JUMPER=jumper ./build.py kromek simulate --verbose
+              SS-test/run_tests.sh
       - store_artifacts:
           path: BUILD/
