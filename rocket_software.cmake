@@ -11,6 +11,7 @@ set(CMAKE_OBJCOPY arm-none-eabi-objcopy)
 set(CMAKE_OBJDUMP arm-none-eabi-objdump)
 set(SIZE arm-none-eabi-size)
 
+enable_testing()
 #Uncomment for hardware floating point
 set(FPU_FLAGS "-mfloat-abi=hard -mfpu=fpv4-sp-d16")
 # add_definitions(-DARM_MATH_CM4 -DARM_MATH_MATRIX_CHECK -DARM_MATH_ROUNDING -D__FPU_PRESENT=1)
@@ -63,9 +64,7 @@ include_directories(
 
 macro(create_target)
     add_subdirectory(../External ThrowTheSwitch)
-    include_directories(${INCLUDE_DIRS})
     add_subdirectory(../FreeRTOS FreeRTOS)
-    include_directories(${INCLUDE_DIRS})
     add_subdirectory(../SS-common common)
 
     target_link_libraries(${PROJECT_NAME}.elf ThrowTheSwitch FreeRTOS common)

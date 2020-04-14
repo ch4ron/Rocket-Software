@@ -2,10 +2,12 @@ cmake_minimum_required(VERSION 3.11)
 
 get_directory_property(COMPILE_DEFS COMPILE_DEFINITIONS)
 
+add_library(FreeRTOS INTERFACE)
+
 if(COMPILE_DEFS MATCHES SS_USE_MOCK)
-  file(GLOB_RECURSE SOURCES "mocks/*.*")
+  file(GLOB_RECURSE SOURCES "mocks/*.*" application.c)
   message(${SOURCES})
-  include_directories(mocks)
+  target_include_directories(FreeRTOS INTERFACE mocks)
 else()
   file(GLOB SOURCES
   application.c
@@ -20,16 +22,14 @@ else()
   Source/portable/GCC/ARM_CM4F/port.c)
 endif()
 
-add_library(FreeRTOS "${SOURCES}" application.c)
 
-file(GLOB INCLUDE_DIRS
+target_include_directories(FreeRTOS INTERFACE
   ${CMAKE_CURRENT_SOURCE_DIR}
-  Source/include
-  Source/portable/GCC/ARM_CM4F)
+  ${CMAKE_CURRENT_SOURCE_DIR}/Source/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/Source/portable/GCC/ARM_CM4F)
 
-include_directories(${INCLUDE_DIRS})
-
-set(INCLUDE_DIRS "${INCLUDE_DIRS}" PARENT_SCOPE)
+target_sources(FreeRTOS INTERFACE
+  "${SOURCES}")
 
 if(COMPILE_DEFS MATCHES SS_FREERTOS_TRACE)
     add_subdirectory(TraceRecorder)

@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.11)
 
-add_library(ThrowTheSwitch
-  Unity/extras/fixture/src/unity_fixture.c
-  Unity/extras/memory/src/unity_memory.c)
+add_library(ThrowTheSwitch INTERFACE)
+
+target_sources(ThrowTheSwitch INTERFACE
+ ${CMAKE_CURRENT_SOURCE_DIR}/Unity/extras/fixture/src/unity_fixture.c
+ ${CMAKE_CURRENT_SOURCE_DIR}/Unity/extras/memory/src/unity_memory.c)
 
 add_subdirectory(Unity unity)
 
@@ -15,11 +17,9 @@ get_directory_property(COMPILE_DEFS COMPILE_DEFINITIONS)
 
 if(COMPILE_DEFS MATCHES SS_USE_MOCK)
     set(INCLUDE_DIRS ${INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/CMock/src)
-    target_sources(ThrowTheSwitch PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/CMock/src/cmock.c)
+    target_sources(ThrowTheSwitch INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/CMock/src/cmock.c)
 endif()
 
-include_directories("${INCLUDE_DIRS}")
+target_include_directories(ThrowTheSwitch INTERFACE "${INCLUDE_DIRS}")
 
-set(INCLUDE_DIRS "${INCLUDE_DIRS}" PARENT_SCOPE)
-
-target_link_libraries(ThrowTheSwitch unity)
+target_link_libraries(ThrowTheSwitch INTERFACE unity)
