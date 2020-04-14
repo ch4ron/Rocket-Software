@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.11)
 
+project(grazyna)
+
 add_library(grazyna INTERFACE)
 
 target_include_directories(

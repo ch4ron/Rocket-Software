@@ -5,12 +5,11 @@
 #include "SS_MS5X.h"
 #endif
 
-#include <S25FL/test.h>
-#include <can/SS_can.h>
-#include <com/SS_com_feed.h>
-
+#include "SS_can.h"
+#include "SS_com_feed.h"
 #include "SS_common.h"
 #include "stdio.h"
+#include "test.h"
 
 void SS_init(void) {
 #if defined(SS_USE_SUPPLY) && !defined(SIMULATE)

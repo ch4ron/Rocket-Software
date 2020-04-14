@@ -6,7 +6,6 @@ add_library(FreeRTOS INTERFACE)
 
 if(COMPILE_DEFS MATCHES SS_USE_MOCK)
   file(GLOB_RECURSE SOURCES "mocks/*.*" application.c)
-  message(${SOURCES})
   target_include_directories(FreeRTOS INTERFACE mocks)
 else()
   file(GLOB SOURCES

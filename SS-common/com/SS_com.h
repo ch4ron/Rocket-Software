@@ -10,9 +10,9 @@
 
 #include "FreeRTOS.h"
 #include "SS_com_ids.h"
-#include "SS_fifo.h"
+/* #include "SS_fifo.h" */
 #include "queue.h"
-#include "stm32f4xx_hal.h"
+#include "stdint.h"
 
 typedef struct __attribute__((packed)) {
     ComBoardID destination : 5;
@@ -27,8 +27,8 @@ typedef struct __attribute__((packed)) {
 } ComFrame;
 
 typedef struct {
-    volatile Fifo *fifo;
-    void (*fun)(ComFrame*);
+    /* volatile Fifo *fifo; */
+    void (*fun)(ComFrame *);
     uint8_t group_id;
     ComPriority priority;
 } ComFifoManager;
@@ -57,6 +57,6 @@ ComStatus SS_com_handle_service(ComFrame *frame);
 void SS_com_add_payload_to_frame(ComFrame *frame, ComDataType type, void *payload);
 
 /* Add fifo and callback to be handled by com manager, set group id to COM_GROUP_RECEIVE and fun to NULL for rx fifos */
-void SS_com_add_fifo(volatile Fifo *fifo, void (*fun)(ComFrame *), ComGroup group_id, ComPriority priority);
+/* void SS_com_add_fifo(volatile Fifo *fifo, void (*fun)(ComFrame *), ComGroup group_id, ComPriority priority); */
 void SS_com_main();
 #endif /* SS_COM_H */

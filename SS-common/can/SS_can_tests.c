@@ -5,9 +5,10 @@
  *      Author: maciek
  */
 
-#include "unity_fixture.h"
 #include "SS_com.h"
+#include "can.h"
 #include "string.h"
+#include "unity_fixture.h"
 
 TEST_GROUP(can);
 

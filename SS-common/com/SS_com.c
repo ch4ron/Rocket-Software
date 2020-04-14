@@ -10,7 +10,7 @@
 #endif
 #ifdef SS_USE_ADS1258
 
-#include "SS_fifo.h"
+/* #include "SS_fifo.h" */
 #include "SS_measurements.h"
 #endif
 #ifdef SS_USE_RELAYS
@@ -247,35 +247,35 @@ void SS_com_add_payload_to_frame(ComFrame *frame, ComDataType type, void *payloa
     }
 }
 
-void SS_com_add_fifo(volatile Fifo *fifo, void (*fun)(ComFrame*), ComGroup group_id, ComPriority priority) {
-    for(uint8_t i = 0; i < sizeof(fifo_manager) / sizeof(fifo_manager[0]); i++) {
-        if(fifo_manager[i].fifo == NULL) {
-            fifo_manager[i] = (ComFifoManager) { fifo, fun, group_id, priority};
-            return;
-        }
-    }
-    SS_error("Com Fifo manager is full");
-}
+/* void SS_com_add_fifo(volatile Fifo *fifo, void (*fun)(ComFrame*), ComGroup group_id, ComPriority priority) { */
+/*     for(uint8_t i = 0; i < sizeof(fifo_manager) / sizeof(fifo_manager[0]); i++) { */
+/*         if(fifo_manager[i].fifo == NULL) { */
+/*             fifo_manager[i] = (ComFifoManager) { fifo, fun, group_id, priority}; */
+/*             return; */
+/*         } */
+/*     } */
+/*     SS_error("Com Fifo manager is full"); */
+/* } */
 
 void SS_com_handle_fifo_manager() {
-    /* TODO Handle priorities */
-    static ComFrame frame;
-    for(uint8_t i = 0; i < sizeof(fifo_manager) / sizeof(fifo_manager[0]); i++) {
-        if(fifo_manager[i].fifo == NULL) {
-            return;
-        } else if(SS_fifo_get_data(fifo_manager[i].fifo, &frame)) {
-            if(fifo_manager[i].group_id == COM_GROUP_RECEIVE) {
-                /* SS_can_print_message_received(&frame); */
-                SS_com_handle_frame(&frame);
-            } else if(fifo_manager[i].fun != NULL) {
-                fifo_manager[i].fun(&frame);
-            } else {
-                SS_error("Com Fifo Manager: Uninitialized function for non-receive fifo");
-            }
-        }
-    }
+    /*     /\* TODO Handle priorities *\/ */
+    /*     static ComFrame frame; */
+    /*     for(uint8_t i = 0; i < sizeof(fifo_manager) / sizeof(fifo_manager[0]); i++) { */
+    /*         if(fifo_manager[i].fifo == NULL) { */
+    /*             return; */
+    /*         } else if(SS_fifo_get_data(fifo_manager[i].fifo, &frame)) { */
+    /*             if(fifo_manager[i].group_id == COM_GROUP_RECEIVE) { */
+    /*                 /\* SS_can_print_message_received(&frame); *\/ */
+    /*                 SS_com_handle_frame(&frame); */
+    /*             } else if(fifo_manager[i].fun != NULL) { */
+    /*                 fifo_manager[i].fun(&frame); */
+    /*             } else { */
+    /*                 SS_error("Com Fifo Manager: Uninitialized function for non-receive fifo"); */
+    /*             } */
+    /*         } */
+    /*     } */
 }
 
 void SS_com_main() {
-    SS_com_handle_fifo_manager();
+    /*     SS_com_handle_fifo_manager(); */
 }
