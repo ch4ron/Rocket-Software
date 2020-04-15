@@ -1,0 +1,5 @@
+ignore:
+  - "FreeRTOS"
+  - "External"
+  - "**mocks"
+  - "**tests.c"
