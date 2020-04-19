@@ -21,7 +21,6 @@ else()
   Source/portable/GCC/ARM_CM4F/port.c)
 endif()
 
-
 target_include_directories(FreeRTOS INTERFACE
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/Source/include

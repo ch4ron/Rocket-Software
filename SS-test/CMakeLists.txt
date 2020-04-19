@@ -12,17 +12,13 @@ set(CMAKE_C_FLAGS "-g -O0 -Wall -fprofile-arcs -ftest-coverage")
 set(CMAKE_EXE_LINKER_FLAGS "-fprofile-arcs -ftest-coverage")
 
 # set binary_dir to be passed to python script
-set(COVERAGE_DATA ${CMAKE_BINARY_DIR})
-
-macro(generate_coverage_data TARGET SOURCE_DIR)
-  # List with tested files data, used by python script
-  set(COVERAGE_DATA ${COVERAGE_DATA} ${TARGET}
-    ${SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} PARENT_SCOPE)
-endmacro()
+add_compile_definitions(STM32F446xx)
+add_compile_definitions(USE_HAL_DRIVER)
 
 enable_testing()
 
 add_subdirectory(../External ThrowTheSwitch)
+add_subdirectory(../Drivers hal_driver)
 add_subdirectory(../FreeRTOS FreeRTOS)
 
 get_filename_component(CMOCK ../External/CMock/lib/cmock.rb ABSOLUTE)
@@ -39,10 +35,5 @@ if(IS_DIRECTORY ${COMMON_DIR}/${child} AND EXISTS ${COMMON_DIR}/${child}/test)
     add_subdirectory(${COMMON_DIR}/${child}/test ${child})
 endif()
 endforeach()
-
-add_custom_target(coverage
-  COMMAND make
-  COMMAND ctest
-  COMMAND python ${CMAKE_SOURCE_DIR}/coverage.py ${COVERAGE_DATA})
 
 add_custom_target(verbose COMMAND ctest -V)

@@ -87,7 +87,7 @@ bool SS_grazyna_is_enabled(void) {
 }
 
 void SS_grazyna_transmit(ComFrame *frame) {
-    SS_com_add_to_queue(frame, SS_grazyna_tx, grazyna.tx_queue);
+    SS_com_add_to_rx_queue(frame, SS_grazyna_tx, grazyna.tx_queue);
 }
 
 /* ==================================================================== */

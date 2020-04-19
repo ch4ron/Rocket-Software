@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.11)
 
-
 find_file(COM SS_com.h ../../com)
 find_file(GRAZYNA_HAL SS_grazyna_hal.h ../)
 
@@ -25,5 +24,5 @@ target_include_directories(
   ../../com
   ${MOCK_DIRECTORY})
 
-target_link_libraries(grazyna_test FreeRTOS ThrowTheSwitch)
+target_link_libraries(grazyna_test hal_driver FreeRTOS ThrowTheSwitch)
 add_test(NAME GrazynaTest COMMAND grazyna_test)

@@ -47,8 +47,6 @@ TEST(grazyna, init) {
 
 TEST(grazyna, crc) {
     GrazynaFrame received = {0x3, {0x03, 0x02, 0x3, 0x4, 0x33, 0x11, 0x4, 0x11}, 0};
-    memcpy(&received, &received, sizeof(received));
-
     uint32_t grazyna_buff[4];
     memcpy(grazyna_buff, &received, sizeof(received));
     SS_grazyna_crc_hal_ExpectWithArrayAndReturn(grazyna_buff, 3, 3, 0);
@@ -93,8 +91,8 @@ TEST(grazyna, is_enabled) {
 
 TEST(grazyna, transmit) {
     ComFrame frame;
-    SS_com_add_to_queue_Expect(&frame, SS_grazyna_tx, NULL);
-    SS_com_add_to_queue_IgnoreArg_queue();
+    SS_com_add_to_rx_queue_Expect(&frame, SS_grazyna_tx, NULL);
+    SS_com_add_to_rx_queue_IgnoreArg_queue();
     SS_grazyna_transmit(&frame);
 }
 

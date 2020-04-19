@@ -7,6 +7,10 @@ mkdir -p cmake-build
 cd cmake-build
 cmake ../
 make
+if [ $? -ne 0 ]
+then
+    exit $?
+fi
 if [ $# -eq 0 ]
 then
     ctest

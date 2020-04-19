@@ -44,8 +44,8 @@ if(${CMAKE_BUILD_TYPE} STREQUAL Simulate)
     add_compile_definitions(SIMULATE)
 endif()
 
+
 file(GLOB_RECURSE SOURCES
-  "Drivers/*.*"
   "Inc/*.*"
   "Src/*.*"
   "startup/*.*"
@@ -54,20 +54,16 @@ file(GLOB_RECURSE SOURCES
 include_directories(
   Inc
   Test
-  Drivers/STM32F4xx_HAL_Driver/Inc
-  Drivers/STM32F4xx_HAL_Driver/Inc/Legacy
-  Drivers/CMSIS/Device/ST/STM32F4xx/Include
-  Drivers/CMSIS/Include
   Middlewares/ST/STM32_USB_Device_Library/Core/Inc
   Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc)
-
 
 macro(create_target)
     add_subdirectory(../External ThrowTheSwitch)
     add_subdirectory(../FreeRTOS FreeRTOS)
     add_subdirectory(../SS-common common)
+    add_subdirectory(../Drivers hal_driver)
 
-    target_link_libraries(${PROJECT_NAME}.elf ThrowTheSwitch FreeRTOS common)
+    target_link_libraries(${PROJECT_NAME}.elf ThrowTheSwitch FreeRTOS common hal_driver)
 
     set(CMAKE_EXE_LINKER_FLAGS
         "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Map=${PROJECT_BINARY_DIR}/${PROJECT_NAME}.map")

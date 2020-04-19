@@ -21,6 +21,8 @@ void MockFreeRTOS_Init(void);
 void MockFreeRTOS_Destroy(void);
 void MockFreeRTOS_Verify(void);
 
+#define portYIELD() (void)
+
 #if defined(__GNUC__) && !defined(__ICC) && !defined(__TMS470__)
 #if __GNUC__ > 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ > 6 || (__GNUC_MINOR__ == 6 && __GNUC_PATCHLEVEL__ > 0)))
 #pragma GCC diagnostic pop

@@ -34,5 +34,6 @@ jobs:
               SS-test/run_tests.sh
       - codecov/upload:
           file: "!FreeRTOS"
+          flags: "coverage"
       - store_artifacts:
           path: BUILD/
