@@ -18,13 +18,11 @@ jobs:
               SS-test/run_tests.sh
       - run:
           name: "Create build directory"
-          command: mkdir cmake-build; cd cmake-build
+          command: mkdir cmake-build && cd cmake-build && cmake ../
       - run:
           name: "Build Kromek"
           command:
-              make kromek.elf
+              make -C cmake-build kromek.elf
       - codecov/upload:
           file: "!FreeRTOS"
           flags: "coverage"
-      - store_artifacts:
-          path: BUILD/
