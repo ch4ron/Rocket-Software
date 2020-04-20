@@ -19,11 +19,9 @@ TEST_GROUP(grazyna_servos);
 
 TEST_GROUP_RUNNER(servos) {
     RUN_TEST_CASE(servos, get_width);
-#ifndef SIMULATE
     RUN_TEST_CASE(servos, freq50_range100);
     RUN_TEST_CASE(servos, freq300_range2000);
-#endif
-#if !defined(SERVOS_NO_TIMEOUT) && !defined(SIMULATE)
+#if !defined(SERVOS_NO_TIMEOUT)
 //    RUN_TEST_CASE(servos, timeout);
 #endif
 }
@@ -41,9 +39,7 @@ TEST_GROUP_RUNNER(grazyna_servos) {
     RUN_TEST_CASE(grazyna_servos, get_opened_position);
     RUN_TEST_CASE(grazyna_servos, get_range);
     RUN_TEST_CASE(grazyna_servos, uninitialized_id);
-#ifndef SIMULATE
     RUN_TEST_CASE(grazyna_servos, disable);
-#endif
 }
 
 static void set_up() {

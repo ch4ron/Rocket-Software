@@ -13,15 +13,13 @@
 TEST_GROUP(measurements);
 
 TEST_GROUP_RUNNER(measurements) {
-	RUN_TEST_CASE(measurements, chid_to_ch);
+    RUN_TEST_CASE(measurements, chid_to_ch);
     RUN_TEST_CASE(measurements, feed);
-#ifndef SIMULATE
-	RUN_TEST_CASE(measurements, start);
-	RUN_TEST_CASE(measurements, values);
-	RUN_TEST_CASE(measurements, read_vcc);
+    RUN_TEST_CASE(measurements, start);
+    RUN_TEST_CASE(measurements, values);
+    RUN_TEST_CASE(measurements, read_vcc);
     RUN_TEST_CASE(measurements, request);
     RUN_TEST_CASE(measurements, request_uninitialized);
-#endif
 }
 
 TEST_SETUP(measurements) {}

@@ -2,7 +2,7 @@
 // Created by maciek on 28.02.2020.
 //
 
-#include <S25FL/SS_s25fl.h>
+/* #include "SS_s25fl.h" */
 #include <can/SS_can.h>
 #include "SS_common.h"
 #include "SS_platform.h"
@@ -35,7 +35,7 @@ void SS_platform_servos_init() {
 /********** ADC *********/
 
 static void SS_platform_adc_init() {
-#if defined(SS_USE_ADC) && !defined(SIMULATE)
+#if defined(SS_USE_ADC)
     ADC_HandleTypeDef *adc[] = {
             &hadc1, &hadc2, &hadc3
     };
@@ -136,10 +136,8 @@ void SS_platform_init() {
     SS_platform_servos_init();
     SS_platform_supply_init();
     SS_platform_relays_init();
-#ifndef SIMULATE
     SS_platform_ADS1258_init();
     SS_can_init(&hcan1, COM_KROMEK_ID);
-#endif
     SS_grazyna_init(&huart2);
-    SS_s25fl_init();
+    /* SS_s25fl_init(); */
 }

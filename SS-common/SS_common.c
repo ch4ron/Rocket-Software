@@ -5,29 +5,25 @@
 #include "SS_MS5X.h"
 #endif
 
-#include <com/SS_com_feed.h>
-#include <S25FL/test.h>
-#include <can/SS_can.h>
+#include "SS_can.h"
+#include "SS_com_feed.h"
 #include "SS_common.h"
 #include "stdio.h"
 
-void SS_init() {
-#if defined(SS_USE_SUPPLY) && !defined(SIMULATE)
+void SS_init(void) {
+#if defined(SS_USE_SUPPLY)
 //    SS_supply_init();
 #endif
-#ifdef RUN_TESTS
+#ifdef SS_RUN_TESTS
     SS_run_all_tests();
 #endif
     printf("Elon!\r\n");
+    SS_FreeRTOS_init();
 }
 
-void SS_main() {
-#ifdef SS_USE_GRAZYNA
-    SS_grazyna_main();
-#endif
+void SS_main(void) {
 #ifdef SS_USE_COM
     SS_com_feed_main();
-    SS_com_main();
 #endif
 #ifdef SS_USE_MS5X
     SS_MS56_DMA_read_convert_and_calculate();

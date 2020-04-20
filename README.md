@@ -1,5 +1,5 @@
 AGH Space Systems Rocket Software
-================================
+=================================
 
 [![CircleCI](https://circleci.com/gh/CH4RON/Rocket-Software.svg?style=svg)](https://circleci.com/gh/CH4RON/Rocket-Software)
 
@@ -12,35 +12,17 @@ Boards In repositioy
 - Radek - Recovery module
 - Pauek - Power management board
 
-
 Building
 --------
 
-Using scripts
+Targets
 
-    Build scripts use python 2.7
+  - \<board\>.elf - Build
+  - \<board\>_flash - Upload
+  - test - build and run tests
+  
+From CLion
 
-    Usage: build.py [OPTIONS] BOARD COMMAND [ARGS]...
+https://www.jetbrains.com/help/clion/openocd-support.html
 
-    Commands:
-      build     Build target for board
-      clean     Clean all targets for board
-      flash     Build and flash target
-      purge     Purge all targets for board
-      simulate  Run test on simulator for board
-      test      Run tests on board
-
-Using Clion
-    
-    Import project as STM32CubeMX project
-    
-    Clion uses automatic CMakeLists.txt generation from template. 
-    If CMakeLists.txt is overwritten, revert changes.
-
-    In File/Settings/Build, Execution, Deployment/CMake
-    Create profiles with Build types:
-
-    Debug
-    Simulate
-    Simulate-test
-    Test
+Select st_nucleo_f4.cfg as board config file

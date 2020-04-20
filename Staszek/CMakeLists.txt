@@ -1,13 +1,20 @@
 cmake_minimum_required(VERSION 3.11)
 
-include(../rocket_software.cmake)
 
-set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/STM32F446VETx_FLASH.ld)
-set(CMAKE_EXE_LINKER_FLAGS_INIT "-Wl,-gc-sections,--print-memory-usage -T ${LINKER_SCRIPT}")
+set(LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/STM32F446VETx_FLASH.ld)
 
-project(Staszek C CXX ASM)
+project(staszek C ASM)
+
+file(GLOB_RECURSE SOURCES
+  "Inc/*.*"
+  "Src/*.*"
+  "startup/*.*")
 
 add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
+
+target_include_directories(${PROJECT_NAME}.elf PRIVATE
+  Inc)
+
 
 # DEFINE YOUR LIBRARIES HERE
 #add_compile_definitions(SS_USE_DYNAMIXEL)

@@ -6,34 +6,15 @@
  */
 
 #include "SS_com_debug.h"
-#include "string.h"
+
 #include "stdio.h"
-
-//void print_binary(uint32_t number) {
-//    uint8_t bin[32];
-//    uint8_t i = 0;
-//    while(number > 0) {
-//        bin[++i] = number%2;
-//        number /= 2;
-//    }
-//    printf("\r\n0b");
-//    printf("%0*d", 29-i, 0);
-//    for(; i > 0; i--) {
-//        if(!(i%8))
-//            printf(" ");
-//        printf("%d", bin[i]);
-//    }
-//}
-
-static void SS_com_print_hex(ComFrame *frame) {
-    printf("\r\n");
-    for(uint8_t i = 0; i < sizeof(ComFrame); i++) {
-        printf("0x%02x ", ((uint8_t*) frame)[i]);
-    }
-}
+#include "string.h"
+#ifdef SS_USE_GRAZYNA
+#include "SS_grazyna.h"
+#endif
 
 void print_board(uint32_t board, char *color) {
-    switch (board) {
+    switch(board) {
         case COM_GRAZYNA_ID:
             printf("\x01b[48;5;9mGrazyna");
             break;
@@ -87,35 +68,30 @@ void print_action(uint32_t action) {
 }
 
 void print_payload(ComFrame *frame) {
-    if (frame->data_type == NO_DATA) return;
+    if(frame->data_type == NO_DATA) return;
     printf("\t Data: ");
-    switch (frame->data_type) {
+    switch(frame->data_type) {
         case NO_DATA:
             break;
         case UINT8:
         case UINT16:
-            printf("%u", (uint16_t) frame->payload);
-            break;
         case UINT32:
-            printf("%lu", frame->payload);
+            printf("%u", (uint16_t) frame->payload);
             break;
         case INT8:
         case INT16:
+        case INT32:
             printf("%d", (uint16_t) frame->payload);
             break;
-        case INT32:
-            printf("%ld", frame->payload);
-            break;
         case FLOAT:;
-            printf("%f", *((float*) &frame->payload));
+            float buf;
+            memcpy(&buf, &frame->payload, sizeof(float));
+            printf("%f", buf);
             break;
     }
 }
 
 void SS_com_debug_print_frame(ComFrame *frame, char *title, char *color) {
-    /* TODO force flushing or somehow change \r\n to be at the end of line */
-    ComFrame buf;
-    memcpy(&buf, frame, sizeof(ComFrame));
     printf("%s%s\t", color, title);
     printf("From: ");
     print_board(frame->source, color);
@@ -126,8 +102,9 @@ void SS_com_debug_print_frame(ComFrame *frame, char *title, char *color) {
     print_action(frame->action);
     printf("\t device: 0x%02x", frame->device);
     printf("\t id: 0x%02x", frame->id);
-    printf("\t type: 0x%02x%s\r\n", frame->message_type, color);
+    printf("\t type: 0x%02x%s", frame->message_type, color);
     print_payload(frame);
+    printf("\r\n");
 }
 
 void SS_can_print_message_received(ComFrame *frame) {
@@ -158,4 +135,37 @@ void SS_com_print_message_error(ComFrame *frame, char *error) {
     SS_com_debug_print_frame(frame, error, color);
 }
 
-//#endif
+#ifdef SS_COM_DEBUG_HEX
+#ifdef SS_USE_GRAZYNA
+static void SS_grazyna_print_hex(GrazynaFrame *frame) {
+    for(uint8_t i = 0; i < sizeof(GrazynaFrame); i++) {
+        printf("0x%02x ", ((uint8_t *) frame)[i]);
+    }
+    printf("\r\n");
+}
+
+#endif
+
+void print_binary(uint32_t number) {
+    uint8_t bin[32];
+    uint8_t i = 0;
+    while(number > 0) {
+        bin[++i] = number % 2;
+        number /= 2;
+    }
+    printf("\r\n0b");
+    printf("%0*d", 29 - i, 0);
+    for(; i > 0; i--) {
+        if(!(i % 8))
+            printf(" ");
+        printf("%d", bin[i]);
+    }
+}
+
+static void SS_com_print_hex(ComFrame *frame) {
+    printf("\r\n");
+    for(uint8_t i = 0; i < sizeof(ComFrame); i++) {
+        printf("0x%02x ", ((uint8_t *) frame)[i]);
+    }
+}
+#endif

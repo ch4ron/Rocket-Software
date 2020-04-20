@@ -1,16 +1,17 @@
-cmake_minimum_required(VERSION 3.11.1)
+cmake_minimum_required(VERSION 3.11)
 
-project(grazyna C)
+add_library(grazyna INTERFACE)
 
-add_library(${PROJECT_NAME} INTERFACE)
 target_include_directories(
-        ${PROJECT_NAME} INTERFACE
+        grazyna INTERFACE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 
-target_sources(${PROJECT_NAME} INTERFACE
+if(COMPILE_DEFS MATCHES SS_RUN_TESTS)
+  target_sources(grazyna INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}/SS_grazyna_tests_hal.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/SS_grazyna_hal.c)
+else()
+target_sources(grazyna INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/SS_grazyna.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/SS_grazyna_tests.c)
-
-if(NOT TARGET fifo)
-    message(FATAL_ERROR "fifo module required")
+        ${CMAKE_CURRENT_SOURCE_DIR}/SS_grazyna_hal.c)
 endif()

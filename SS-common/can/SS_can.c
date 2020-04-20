@@ -1,12 +1,14 @@
 //
 // Created by maciek on 18.03.2020.
 //
-#include <error/SS_error.h>
-#include <com/SS_com_debug.h>
-#include "string.h"
-#include "stdio.h"
 #include "SS_can.h"
+
+#include <com/SS_com_debug.h>
+#include <error/SS_error.h>
+
 #include "SS_fifo.h"
+#include "stdio.h"
+#include "string.h"
 
 volatile uint32_t error = 0;
 
@@ -14,15 +16,15 @@ volatile uint32_t error = 0;
 
 static ComBoardID board_id;
 
-//typedef struct {
-//    CAN_HandleTypeDef *com_hcan;
-//    ComBoardID board_ids[5]; // Maximum of 5 different board filters
-//    Fifo tx_fifo;
-//    Fifo rx_fifo;
-//    uint8_t tx_fifo_array[CAN_FIFO_LENGTH * sizeof(ComFrame)];
-//    uint8_t rx_fifo_array[CAN_FIFO_LENGTH * sizeof(ComFrame)];
-//} Can;
-//
+typedef struct {
+    CAN_HandleTypeDef *com_hcan;
+    ComBoardID board_ids[5];  // Maximum of 5 different board filters
+    Fifo tx_fifo;
+    Fifo rx_fifo;
+    uint8_t tx_fifo_array[CAN_FIFO_LENGTH * sizeof(ComFrame)];
+    uint8_t rx_fifo_array[CAN_FIFO_LENGTH * sizeof(ComFrame)];
+} Can;
+
 static CAN_HandleTypeDef *com_hcan;
 
 FIFO_INIT(can_tx, CAN_FIFO_LENGTH, ComFrame)
@@ -42,15 +44,15 @@ FIFO_INIT(ext_can_rx_priority, CAN_FIFO_LENGTH, ComFrame)
 
 static void SS_can_interrupts_enable(CAN_HandleTypeDef *hcan) {
     HAL_CAN_ActivateNotification(hcan,
-                        CAN_IT_TX_MAILBOX_EMPTY     |
-                                 CAN_IT_RX_FIFO0_MSG_PENDING |
-                                 CAN_IT_RX_FIFO1_MSG_PENDING |
-                                 CAN_IT_RX_FIFO0_FULL        |
-                                 CAN_IT_RX_FIFO0_OVERRUN     |
-                                 CAN_IT_RX_FIFO1_FULL        |
-                                 CAN_IT_RX_FIFO1_OVERRUN     |
-                                 CAN_IT_BUSOFF               |
-                                 CAN_IT_ERROR);
+                                 CAN_IT_TX_MAILBOX_EMPTY |
+                                     CAN_IT_RX_FIFO0_MSG_PENDING |
+                                     CAN_IT_RX_FIFO1_MSG_PENDING |
+                                     CAN_IT_RX_FIFO0_FULL |
+                                     CAN_IT_RX_FIFO0_OVERRUN |
+                                     CAN_IT_RX_FIFO1_FULL |
+                                     CAN_IT_RX_FIFO1_OVERRUN |
+                                     CAN_IT_BUSOFF |
+                                     CAN_IT_ERROR);
 }
 
 static void SS_can_filter_init(CAN_HandleTypeDef *hcan, uint32_t filter_id, uint32_t filter_mask, uint32_t fifo_assignment, uint8_t *filter_bank) {
@@ -125,9 +127,11 @@ void SS_can_pack_frame(ComFrame *frame, CAN_TxHeaderTypeDef *header, uint8_t *da
     memcpy(data + 1, &frame->message_type, sizeof(frame->message_type) + sizeof(frame->payload));
 }
 
-void SS_can_unpack_frame(ComFrame *frame, CAN_RxHeaderTypeDef *header, uint8_t *data) {
-    /* Can frame header has 29 bits, so the remaining 3 header bits are stored in the first byte of data */
-    *((uint32_t*) frame) = header->ExtId;
+void SS_can_unpack_frame(ComFrame *frame, CAN_RxHeaderTypeDef *header,
+                         uint8_t *data) {
+    /* Can frame header has 29 bits, so the remaining 3 header bits are stored
+     * in the first byte of data */
+    *((uint32_t *)frame) = header->ExtId;
     frame->data_type = data[0];
     memcpy(&frame->message_type, data + 1, header->DLC - 1);
 }
@@ -174,10 +178,10 @@ void SS_can_init(CAN_HandleTypeDef *hcan, ComBoardID board) {
     com_hcan = hcan;
     board_id = board;
     SS_can_filters_init(hcan, board);
-    SS_com_add_fifo(&can_rx_fifo, NULL, COM_GROUP_RECEIVE, COM_LOW_PRIORITY);
-    SS_com_add_fifo(&can_rx_priority_fifo, NULL, COM_GROUP_RECEIVE, COM_LOW_PRIORITY);
-    SS_com_add_fifo(&can_tx_fifo, SS_can_handle_tx_fifo, COM_GROUP_CAN1, COM_LOW_PRIORITY);
-    SS_com_add_fifo(&can_tx_priority_fifo, SS_can_handle_tx_fifo, COM_GROUP_CAN1, COM_LOW_PRIORITY);
+    /* SS_com_add_fifo(&can_rx_fifo, NULL, COM_GROUP_RECEIVE, COM_LOW_PRIORITY); */
+    /* SS_com_add_fifo(&can_rx_priority_fifo, NULL, COM_GROUP_RECEIVE, COM_LOW_PRIORITY); */
+    /* SS_com_add_fifo(&can_tx_fifo, SS_can_handle_tx_fifo, COM_GROUP_CAN1, COM_LOW_PRIORITY); */
+    /* SS_com_add_fifo(&can_tx_priority_fifo, SS_can_handle_tx_fifo, COM_GROUP_CAN1, COM_LOW_PRIORITY); */
     HAL_CAN_Start(hcan);
     SS_can_interrupts_enable(hcan);
     SS_com_init(board);

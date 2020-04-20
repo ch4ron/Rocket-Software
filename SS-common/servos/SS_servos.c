@@ -23,13 +23,13 @@ Servo *servo_pointers[MAX_SERVO_COUNT];
 
 static int8_t SS_servos_check_id(uint8_t id) {
     if(id >= MAX_SERVO_COUNT) {
-#ifndef RUN_TESTS
+#ifndef SS_RUN_TESTS
         SS_error("Servo id: %d too high, max supported id: %d", id, MAX_SERVO_COUNT);
 #endif
         return -1;
     }
     if(servo_pointers[id] == NULL) {
-#ifndef RUN_TESTS
+#ifndef SS_RUN_TESTS
         SS_error("Servo id: %d not initialized", id);
 #endif
         return -1;
@@ -56,7 +56,7 @@ void SS_servo_init(Servo *servo) {
     }
     servo_pointers[servo->id] = servo;
     uint32_t freq;
-    if (servo->tim->Instance == TIM8 || servo->tim->Instance == TIM1 || servo->tim->Instance == TIM11 || servo->tim->Instance == TIM10 || servo->tim->Instance == TIM9) {
+    if(servo->tim->Instance == TIM8 || servo->tim->Instance == TIM1 || servo->tim->Instance == TIM11 || servo->tim->Instance == TIM10 || servo->tim->Instance == TIM9) {
         freq = HAL_RCC_GetPCLK2Freq() * 2;
     } else {
         freq = HAL_RCC_GetPCLK1Freq() * 2;
@@ -68,26 +68,23 @@ void SS_servo_init(Servo *servo) {
     HAL_TIM_Base_DeInit(servo->tim);
     HAL_TIM_Base_Init(servo->tim);
     HAL_TIM_Base_Start(servo->tim);
-/* Simulator does not support pwm */
-#ifndef SIMULATE
     HAL_TIM_PWM_Start(servo->tim, servo->channel);
-	switch (servo->channel) {
-		case TIM_CHANNEL_1:
-			servo->pointer = &servo->tim->Instance->CCR1;
-			break;
-		case TIM_CHANNEL_2:
-			servo->pointer = &servo->tim->Instance->CCR2;
-			break;
-		case TIM_CHANNEL_3:
-			servo->pointer = &servo->tim->Instance->CCR3;
-			break;
-		case TIM_CHANNEL_4:
-			servo->pointer = &servo->tim->Instance->CCR4;
-			break;
-		default:
-			break;
-	}
-#endif
+    switch(servo->channel) {
+        case TIM_CHANNEL_1:
+            servo->pointer = &servo->tim->Instance->CCR1;
+            break;
+        case TIM_CHANNEL_2:
+            servo->pointer = &servo->tim->Instance->CCR2;
+            break;
+        case TIM_CHANNEL_3:
+            servo->pointer = &servo->tim->Instance->CCR3;
+            break;
+        case TIM_CHANNEL_4:
+            servo->pointer = &servo->tim->Instance->CCR4;
+            break;
+        default:
+            break;
+    }
     servo->opened_position = servos_config.SERVO_RANGE;
     servo->closed_position = 0;
     SS_servo_close(servo);
@@ -96,10 +93,7 @@ void SS_servo_init(Servo *servo) {
 /* width in us */
 void SS_servo_set_pulse_width(Servo *servo, uint16_t width) {
     if(SS_servo_check_initialized(servo) != 0) return;
-/* Simulator does not support pwm */
-#ifndef SIMULATE
     *servo->pointer = width * servos_config.SERVO_FREQUENCY * SERVO_RESOLUTION / 1000000;
-#endif
 }
 
 uint16_t SS_servo_get_width(uint16_t position) {

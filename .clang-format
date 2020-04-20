@@ -1,0 +1,5 @@
+BasedOnStyle: Google
+IndentWidth: 4
+SpaceBeforeParens: Never
+SpaceAfterCStyleCast: true
+ColumnLimit: 0

@@ -14,5 +14,5 @@ target_sources(${PROJECT_NAME} INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/SS_json_parser.c
         ${CMAKE_CURRENT_SOURCE_DIR}/jsmn/jsmn.c
         ${CMAKE_CURRENT_SOURCE_DIR}/SS_settings.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/test/SS_json_tests.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/test/test_json.c)
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/SS_json_tests.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_json.c)

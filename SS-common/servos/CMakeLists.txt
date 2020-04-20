@@ -8,5 +8,5 @@ target_include_directories(
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 
 target_sources(${PROJECT_NAME} INTERFACE
-        ${CMAKE_CURRENT_SOURCE_DIR}/SS_servos.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/SS_servos_test.c)
+        ${CMAKE_CURRENT_SOURCE_DIR}/SS_servos.c)
+        # ${CMAKE_CURRENT_SOURCE_DIR}/SS_servos_test.c)

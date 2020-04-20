@@ -1,16 +1,18 @@
-/*
- * SS_com_protocol.c
- *
- *  Created on: Jan 16, 2020
- *      Author: maciek
- */
+/**
+  * SS_com.c
+  *
+  *  Created on: Jan 16, 2020
+  *      Author: maciek
+ **/
+
+/* ==================================================================== */
+/* ============================= Includes ============================= */
+/* ==================================================================== */
 
 #ifdef SS_USE_GRAZYNA
 #include "SS_grazyna.h"
 #endif
 #ifdef SS_USE_ADS1258
-
-#include "SS_fifo.h"
 #include "SS_measurements.h"
 #endif
 #ifdef SS_USE_RELAYS
@@ -23,20 +25,96 @@
 #include "SS_can.h"
 #endif
 
+#include "FreeRTOS.h"
+#include "SS_can.h"
+#include "SS_com.h"
 #include "SS_com_debug.h"
 #include "SS_error.h"
-#include "SS_com.h"
+#include "assert.h"
+#include "queue.h"
+#include "stdbool.h"
 #include "stdio.h"
 #include "string.h"
+#include "task.h"
+
+/* ==================================================================== */
+/* ========================= Private macros =========================== */
+/* ==================================================================== */
+
+#define SS_COM_QUEUE_SET_SIZE 6
+#define SS_COM_RX_QUEUE_SIZE 32
+#define SS_COM_TX_QUEUE_SIZE 8
+
+/* ==================================================================== */
+/* ======================== Private datatypes ========================= */
+/* ==================================================================== */
+
+typedef struct {
+    void (*sender_fun)(ComFrame *);
+    ComFrame frame;
+} ComSender;
+
+/* ==================================================================== */
+/* =================== Private function prototypes ==================== */
+/* ==================================================================== */
+
+static void SS_com_rx_handler_task(void *pvParameters);
+static void SS_com_tx_handler_task(void *pvParameters);
+static ComStatus SS_com_handle_frame(ComFrame *frame);
+static ComStatus SS_com_handle_action(ComFrame *frame);
+static ComStatus SS_com_handle_request(ComFrame *frame);
+static ComStatus SS_com_handle_service(ComFrame *frame);
+
+/* ==================================================================== */
+/* ========================= Global variables ========================= */
+/* ==================================================================== */
 
 static ComBoardID board_id;
+static QueueHandle_t com_queue;
+static QueueSetHandle_t com_queue_set;
 
-ComFifoManager fifo_manager[10];
+/* ==================================================================== */
+/* ========================= Public functions ========================= */
+/* ==================================================================== */
 
-/* Functions in this module modify the received frame */
+void SS_com_message_received(ComFrame *frame) {
+    BaseType_t higherPriorityTaskWoken = pdFALSE;
+    if(xQueueSendFromISR(com_queue, frame, &higherPriorityTaskWoken) ==
+       pdTRUE) {
+        portYIELD_FROM_ISR(higherPriorityTaskWoken);
+    } else {
+        SS_error("Com RX queue full");
+    }
+}
 
 void SS_com_init(ComBoardID board) {
     board_id = board;
+    /* TODO add macros for priorities */
+    BaseType_t res;
+    res = xTaskCreate(SS_com_rx_handler_task, "Com Rx Handler Task", 128, NULL, 5, NULL);
+    assert(res == pdTRUE);
+    res = xTaskCreate(SS_com_tx_handler_task, "Com Tx Handler Task", 128, NULL, 5, NULL);
+    assert(res == pdTRUE);
+    com_queue = xQueueCreate(SS_COM_RX_QUEUE_SIZE, sizeof(ComFrame));
+    assert(com_queue != NULL);
+    com_queue_set = xQueueCreateSet(SS_COM_QUEUE_SET_SIZE * SS_COM_TX_QUEUE_SIZE);
+    assert(com_queue_set != NULL);
+}
+
+QueueHandle_t SS_com_add_sender() {
+    QueueHandle_t queue = xQueueCreate(SS_COM_TX_QUEUE_SIZE, sizeof(ComSender));
+    assert(queue != NULL);
+    xQueueAddToSet(queue, com_queue_set);
+    return queue;
+}
+
+void SS_com_add_to_rx_queue(ComFrame *frame, void (*sender_fun)(ComFrame *), QueueHandle_t queue) {
+    ComSender sender = {.sender_fun = sender_fun};
+    memcpy(&sender.frame, frame, sizeof(ComFrame));
+    /* TODO put ms not ticks */
+    if(xQueueSend(queue, &sender, 25) != pdTRUE) {
+        SS_error("Com TX queue full");
+    }
 }
 
 void __attribute__((weak)) SS_com_transmit(ComFrame *frame) {
@@ -53,7 +131,30 @@ void __attribute__((weak)) SS_com_transmit(ComFrame *frame) {
 #endif
 }
 
-ComStatus SS_com_handle_frame(ComFrame *frame) {
+/* ==================================================================== */
+/* ======================== Private functions ========================= */
+/* ==================================================================== */
+
+static void SS_com_rx_handler_task(void *pvParameters) {
+    static ComFrame frame_buff;
+    while(1) {
+        if(xQueueReceive(com_queue, &frame_buff, 2000) == pdTRUE) {
+            SS_com_handle_frame(&frame_buff);
+        }
+    }
+}
+
+static void SS_com_tx_handler_task(void *pvParameters) {
+    QueueHandle_t queue;
+    ComSender sender;
+    while(1) {
+        queue = xQueueSelectFromSet(com_queue_set, portMAX_DELAY);
+        xQueueReceive(queue, &sender, 0);
+        sender.sender_fun(&sender.frame);
+    }
+}
+
+static ComStatus SS_com_handle_frame(ComFrame *frame) {
 #ifdef SS_USE_GRAZYNA
     if(SS_grazyna_is_enabled() && frame->destination != board_id) {
         SS_com_transmit(frame);
@@ -65,6 +166,7 @@ ComStatus SS_com_handle_frame(ComFrame *frame) {
     }
 #endif
     bool response_required = frame->action == COM_REQUEST || frame->source == COM_GRAZYNA_ID ? true : false;
+    SS_can_print_message_received(frame);
     ComStatus res = SS_com_handle_action(frame);
     if(response_required) {
         frame->destination = frame->source;
@@ -74,7 +176,7 @@ ComStatus SS_com_handle_frame(ComFrame *frame) {
     return res;
 }
 
-ComStatus SS_com_handle_action(ComFrame *frame) {
+static ComStatus SS_com_handle_action(ComFrame *frame) {
     ComActionID action = frame->action;
     switch(action) {
         case COM_REQUEST:
@@ -87,7 +189,7 @@ ComStatus SS_com_handle_action(ComFrame *frame) {
     return COM_ERROR;
 }
 
-ComStatus SS_com_handle_request(ComFrame *frame) {
+static ComStatus SS_com_handle_request(ComFrame *frame) {
     ComDeviceID device = frame->device;
     ComStatus res = COM_OK;
     switch(device) {
@@ -122,7 +224,7 @@ ComStatus SS_com_handle_request(ComFrame *frame) {
     return res;
 }
 
-ComStatus SS_com_handle_service(ComFrame *frame) {
+static ComStatus SS_com_handle_service(ComFrame *frame) {
     ComDeviceID device = frame->device;
     ComStatus res = COM_OK;
     switch(device) {
@@ -175,38 +277,4 @@ void SS_com_add_payload_to_frame(ComFrame *frame, ComDataType type, void *payloa
         default:
             break;
     }
-}
-
-void SS_com_add_fifo(volatile Fifo *fifo, void (*fun)(ComFrame*), ComGroup group_id, ComPriority priority) {
-    for(uint8_t i = 0; i < sizeof(fifo_manager) / sizeof(fifo_manager[0]); i++) {
-        if(fifo_manager[i].fifo == NULL) {
-            fifo_manager[i] = (ComFifoManager) { fifo, fun, group_id, priority};
-            return;
-        }
-    }
-    SS_error("Com Fifo manager is full");
-}
-
-void SS_com_handle_fifo_manager() {
-    /* TODO Handle priorities */
-    static ComFrame frame;
-    for(uint8_t i = 0; i < sizeof(fifo_manager) / sizeof(fifo_manager[0]); i++) {
-        if(fifo_manager[i].fifo == NULL) {
-            return;
-        }
-        else if(SS_fifo_get_data(fifo_manager[i].fifo, &frame)) {
-            if(fifo_manager[i].group_id == COM_GROUP_RECEIVE) {
-                SS_can_print_message_received(&frame);
-                SS_com_handle_frame(&frame);
-            } else if(fifo_manager[i].fun != NULL) {
-                fifo_manager[i].fun(&frame);
-            } else {
-                SS_error("Com Fifo Manager: Uninitialized function for non-receive fifo");
-            }
-        }
-    }
-}
-
-void SS_com_main() {
-    SS_com_handle_fifo_manager();
 }
