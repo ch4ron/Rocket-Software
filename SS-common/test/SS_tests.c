@@ -12,10 +12,6 @@
 #include "SS_ADS1258_unit_tests.h"
 #endif
 
-#ifdef SIMULATE
-#include "jumper.h"
-#endif
-
 static void tests() {
 #ifdef SS_USE_ADS1258
     /* SS_ADS1258_run_tests(); */
@@ -59,14 +55,10 @@ static void tests() {
 /* Enable verbose output */
 int SS_run_all_tests() {
 #ifdef VERBOSE_TEST_OUTPUT
-    const char* args[] = { "unity", "-v" };
-    int unity_code =  UnityMain(2, args, tests);
+    const char* args[] = {"unity", "-v"};
+    int unity_code = UnityMain(2, args, tests);
 #else
-    int unity_code =  UnityMain(0, NULL, tests);
-#endif
-#ifdef SIMULATE
-    /* Exit with status code */
-    jumper_sudo_exit_with_exit_code(unity_code);
+    int unity_code = UnityMain(0, NULL, tests);
 #endif
     return unity_code;
 }

@@ -17,9 +17,7 @@ int _write(int file, char *ptr, int len) {
 /********** MAIN INIT *********/
 
 void SS_platform_init() {
-#ifndef SIMULATE
     SS_can_init(&hcan2, COM_CZAPLA_ID);
-#endif
     /* SS_grazyna_init(&huart2); */
     /* SS_s25fl_init(); */
 }

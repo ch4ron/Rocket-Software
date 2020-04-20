@@ -74,40 +74,35 @@ void SimulationClock_Config(void);
   * @brief  The application entry point.
   * @retval int
   */
-int main(void)
-{
-  /* USER CODE BEGIN 1 */
+int main(void) {
+    /* USER CODE BEGIN 1 */
 
-  /* USER CODE END 1 */
+    /* USER CODE END 1 */
 
-  /* MCU Configuration--------------------------------------------------------*/
+    /* MCU Configuration--------------------------------------------------------*/
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+    /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+    HAL_Init();
 
-  /* USER CODE BEGIN Init */
+    /* USER CODE BEGIN Init */
 
-  /* USER CODE END Init */
+    /* USER CODE END Init */
 
-  /* USER CODE BEGIN SysInit */
-#ifndef SIMULATE
+    /* USER CODE BEGIN SysInit */
     SystemClock_Config();
-#else
-    SimulationClock_Config();
-#endif
-  /* USER CODE END SysInit */
+    /* USER CODE END SysInit */
 
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_UART5_Init();
-  MX_USART6_UART_Init();
-  MX_DMA_Init();
-  MX_SPI2_Init();
-  MX_SPI4_Init();
-  MX_USART1_UART_Init();
-  MX_USART3_UART_Init();
-  MX_TIM13_Init();
-  /* USER CODE BEGIN 2 */
+    /* Initialize all configured peripherals */
+    MX_GPIO_Init();
+    MX_UART5_Init();
+    MX_USART6_UART_Init();
+    MX_DMA_Init();
+    MX_SPI2_Init();
+    MX_SPI4_Init();
+    MX_USART1_UART_Init();
+    MX_USART3_UART_Init();
+    MX_TIM13_Init();
+    /* USER CODE BEGIN 2 */
 
     /* STM32 CubeMX v5.4.0 bug - MX functions using DMA need to be initialized
      * after calling MX_DMA_Init() */
@@ -116,7 +111,6 @@ int main(void)
     MX_ADC3_Init();
     MX_USART2_UART_Init();
 
-#ifndef SIMULATE
     MX_QUADSPI_Init();
     MX_USB_DEVICE_Init();
     MX_CAN1_Init();
@@ -124,7 +118,7 @@ int main(void)
     MX_TIM3_Init();
     MX_TIM8_Init();
     MX_CRC_Init();
-#endif
+
     HAL_GPIO_WritePin(COM_RED_GPIO_Port, COM_RED_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(COM_BLUE_GPIO_Port, COM_BLUE_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(COM_GREEN_GPIO_Port, COM_GREEN_Pin, GPIO_PIN_SET);
@@ -149,20 +143,20 @@ int main(void)
     HAL_GPIO_WritePin(COM_RED_GPIO_Port, COM_RED_Pin, RESET);
     HAL_GPIO_WritePin(ADC_RED_GPIO_Port, ADC_RED_Pin, RESET);
     HAL_GPIO_WritePin(MEM_RED_GPIO_Port, MEM_RED_Pin, RESET);
-  /* USER CODE END 2 */
+    /* USER CODE END 2 */
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
+    /* Infinite loop */
+    /* USER CODE BEGIN WHILE */
     while(1) {
         SS_main();
         SS_com_transmit(&frame);
         HAL_Delay(1000);
 
-    /* USER CODE END WHILE */
+        /* USER CODE END WHILE */
 
-    /* USER CODE BEGIN 3 */
+        /* USER CODE BEGIN 3 */
     }
-  /* USER CODE END 3 */
+    /* USER CODE END 3 */
 }
 
 /**
@@ -227,50 +221,10 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-void SimulationClock_Config(void) {
-    RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-    RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
-    /** Configure the main internal regulator output voltage
-     */
-    __HAL_RCC_PWR_CLK_ENABLE();
-    __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
-    /** Initializes the CPU, AHB and APB busses clocks
-     */
-    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-    RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-    RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-    RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-    RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-    RCC_OscInitStruct.PLL.PLLM = 8;
-    RCC_OscInitStruct.PLL.PLLN = 180;
-    RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-    RCC_OscInitStruct.PLL.PLLQ = 8;
-    RCC_OscInitStruct.PLL.PLLR = 2;
-    if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
-        Error_Handler();
-    }
-    /** Activate the Over-Drive mode
-     */
-    if (HAL_PWREx_EnableOverDrive() != HAL_OK) {
-        Error_Handler();
-    }
-    /** Initializes the CPU, AHB and APB busses clocks
-     */
-    RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK |
-                                  RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
-    RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-    RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-    RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
-    RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
-
-    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK) {
-        Error_Handler();
-    }
-}
 /* USER CODE END 4 */
 
- /**
+/**
   * @brief  Period elapsed callback in non blocking mode
   * @note   This function is called  when TIM14 interrupt took place, inside
   * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment

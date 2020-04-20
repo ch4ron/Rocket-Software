@@ -12,7 +12,7 @@
 #include "test.h"
 
 void SS_init(void) {
-#if defined(SS_USE_SUPPLY) && !defined(SIMULATE)
+#if defined(SS_USE_SUPPLY)
 //    SS_supply_init();
 #endif
 #ifdef SS_RUN_TESTS

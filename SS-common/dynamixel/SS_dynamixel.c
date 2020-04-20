@@ -264,15 +264,11 @@ void SS_dynamixel_transmit_receive_DMA(Dynamixel_fifo_bufor *buff) {
     torque_status = buff->torque_status;
     dest_data = buff->data;
     packet_size = buff->packet_size;
-//    printf("rec size: %d\r\n", rec_size);
+    //    printf("rec size: %d\r\n", rec_size);
     memcpy(tx_packet_buff, buff->packet, MAX_PACKET_LENGTH);
     HAL_UART_AbortReceive_IT(&DYNAMIXEL_UART);
     HAL_GPIO_WritePin(RS485_DE_GPIO_Port, RS485_DE_Pin, SET);
-#ifndef SIMULATE
     HAL_UART_Transmit_DMA(&DYNAMIXEL_UART, tx_packet_buff, packet_size);
-#else
-    HAL_UART_Transmit_IT(&DYNAMIXEL_UART, tx_packet_buff, packet_size);
-#endif
 }
 
 void SS_dynamixel_send_packet_DMA(Dynamixel *servo, Dynamixel_instruction instruction, uint8_t *params, uint16_t params_len, uint16_t rec_len, uint8_t torque_enabled, void *data) {
@@ -391,13 +387,9 @@ void SS_dynamixel_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 }
 
 void SS_dynamixel_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
-    if (huart == &DYNAMIXEL_UART) {
+    if(huart == &DYNAMIXEL_UART) {
         HAL_GPIO_WritePin(RS485_DE_GPIO_Port, RS485_DE_Pin, RESET);
-#ifndef SIMULATE
         HAL_UART_Receive_DMA(&DYNAMIXEL_UART, rx_packet_buff, rec_size);
-#else
-        HAL_UART_Receive_IT(&DYNAMIXEL_UART, rx_packet_buff, rec_size);
-#endif
     }
 }
 

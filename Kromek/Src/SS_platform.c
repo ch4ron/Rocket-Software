@@ -35,7 +35,7 @@ void SS_platform_servos_init() {
 /********** ADC *********/
 
 static void SS_platform_adc_init() {
-#if defined(SS_USE_ADC) && !defined(SIMULATE)
+#if defined(SS_USE_ADC)
     ADC_HandleTypeDef *adc[] = {
             &hadc1, &hadc2, &hadc3
     };

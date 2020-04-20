@@ -17,13 +17,11 @@ int _write(int file, char *ptr, int len) {
 /********** ADC *********/
 
 //static void SS_platform_adc_init() {
-//#ifndef SIMULATE
 //    ADC_HandleTypeDef *adc[] = {
 //            &hadc1, &hadc2, &hadc3
 //    };
 //    SS_adc_init(adc, sizeof(adc)/sizeof(adc[0]));
 //     TODO Adc
-//#endif
 //}
 
 /********** SUPPLY *********/
