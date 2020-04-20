@@ -37,17 +37,16 @@ project(RocketSoftware)
 if(${VERBOSE_TEST_OUTPUT})
     add_compile_definitions(VERBOSE_TEST_OUTPUT UNITY_OUTPUT_COLOR)
 endif()
-if(${CMAKE_BUILD_TYPE} and ${CMAKE_BUILD_TYPE} STREQUAL Test)
-    add_compile_definitions(SS_RUN_TESTS)
-endif()
+#if(${CMAKE_BUILD_TYPE} and ${CMAKE_BUILD_TYPE} STREQUAL Test)
+#    add_compile_definitions(SS_RUN_TESTS)
+#endif()
 
 set(ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 macro(create_target)
-  # Needs to be added after adding compile definitions
-  add_subdirectory(${ROOT_DIR}/SS-common common)
-  
-  target_link_libraries(${PROJECT_NAME}.elf ThrowTheSwitch FreeRTOS common hal_driver)
+
+  target_link_libraries(${PROJECT_NAME}.elf ThrowTheSwitch FreeRTOS hal_driver)
+  target_link_common(${PROJECT_NAME}.elf)
   set(CMAKE_EXE_LINKER_FLAGS_INIT "-Wl,-gc-sections,--print-memory-usage -T ${LINKER_SCRIPT}")
   set(CMAKE_EXE_LINKER_FLAGS
       "${CMAKE_EXE_LINKER_FLAGS_INIT} -Wl,-Map=${PROJECT_BINARY_DIR}/${PROJECT_NAME}.map")
@@ -69,9 +68,10 @@ macro(create_target)
     ${ROOT_DIR}/st_nucleo_f4.cfg -c 'program ${PROJECT_NAME}.elf' -c init;reset init;)
 endmacro()
 
-
+# Needs to be added after adding compile definitions
+add_subdirectory(SS-common common)
 add_subdirectory(External ThrowTheSwitch)
 add_subdirectory(FreeRTOS FreeRTOS)
 add_subdirectory(Drivers hal_driver)
 add_subdirectory(Kromek)
-
+add_subdirectory(Staszek)

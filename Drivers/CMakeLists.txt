@@ -6,6 +6,12 @@ add_library(${TARGET} INTERFACE)
 
 get_directory_property(COMPILE_DEFS COMPILE_DEFINITIONS)
 
+target_include_directories(${TARGET} INTERFACE
+    CMSIS/Device/ST/STM32F4xx/Include
+    CMSIS/Include
+    STM32F4xx_HAL_Driver/Inc
+    STM32F4xx_HAL_Driver/Inc/Legacy)
+
 if(COMPILE_DEFS MATCHES SS_USE_MOCK)
   set(TO_MOCK
     stm32f4xx_hal.h
@@ -36,9 +42,14 @@ if(COMPILE_DEFS MATCHES SS_USE_MOCK)
     list(APPEND MOCK_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/mocks/Mock${SRC_FILE})
   endforeach()
 
-  add_custom_command(OUTPUT
-    ${MOCK_SOURCES}
+  # add_custom_command(OUTPUT
+  #   ${MOCK_SOURCES}
+  #   COMMAND ruby ${CMAKE_CURRENT_SOURCE_DIR}/mock_drivers.rb ${MOCKS})
+
+if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/mocks)
+  execute_process(
     COMMAND ruby ${CMAKE_CURRENT_SOURCE_DIR}/mock_drivers.rb ${MOCKS})
+endif()
 
   set_source_files_properties(${MOCK_SOURCES} PROPERTIES GENERATED TRUE)
   add_custom_target(generate_mocks ALL DEPENDS ${MOCK_SOURCES})
@@ -55,10 +66,4 @@ else()
     "STM32F4xx_HAL_Driver/*.*")
   target_sources(${TARGET} INTERFACE "${SOURCES}")
 endif()
-
-target_include_directories(${TARGET} INTERFACE
-    CMSIS/Device/ST/STM32F4xx/Include
-    CMSIS/Include
-    STM32F4xx_HAL_Driver/Inc
-    STM32F4xx_HAL_Driver/Inc/Legacy)
 

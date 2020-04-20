@@ -9,7 +9,6 @@
 #include "SS_com_feed.h"
 #include "SS_common.h"
 #include "stdio.h"
-#include "test.h"
 
 void SS_init(void) {
 #if defined(SS_USE_SUPPLY)

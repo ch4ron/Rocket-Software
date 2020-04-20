@@ -7,6 +7,7 @@ add_custom_command(OUTPUT
   ${MOCK_DIRECTORY}/MockSS_grazyna_hal.c
   ${MOCK_DIRECTORY}/MockSS_grazyna_hal.h
   ${MOCK_DIRECTORY}/MockSS_com.c
+  ${MOCK_DIRECTORY}/MockSS_com.h
   COMMAND ${CMOCK_COMMAND}
   ${COM}
   ${GRAZYNA_HAL})
@@ -15,6 +16,7 @@ add_executable(grazyna_test
   SS_grazyna_tests.c
   ${MOCK_DIRECTORY}/MockSS_grazyna_hal.c
   ${MOCK_DIRECTORY}/MockSS_grazyna_hal.h
+  ${MOCK_DIRECTORY}/MockSS_com.h
   ${MOCK_DIRECTORY}/MockSS_com.c)
 
 target_include_directories(
