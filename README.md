@@ -17,8 +17,8 @@ Building
 
 Targets
 
-  - <board>.elf - Build
-  - <board>_flash - Upload
+  - \<board\>.elf - Build
+  - \<board\>_flash - Upload
   - test - build and run tests
   
 From CLion
