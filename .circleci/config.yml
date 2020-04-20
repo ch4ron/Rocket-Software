@@ -13,16 +13,20 @@ jobs:
             git submodule init
             git submodule update --remote --init --recursive
       - run:
-          name: "Run tests"
-          command:
-              SS-test/run_tests.sh
-      - run:
           name: "Create build directory"
           command: mkdir cmake-build && cd cmake-build && cmake ../
       - run:
           name: "Build Kromek"
           command:
               make -C cmake-build kromek.elf
+      - run:
+          name: "Build Staszek"
+          command:
+              make -C cmake-build staszek.elf
+      - run:
+          name: "Run tests"
+          command:
+              make -C cmake-build test
       - codecov/upload:
           file: "!FreeRTOS"
           flags: "coverage"

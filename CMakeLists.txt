@@ -13,7 +13,6 @@ set(CMAKE_OBJCOPY arm-none-eabi-objcopy)
 set(CMAKE_OBJDUMP arm-none-eabi-objdump)
 set(SIZE arm-none-eabi-size)
 
-enable_testing()
 #Uncomment for hardware floating point
 set(FPU_FLAGS "-mfloat-abi=hard -mfpu=fpv4-sp-d16")
 # add_definitions(-DARM_MATH_CM4 -DARM_MATH_MATRIX_CHECK -DARM_MATH_ROUNDING -D__FPU_PRESENT=1)
@@ -69,9 +68,18 @@ macro(create_target)
 endmacro()
 
 # Needs to be added after adding compile definitions
-add_subdirectory(SS-common common)
-add_subdirectory(External ThrowTheSwitch)
-add_subdirectory(FreeRTOS FreeRTOS)
-add_subdirectory(Drivers hal_driver)
+add_subdirectory(SS-common)
+add_subdirectory(External)
+add_subdirectory(FreeRTOS)
+add_subdirectory(Drivers)
 add_subdirectory(Kromek)
 add_subdirectory(Staszek)
+
+set(TEST_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/test)
+set(TEST_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/SS-test)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test)
+
+add_custom_target(test
+  COMMAND ${CMAKE_COMMAND} -B${TEST_BINARY_DIR} -S${TEST_SOURCE_DIR}
+  COMMAND make -C ${TEST_BINARY_DIR}
+  COMMAND CTEST_OUTPUT_ON_FAILURE=1 make -C ${TEST_BINARY_DIR} test)
