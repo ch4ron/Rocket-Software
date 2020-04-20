@@ -1,13 +1,23 @@
 cmake_minimum_required(VERSION 3.11)
 
-include(../rocket_software.cmake)
 
-set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/STM32F446ZETx_FLASH.ld)
-set(CMAKE_EXE_LINKER_FLAGS_INIT "-Wl,-gc-sections,--print-memory-usage -T ${LINKER_SCRIPT}")
+set(LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/STM32F446ZETx_FLASH.ld)
 
-project(Kromek C CXX ASM)
+project(kromek C ASM)
+
+file(GLOB_RECURSE SOURCES
+  "Inc/*.*"
+  "Src/*.*"
+  "startup/*.*"
+  "Middlewares/*.*")
 
 add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
+
+target_include_directories(${PROJECT_NAME}.elf PRIVATE
+  Inc
+  Test
+  Middlewares/ST/STM32_USB_Device_Library/Core/Inc
+  Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc)
 
 # DEFINE YOUR LIBRARIES HERE
 #add_compile_definitions(SS_USE_DYNAMIXEL)
@@ -23,5 +33,6 @@ add_compile_definitions(SS_USE_SEQUENCE)
 add_compile_definitions(SS_USE_JSON_SETTINGS)
 add_compile_definitions(SS_USE_S25FL)
 add_compile_definitions(SS_USE_CAN)
+
 
 create_target()

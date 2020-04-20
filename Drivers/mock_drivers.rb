@@ -5,7 +5,7 @@ if $0 == __FILE__
         Dir["STM32F4xx_HAL_Driver/Inc/*"]
     options = {}
     options[:mock_path] = "#{File.dirname(__FILE__)}/mocks"
-    options[:strippables] = ['(?:.*RegisterCallback.*;)']
+    options[:strippables] = ['(?:.*Register.*Callback.*;)']
     options[:plugins] = [:array, :ignore, :ignore_arg, :expect_any_args]
     CMock.new(options).setup_mocks(includes)
     mocks = Dir["#{File.dirname(__FILE__)}/mocks/*"]

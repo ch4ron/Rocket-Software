@@ -1,8 +1,1 @@
-si SWD
-Device STM32F446VE
-speed 4000
-r
-h
-loadfile Kromek.hex
-r
-exit
+ff

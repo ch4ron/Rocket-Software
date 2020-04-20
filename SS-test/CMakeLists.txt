@@ -11,7 +11,6 @@ set(CMAKE_CXX_FLAGS "-g -O0 -Wall -fprofile-arcs -ftest-coverage")
 set(CMAKE_C_FLAGS "-g -O0 -Wall -fprofile-arcs -ftest-coverage")
 set(CMAKE_EXE_LINKER_FLAGS "-fprofile-arcs -ftest-coverage")
 
-# set binary_dir to be passed to python script
 add_compile_definitions(STM32F446xx)
 add_compile_definitions(USE_HAL_DRIVER)
 

@@ -18,22 +18,22 @@ if(COMPILE_DEFS MATCHES SS_USE_MOCK)
     stm32f4xx_hal_gpio.h
     stm32f4xx_hal_i2c.h
     stm32f4xx_hal_i2c_ex.h
-    stm32f4xx_hal_i2s.h
-    stm32f4xx_hal_i2s_ex.h
     stm32f4xx_hal_qspi.h
     stm32f4xx_hal_rcc.h
     stm32f4xx_hal_rcc_ex.h
     stm32f4xx_hal_rtc.h
     stm32f4xx_hal_rtc_ex.h
     stm32f4xx_hal_spi.h
-    stm32f4xx_hal_tim.h
-    stm32f4xx_hal_tim_ex.h
+    # stm32f4xx_hal_tim.h
+    # stm32f4xx_hal_tim_ex.h
     stm32f4xx_hal_uart.h
     stm32f4xx_hal_usart.h)
 
   foreach(FILE ${TO_MOCK})
     list(APPEND MOCKS ${CMAKE_CURRENT_SOURCE_DIR}/STM32F4xx_HAL_Driver/Inc/${FILE})
     list(APPEND MOCK_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/mocks/Mock${FILE})
+    string(REPLACE ".h" ".c" SRC_FILE ${FILE})
+    list(APPEND MOCK_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/mocks/Mock${SRC_FILE})
   endforeach()
 
   add_custom_command(OUTPUT
@@ -41,14 +41,14 @@ if(COMPILE_DEFS MATCHES SS_USE_MOCK)
     COMMAND ruby ${CMAKE_CURRENT_SOURCE_DIR}/mock_drivers.rb ${MOCKS})
 
   set_source_files_properties(${MOCK_SOURCES} PROPERTIES GENERATED TRUE)
-  add_custom_target(generate_mocks ALL DEPENDS
-    ${MOCK_SOURCES}
-  )
+  add_custom_target(generate_mocks ALL DEPENDS ${MOCK_SOURCES})
 
   add_dependencies(${TARGET} generate_mocks)
 
   target_include_directories(${TARGET} INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR})
+
+  target_sources(${TARGET} INTERFACE ${MOCK_SOURCES})
 else()
   file(GLOB_RECURSE SOURCES
     "CMSIS/*.*"
