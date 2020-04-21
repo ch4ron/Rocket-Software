@@ -2,22 +2,22 @@
 // Created by maciek on 02.03.2020.
 //
 
+#include "SS_platform.h"
+
+#include "SS_MS5X.h"
 #include "SS_can.h"
 #include "SS_common.h"
-#include "SS_platform.h"
-#include "usart.h"
-#include "SS_MS5X.h"
-#include "tim.h"
 #include "SS_servos.h"
-
+#include "can.h"
+#include "tim.h"
+#include "usart.h"
 
 /********** PRINTF *********/
 
 int _write(int file, char *ptr, int len) {
-	HAL_UART_Transmit(&huart4, (uint8_t*) ptr, (uint16_t) len, 1000);
-	return len;
+    HAL_UART_Transmit(&huart4, (uint8_t *) ptr, (uint16_t) len, 1000);
+    return len;
 }
-
 
 /********** SERVOS *********/
 

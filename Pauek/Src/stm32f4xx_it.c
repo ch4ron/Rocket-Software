@@ -19,8 +19,9 @@
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
-#include "main.h"
 #include "stm32f4xx_it.h"
+
+#include "main.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stdio.h"
@@ -33,7 +34,11 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
- 
+
+#define SVC_Handler Dummy_SVC_Handler
+#define PendSV_Handler Dummy_PendSV_Handler
+#define SysTick_Handler Dummy_SysTick_Handler
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -69,19 +74,18 @@ extern UART_HandleTypeDef huart1;
 /* USER CODE END EV */
 
 /******************************************************************************/
-/*           Cortex-M4 Processor Interruption and Exception Handlers          */ 
+/*           Cortex-M4 Processor Interruption and Exception Handlers          */
 /******************************************************************************/
 /**
   * @brief This function handles Non maskable interrupt.
   */
-void NMI_Handler(void)
-{
-  /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
+void NMI_Handler(void) {
+    /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
 
-  /* USER CODE END NonMaskableInt_IRQn 0 */
-  /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
+    /* USER CODE END NonMaskableInt_IRQn 0 */
+    /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
 
-  /* USER CODE END NonMaskableInt_IRQn 1 */
+    /* USER CODE END NonMaskableInt_IRQn 1 */
 }
 
 /**

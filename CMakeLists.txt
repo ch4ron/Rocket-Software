@@ -62,18 +62,39 @@ macro(create_target)
     COMMAND openocd -c 'tcl_port disabled' -s openocd/scripts -c 'gdb_port 3333' -c 'telnet_port 4444' -f
     ${ROOT_DIR}/st_nucleo_f4.cfg -c 'program ${PROJECT_NAME}.elf' -c reset -c shutdown)
 
-  add_custom_target(${PROJECT_NAME}_gdb
-    COMMAND openocd -c 'tcl_port disabled' -s openocd/scripts -c 'gdb_port 3333' -c 'telnet_port 4444' -f
-    ${ROOT_DIR}/st_nucleo_f4.cfg -c 'program ${PROJECT_NAME}.elf' -c init;reset init;)
+  # Generate JLink config file and add flash target
+  set(JLINK_COMMANDS "si SWD"
+    "Device ${MCU}"
+    "speed 4000"
+    "r"
+    "h"
+    "loadfile ${HEX_FILE}"
+    "r"
+    "exit")
+  set(JLINK_FILE ${CMAKE_CURRENT_BINARY_DIR}/commands.jlink)
+  file(REMOVE ${JLINK_FILE})
+  file(TOUCH ${JLINK_FILE})
+  foreach(COMMAND ${JLINK_COMMANDS})
+    file(APPEND ${JLINK_FILE} ${COMMAND})
+    file(APPEND ${JLINK_FILE} "\n")
+  endforeach()
+  add_custom_target(${PROJECT_NAME}_jflash
+    COMMAND jlink -CommandFile ${JLINK_FILE})
+
+  # add_custom_target(${PROJECT_NAME}_gdb
+    # COMMAND openocd -c 'tcl_port disabled' -s openocd/scripts -c 'gdb_port 3333' -c 'telnet_port 4444' -f
+    # ${ROOT_DIR}/st_nucleo_f4.cfg -c 'program ${PROJECT_NAME}.elf' -c init;reset init;)
+  add_dependencies(${PROJECT_NAME}_flash ${PROJECT_NAME}.elf)
+  add_dependencies(${PROJECT_NAME}_jflash ${PROJECT_NAME}.elf)
 endmacro()
 
-# Needs to be added after adding compile definitions
 add_subdirectory(SS-common)
 add_subdirectory(External)
 add_subdirectory(FreeRTOS)
 add_subdirectory(Drivers)
 add_subdirectory(Kromek)
 add_subdirectory(Staszek)
+add_subdirectory(Pauek)
 
 set(TEST_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/test)
 set(TEST_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/SS-test)

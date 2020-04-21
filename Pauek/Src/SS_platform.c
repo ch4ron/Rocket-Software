@@ -2,15 +2,17 @@
 // Created by maciek on 28.02.2020.
 //
 
-#include "SS_common.h"
 #include "SS_platform.h"
-#include "usart.h"
+
 #include "SS_can.h"
+#include "SS_common.h"
+#include "can.h"
+#include "usart.h"
 
 /********** PRINTF *********/
 
 int _write(int file, char *ptr, int len) {
-    HAL_UART_Transmit(&huart6, (uint8_t*) ptr, (uint16_t) len, 1000);
+    HAL_UART_Transmit(&huart6, (uint8_t *) ptr, (uint16_t) len, 1000);
     return len;
 }
 

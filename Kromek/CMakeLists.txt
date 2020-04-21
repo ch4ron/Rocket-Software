@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.11)
 
 
 set(LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/STM32F446ZETx_FLASH.ld)
+set(MCU STM32F446ZE)
 
 project(kromek C ASM)
 
