@@ -102,13 +102,14 @@ void SS_com_init(ComBoardID board) {
 }
 
 QueueHandle_t SS_com_add_sender() {
+    assert(com_queue_set != NULL);
     QueueHandle_t queue = xQueueCreate(SS_COM_TX_QUEUE_SIZE, sizeof(ComSender));
     assert(queue != NULL);
     xQueueAddToSet(queue, com_queue_set);
     return queue;
 }
 
-void SS_com_add_to_rx_queue(ComFrame *frame, void (*sender_fun)(ComFrame *), QueueHandle_t queue) {
+void SS_com_add_to_tx_queue(ComFrame *frame, void (*sender_fun)(ComFrame *), QueueHandle_t queue) {
     ComSender sender = {.sender_fun = sender_fun};
     memcpy(&sender.frame, frame, sizeof(ComFrame));
     /* TODO put ms not ticks */

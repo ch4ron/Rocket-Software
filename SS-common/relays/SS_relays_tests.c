@@ -24,10 +24,10 @@ extern Relay *relay_pointers[MAX_RELAY_COUNT];
 static void test_relay_open(Relay *relay) {
     SS_relay_close(relay);
     ComFrame frame = {
-            .action = COM_SERVICE,
-            .device = COM_RELAY_ID,
-            .id = relay->id,
-            .message_type = COM_RELAY_OPEN};
+        .action = COM_SERVICE,
+        .device = COM_RELAY_ID,
+        .id = relay->id,
+        .operation = COM_RELAY_OPEN};
     TEST_ASSERT_EQUAL(relay->state, 0);
     ComStatus res = SS_com_handle_action(&frame);
     TEST_ASSERT_EQUAL(COM_OK, res);
@@ -37,10 +37,10 @@ static void test_relay_open(Relay *relay) {
 static void test_relay_close(Relay *relay) {
     SS_relay_close(relay);
     ComFrame frame = {
-            .action = COM_SERVICE,
-            .device = COM_RELAY_ID,
-            .id = relay->id,
-            .message_type = COM_RELAY_OPEN};
+        .action = COM_SERVICE,
+        .device = COM_RELAY_ID,
+        .id = relay->id,
+        .operation = COM_RELAY_OPEN};
     TEST_ASSERT_EQUAL(relay->state, 0);
     ComStatus res = SS_com_handle_action(&frame);
     TEST_ASSERT_EQUAL(COM_OK, res);
@@ -50,10 +50,10 @@ static void test_relay_close(Relay *relay) {
 static void test_relay_get_status(Relay *relay) {
     SS_relay_open(relay);
     ComFrame frame = {
-            .action = COM_REQUEST,
-            .device = COM_RELAY_ID,
-            .id = relay->id,
-            .message_type = COM_RELAY_STATUS};
+        .action = COM_REQUEST,
+        .device = COM_RELAY_ID,
+        .id = relay->id,
+        .operation = COM_RELAY_STATUS};
     ComStatus res = SS_com_handle_action(&frame);
     TEST_ASSERT_EQUAL(COM_OK, res);
     TEST_ASSERT_EQUAL(1, frame.payload);

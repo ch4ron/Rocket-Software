@@ -43,7 +43,7 @@ TEST(can, pack_unpack1) {
             .destination = 0x01,
             .source = 0x12,
             .priority = 0x02,
-            .message_type = 0x31,
+            .operation = 0x31,
             .payload = 0xFFAF,
             .data_type = 0x03,
             .device = 0x13,

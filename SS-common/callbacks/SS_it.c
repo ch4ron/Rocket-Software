@@ -10,10 +10,10 @@
 #ifdef SS_USE_MS5X
 #include "SS_MS5X.h"
 #endif
-
-#include <S25FL/SS_flash_ctrl.h>
-#include <S25FL/SS_s25fl.h>
-
+#ifdef SS_USE_S25FL
+#include "SS_flash_ctrl.h"
+#include "SS_s25fl.h"
+#endif
 #include "FreeRTOS.h"
 #include "SS_ADS1258.h"
 #endif
@@ -29,6 +29,7 @@
 #ifdef SS_USE_SEQUENCE
 #include "SS_sequence.h"
 #endif
+#include "stm32f4xx_hal.h"
 
 extern void SS_grazyna_UART_RxCpltCallback(UART_HandleTypeDef *huart);
 

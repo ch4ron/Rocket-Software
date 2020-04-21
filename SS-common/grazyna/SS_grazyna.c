@@ -59,8 +59,7 @@ static Grazyna grazyna;
 /* ========================= Public functions ========================= */
 /* ==================================================================== */
 
-/* huart is of type UART_HandleTypedef */
-void SS_grazyna_init(void *huart) {
+void SS_grazyna_init(UART_HandleTypeDef *huart) {
     SS_grazyna_init_hal(huart);
     grazyna.grazyna_state = GRAZYNA_LOOKING_FOR_HEADER;
     grazyna.tx_queue = SS_com_add_sender();
@@ -87,7 +86,7 @@ bool SS_grazyna_is_enabled(void) {
 }
 
 void SS_grazyna_transmit(ComFrame *frame) {
-    SS_com_add_to_rx_queue(frame, SS_grazyna_tx, grazyna.tx_queue);
+    SS_com_add_to_tx_queue(frame, SS_grazyna_tx, grazyna.tx_queue);
 }
 
 /* ==================================================================== */

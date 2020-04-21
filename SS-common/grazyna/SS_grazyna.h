@@ -14,6 +14,7 @@
 
 #include "SS_com.h"
 #include "stdbool.h"
+#include "stm32f4xx_hal.h"
 
 /* ==================================================================== */
 /* ============================= Defines ============================== */
@@ -35,8 +36,7 @@ typedef struct __attribute__((packed)) {
 /* ==================== Public function prototypes ==================== */
 /* ==================================================================== */
 
-/* huart is of type UART_HandleTypedef */
-void SS_grazyna_init(void *huart);
+void SS_grazyna_init(UART_HandleTypeDef *huart);
 void SS_grazyna_transmit(ComFrame *frame);
 void SS_grazyna_disable(void);
 void SS_grazyna_enable(void);

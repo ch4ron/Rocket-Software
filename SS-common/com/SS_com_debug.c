@@ -102,7 +102,7 @@ void SS_com_debug_print_frame(ComFrame *frame, char *title, char *color) {
     print_action(frame->action);
     printf("\t device: 0x%02x", frame->device);
     printf("\t id: 0x%02x", frame->id);
-    printf("\t type: 0x%02x%s", frame->message_type, color);
+    printf("\t operation: 0x%02x%s", frame->operation, color);
     print_payload(frame);
     printf("\r\n");
 }

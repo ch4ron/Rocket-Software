@@ -45,9 +45,8 @@ void SS_com_transmit(ComFrame *frame) {
 /********** MAIN INIT *********/
 
 void SS_platform_init() {
-//    SS_platform_adc_init();
-//    SS_platform_supply_init();
-    SS_com_init(COM_PAUEK_ID);
+    //    SS_platform_adc_init();
+    //    SS_platform_supply_init();
     SS_can_init(&hcan2, COM_PAUEK_ID);
     SS_can_ext_init(&hcan1);
     SS_grazyna_init(&huart1);
