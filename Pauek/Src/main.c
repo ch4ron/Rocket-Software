@@ -63,15 +63,6 @@
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-static void can_transmit(void *asfa) {
-    ComFrame frame;
-    frame.destination = COM_STASZEK_ID;
-    while(1) {
-        printf("Dupa\r\n");
-        SS_com_transmit(&frame);
-        vTaskDelay(1000);
-    }
-}
 
 /* USER CODE END PFP */
 
@@ -125,7 +116,6 @@ int main(void) {
     HAL_GPIO_WritePin(MEM_RED_GPIO_Port, MEM_RED_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(MEM_BLUE_GPIO_Port, MEM_BLUE_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(MEM_GREEN_GPIO_Port, MEM_GREEN_Pin, GPIO_PIN_SET);
-    xTaskCreate(can_transmit, "fasfa", 400, NULL, 3, NULL);
     SS_platform_init();
     SS_init();
     /* USER CODE END 2 */
