@@ -5,11 +5,10 @@
  *      Author: maciek
  */
 
-#ifdef RUN_TESTS
-
-#include "unity_fixture.h"
 #include "SS_mutex.h"
+
 #include "tim.h"
+#include "unity_fixture.h"
 
 extern TIM_HandleTypeDef htim13;
 extern TIM_HandleTypeDef htim14;
@@ -84,4 +83,3 @@ TEST(mutex, no_critical_section) {
 TEST(mutex, critical_section) {
     TEST_ASSERT_EQUAL(200000, dynamixel_counter_synchronized);
 }
-#endif

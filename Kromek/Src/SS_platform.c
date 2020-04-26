@@ -8,6 +8,7 @@
 #include "SS_can.h"
 #include "SS_common.h"
 #include "can.h"
+#include "spi.h"
 #include "usart.h"
 
 /********** PRINTF *********/

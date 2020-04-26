@@ -30,13 +30,11 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * --/COPYRIGHT--*/
 
-
-#ifdef RUN_TESTS
-
 #include "SS_ADS1258_unit_tests.h"
+
 #include "SS_ADS1258.h"
-#include "spi.h"
 #include "gpio.h"
+#include "spi.h"
 #include "stdio.h"
 #include "unity_fixture.h"
 
@@ -437,7 +435,7 @@ TEST(ADS1258_Functionality, noise) {
 }
 
 void SS_ADS1258_set_nDRDY_interrupt_flag(uint16_t GPIO_Pin) {
-    if (GPIO_Pin == ADS_DRDY_Pin) {
+    if(GPIO_Pin == ADS_DRDY_Pin) {
         flag_nDRDY_INTERRUPT = true;
     }
 }
@@ -491,5 +489,3 @@ bool SS_ADS1258_waitForDataInterrupt(uint32_t timeout_ms) {
 
     return (timeout > 0);           // Did a nDRDY interrupt occur?
 }
-
-#endif

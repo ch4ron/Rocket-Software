@@ -1,12 +1,17 @@
 cmake_minimum_required(VERSION 3.11.1)
 
-project(fifo C)
+set(TARGET fifo)
 
-add_library(${PROJECT_NAME} INTERFACE)
+add_library(${TARGET} INTERFACE)
 target_include_directories(
-        ${PROJECT_NAME} INTERFACE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
+        ${TARGET} INTERFACE
+        ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_sources(${PROJECT_NAME} INTERFACE
+target_sources(${TARGET} INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/SS_fifo.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/SS_fifo_tests.c )
+        ${CMAKE_CURRENT_SOURCE_DIR}/SS_fifo.h)
+
+target_test_sources(${TARGET} INTERFACE
+        ${CMAKE_CURRENT_SOURCE_DIR}/SS_fifo_tests.c)
+
+add_library(${TARGET}_test SS_fifo_tests.c)

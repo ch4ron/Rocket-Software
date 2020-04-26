@@ -49,5 +49,7 @@ QueueHandle_t SS_com_add_sender();
 void SS_com_add_to_tx_queue(ComFrame *frame, void (*sender_fun)(ComFrame *), QueueHandle_t queue);
 void SS_com_transmit(ComFrame *frame);
 void SS_com_add_payload_to_frame(ComFrame *frame, ComDataType type, void *payload);
+void SS_com_rx_handler_task(void *pvParameters);
+void SS_com_tx_handler_task(void *pvParameters);
 
 #endif /* SS_COM_H */

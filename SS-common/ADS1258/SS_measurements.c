@@ -5,10 +5,10 @@
  *      Author: maciek
  */
 
-#include <com/SS_com.h>
-#include <grazyna/SS_grazyna.h>
-#include <com/SS_com_debug.h>
 #include "SS_measurements.h"
+
+#include "SS_com.h"
+#include "SS_com_debug.h"
 #include "string.h"
 
 #define ADS1258_PREVIEW_VALUES_PERIOD 100

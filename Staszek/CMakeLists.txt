@@ -28,4 +28,4 @@ add_compile_definitions(SS_USE_CAN)
 add_compile_definitions(SS_USE_JSON_SETTINGS)
 add_compile_definitions(SS_USE_MS5X)
 
-create_target()
+create_target(${PROJECT_NAME})

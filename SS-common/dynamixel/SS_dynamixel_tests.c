@@ -5,13 +5,10 @@
  *      Author: maciek
  */
 
-
-#ifdef RUN_TESTS
-
 #include "SS_dynamixel.h"
-#include "unity_fixture.h"
-#include "SS_supply.h"
 #include "SS_fifo.h"
+#include "SS_supply.h"
+#include "unity_fixture.h"
 
 extern uint8_t tx_packet_buff[MAX_PACKET_LENGTH];
 extern uint8_t rx_packet_buff[MAX_PACKET_LENGTH];
@@ -614,5 +611,3 @@ TEST(dynamixel, ping_DMA) {
     TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, rx_packet_buff, sizeof(expected));
     TEST_ASSERT_EQUAL_UINT8(DYNAMIXEL_RESULT_OK, dynamixel.last_status);
 }
-
-#endif

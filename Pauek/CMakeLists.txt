@@ -22,4 +22,4 @@ add_compile_definitions(SS_USE_GRAZYNA)
 #add_compile_definitions(SS_USE_ADC)
 add_compile_definitions(SS_USE_EXT_CAN)
 
-create_target()
+create_target(${PROJECT_NAME})

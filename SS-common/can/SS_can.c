@@ -13,6 +13,7 @@
 #include "FreeRTOS.h"
 #include "SS_com_debug.h"
 #include "SS_error.h"
+#include "assert.h"
 #include "queue.h"
 #include "stdio.h"
 #include "string.h"
@@ -132,16 +133,14 @@ static void SS_can_filter_init(CAN_HandleTypeDef *hcan, uint32_t filter_id, uint
     can_filter.FilterBank = *filter_bank;
     can_filter.FilterMode = CAN_FILTERMODE_IDMASK;
     can_filter.FilterScale = CAN_FILTERSCALE_32BIT;
-    can_filter.FilterIdHigh = (uint16_t) ((filter_id >> 13));
-    can_filter.FilterIdLow = (uint16_t) (((filter_id << 3) & 0xFFF8));
-    can_filter.FilterMaskIdHigh = (uint16_t) (filter_mask >> 13);
-    can_filter.FilterMaskIdLow = (uint16_t) (filter_mask << 3 & 0xFFF8);
+    can_filter.FilterIdHigh = (uint16_t)((filter_id >> 13));
+    can_filter.FilterIdLow = (uint16_t)(((filter_id << 3) & 0xFFF8));
+    can_filter.FilterMaskIdHigh = (uint16_t)(filter_mask >> 13);
+    can_filter.FilterMaskIdLow = (uint16_t)(filter_mask << 3 & 0xFFF8);
     can_filter.FilterFIFOAssignment = fifo_assignment;
     can_filter.FilterActivation = ENABLE;
     (*filter_bank)++;
-    if (HAL_CAN_ConfigFilter(hcan, &can_filter) != HAL_OK) {
-        Error_Handler();
-    }
+    assert(HAL_CAN_ConfigFilter(hcan, &can_filter) == HAL_OK);
 }
 
 static uint32_t SS_can_get_header(ComFrame *frame) {

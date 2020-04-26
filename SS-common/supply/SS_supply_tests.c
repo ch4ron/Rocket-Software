@@ -5,11 +5,9 @@
  *      Author: maciek
  */
 
-#ifdef RUN_TESTS
-
+#include "SS_platform.h"
 #include "SS_supply.h"
 #include "unity_fixture.h"
-#include "SS_platform.h"
 
 uint8_t relay_supply_status;
 uint8_t servos1_supply_status;
@@ -99,5 +97,3 @@ TEST(supply_control, timeout) {
     test_supply_timeout(&servos2_supply);
     test_supply_timeout(&kozackie_servo_supply);
 }
-
-#endif

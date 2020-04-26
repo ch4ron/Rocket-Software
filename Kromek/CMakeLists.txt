@@ -28,7 +28,7 @@ add_compile_definitions(SS_USE_ADC)
 add_compile_definitions(SS_USE_RELAYS)
 add_compile_definitions(SS_USE_SEQUENCE)
 add_compile_definitions(SS_USE_JSON_SETTINGS)
-add_compile_definitions(SS_USE_S25FL)
+# add_compile_definitions(SS_USE_S25FL)
 add_compile_definitions(SS_USE_CAN)
 
 create_target()

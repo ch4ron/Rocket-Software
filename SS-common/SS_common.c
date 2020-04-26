@@ -14,9 +14,6 @@ void SS_init(void) {
 #if defined(SS_USE_SUPPLY)
 //    SS_supply_init();
 #endif
-#ifdef SS_RUN_TESTS
-    SS_run_all_tests();
-#endif
     printf("Elon!\r\n");
     SS_FreeRTOS_init();
 }

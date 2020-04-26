@@ -33,7 +33,7 @@
 
 extern void SS_grazyna_UART_RxCpltCallback(UART_HandleTypeDef *huart);
 
-#ifdef RUN_TESTS
+#ifdef SS_RUN_TESTS
 #include "SS_ADS1258_unit_tests.h"
 extern void SS_dynamixel_test_TIM_PeriodElapsedCallback(
     TIM_HandleTypeDef *htim);
@@ -79,8 +79,6 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
     SS_dynamixel_UART_TxCpltCallback(huart);
 #endif
 }
-
-#include "stdio.h"
 
 /* void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) { */
 /*     static uint32_t cnt; */

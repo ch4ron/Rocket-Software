@@ -58,10 +58,8 @@ typedef struct {
 /* =================== Private function prototypes ==================== */
 /* ==================================================================== */
 
-static void SS_com_rx_handler_task(void *pvParameters);
-static void SS_com_tx_handler_task(void *pvParameters);
+ComStatus SS_com_handle_action(ComFrame *frame);
 static ComStatus SS_com_handle_frame(ComFrame *frame);
-static ComStatus SS_com_handle_action(ComFrame *frame);
 static ComStatus SS_com_handle_request(ComFrame *frame);
 static ComStatus SS_com_handle_service(ComFrame *frame);
 
@@ -90,11 +88,6 @@ void SS_com_message_received(ComFrame *frame) {
 void SS_com_init(ComBoardID board) {
     board_id = board;
     /* TODO add macros for priorities */
-    BaseType_t res;
-    res = xTaskCreate(SS_com_rx_handler_task, "Com Rx Handler Task", 128, NULL, 5, NULL);
-    assert(res == pdTRUE);
-    res = xTaskCreate(SS_com_tx_handler_task, "Com Tx Handler Task", 128, NULL, 5, NULL);
-    assert(res == pdTRUE);
     com_queue = xQueueCreate(SS_COM_RX_QUEUE_SIZE, sizeof(ComFrame));
     assert(com_queue != NULL);
     com_queue_set = xQueueCreateSet(SS_COM_QUEUE_SET_SIZE * SS_COM_TX_QUEUE_SIZE);
@@ -132,11 +125,7 @@ void __attribute__((weak)) SS_com_transmit(ComFrame *frame) {
 #endif
 }
 
-/* ==================================================================== */
-/* ======================== Private functions ========================= */
-/* ==================================================================== */
-
-static void SS_com_rx_handler_task(void *pvParameters) {
+void SS_com_rx_handler_task(void *pvParameters) {
     static ComFrame frame_buff;
     while(1) {
         if(xQueueReceive(com_queue, &frame_buff, 2000) == pdTRUE) {
@@ -145,7 +134,7 @@ static void SS_com_rx_handler_task(void *pvParameters) {
     }
 }
 
-static void SS_com_tx_handler_task(void *pvParameters) {
+void SS_com_tx_handler_task(void *pvParameters) {
     QueueHandle_t queue;
     ComSender sender;
     while(1) {
@@ -154,6 +143,10 @@ static void SS_com_tx_handler_task(void *pvParameters) {
         sender.sender_fun(&sender.frame);
     }
 }
+
+/* ==================================================================== */
+/* ======================== Private functions ========================= */
+/* ==================================================================== */
 
 static ComStatus SS_com_handle_frame(ComFrame *frame) {
 #ifdef SS_USE_GRAZYNA
@@ -177,7 +170,7 @@ static ComStatus SS_com_handle_frame(ComFrame *frame) {
     return res;
 }
 
-static ComStatus SS_com_handle_action(ComFrame *frame) {
+ComStatus SS_com_handle_action(ComFrame *frame) {
     ComActionID action = frame->action;
     switch(action) {
         case COM_REQUEST:

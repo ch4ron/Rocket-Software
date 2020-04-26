@@ -5,8 +5,8 @@
  *      Author: maciek
  */
 
+#include "SS_can.c"
 #include "SS_com.h"
-#include "can.h"
 #include "string.h"
 #include "unity_fixture.h"
 

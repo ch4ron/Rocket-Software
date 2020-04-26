@@ -80,6 +80,8 @@ uint8_t SS_ADS1258_getRegisterValue(uint8_t address) {
 }
 
 void SS_ADS1258_init(SPI_HandleTypeDef *hspi) {
+    SS_ADS1258_toggleRESET();
+    HAL_Delay(50);
     ads_spi = hspi;
     SS_ADS1258_measurements_read_VREF();
     SS_ADS1258_measurements_start();
@@ -329,14 +331,14 @@ int32_t SS_ADS1258_getData(uint8_t *stat) {
 
 void SS_ADS1258_parse_data() {
     /* Check if STATUS byte is enabled and if we have a valid "status" memory pointer */
-    if (status_byte_enabled) {
+    if(status_byte_enabled) {
         status = DataRx[dataPosition - 1];
         last_measurement.channel = status & 0b11111;
     }
 
     /* Return the 32-bit sign-extended conversion result */
     int32_t signByte;
-    if (DataRx[dataPosition] & 0x80u) {
+    if(DataRx[dataPosition] & 0x80u) {
         signByte = 0xFF000000;
     } else {
         signByte = 0x00000000;
@@ -348,7 +350,7 @@ void SS_ADS1258_parse_data() {
 
     last_measurement.value = (signByte | upperByte | middleByte | lowerByte);
     SS_ADS1258_measurements_parse(&last_measurement);
-#ifdef RUN_TESTS
+#ifdef SS_RUN_TESTS
     SS_ADS1258_set_data_interrupt_flag();
 #endif
 }
@@ -462,11 +464,11 @@ void SS_ADS1258_toggleRESET(void) {
 }
 
 void SS_ADS1258_EXTI_Callback(uint16_t GPIO_Pin) {
-	if((GPIO_Pin == ADS_DRDY_Pin) && measurements_started) {
-		SS_ADS1258_readDataDMA(COMMAND);
-	}
-#ifdef RUN_TESTS
-	SS_ADS1258_set_nDRDY_interrupt_flag(GPIO_Pin);
+    if((GPIO_Pin == ADS_DRDY_Pin && measurements_started)) {
+        SS_ADS1258_readDataDMA(COMMAND);
+    }
+#ifdef SS_RUN_TESTS
+    SS_ADS1258_set_nDRDY_interrupt_flag(GPIO_Pin);
 #endif
 }
 

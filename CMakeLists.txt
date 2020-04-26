@@ -33,18 +33,22 @@ add_link_options("-u_printf_float")
 
 project(RocketSoftware)
 
-if(${VERBOSE_TEST_OUTPUT})
-    add_compile_definitions(VERBOSE_TEST_OUTPUT UNITY_OUTPUT_COLOR)
+# if(${VERBOSE_TEST_OUTPUT})
+   add_compile_definitions(VERBOSE_TEST_OUTPUT UNITY_OUTPUT_COLOR)
+# endif()
+if("${CMAKE_BUILD_TYPE}" STREQUAL Test)
+   add_compile_definitions(SS_RUN_TESTS)
 endif()
-#if(${CMAKE_BUILD_TYPE} and ${CMAKE_BUILD_TYPE} STREQUAL Test)
-#    add_compile_definitions(SS_RUN_TESTS)
-#endif()
 
 set(ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 macro(create_target)
 
-  target_link_libraries(${PROJECT_NAME}.elf ThrowTheSwitch FreeRTOS hal_driver)
+  get_directory_property(COMPILE_DEFS COMPILE_DEFINITIONS)
+  if(COMPILE_DEFS MATCHES SS_RUN_TESTS)
+    target_link_libraries(${PROJECT_NAME}.elf ThrowTheSwitch)
+  endif()
+  target_link_libraries(${PROJECT_NAME}.elf FreeRTOS hal_driver)
   target_link_common(${PROJECT_NAME}.elf)
   set(CMAKE_EXE_LINKER_FLAGS_INIT "-Wl,-gc-sections,--print-memory-usage -T ${LINKER_SCRIPT}")
   set(CMAKE_EXE_LINKER_FLAGS

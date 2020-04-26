@@ -5,10 +5,10 @@
  *      Author: maciek
  */
 
-#include <com/SS_com.h>
-#include "unity_fixture.h"
-#include "SS_measurements.h"
 #include "SS_ADS1258.h"
+#include "SS_com.h"
+#include "SS_measurements.h"
+#include "unity_fixture.h"
 
 TEST_GROUP(measurements);
 
@@ -29,6 +29,7 @@ TEST_TEAR_DOWN(measurements) {
     SS_ADS1258_measurements_clear();
 }
 
+extern ComStatus SS_com_handle_action(ComFrame* frame);
 extern void SS_ADS1258_measurements_chid_to_channel(uint8_t chid, uint8_t* reg_addr, uint8_t* reg_mask);
 
 TEST(measurements, chid_to_ch) {

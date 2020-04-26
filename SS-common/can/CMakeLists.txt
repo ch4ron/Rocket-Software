@@ -1,16 +1,19 @@
 cmake_minimum_required(VERSION 3.11.1)
 
-project(can C)
+set(TARGET can)
 
-add_library(${PROJECT_NAME} INTERFACE)
+add_library(${TARGET} INTERFACE)
+
 target_include_directories(
-        ${PROJECT_NAME} INTERFACE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
+        ${TARGET} INTERFACE
+        ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_sources(${PROJECT_NAME} INTERFACE
-        ${CMAKE_CURRENT_SOURCE_DIR}/SS_can.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/SS_can_tests.c)
+target_sources(${TARGET} INTERFACE
+  ${CMAKE_CURRENT_SOURCE_DIR}/SS_can.h)
 
-if(NOT TARGET fifo)
-    message(FATAL_ERROR "fifo module required")
-endif()
+target_non_test_sources(${TARGET} INTERFACE
+  ${CMAKE_CURRENT_SOURCE_DIR}/SS_can.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/SS_can.h)
+
+target_test_sources(${TARGET} INTERFACE
+  ${CMAKE_CURRENT_SOURCE_DIR}/SS_can_tests.c)

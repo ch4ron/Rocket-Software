@@ -20,15 +20,14 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-
 #include "adc.h"
 #include "can.h"
 #include "dma.h"
-#include "gpio.h"
 #include "i2c.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
+#include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -74,60 +73,61 @@ void SystemClock_Config(void);
   * @brief  The application entry point.
   * @retval int
   */
-int main(void) {
-    /* USER CODE BEGIN 1 */
+int main(void)
+{
+  /* USER CODE BEGIN 1 */
 
-    /* USER CODE END 1 */
+  /* USER CODE END 1 */
 
-    /* MCU Configuration--------------------------------------------------------*/
+  /* MCU Configuration--------------------------------------------------------*/
 
-    /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-    HAL_Init();
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
 
-    /* USER CODE BEGIN Init */
+  /* USER CODE BEGIN Init */
 
-    /* USER CODE END Init */
+  /* USER CODE END Init */
 
-    /* Configure the system clock */
-    SystemClock_Config();
+  /* Configure the system clock */
+  SystemClock_Config();
 
-    /* USER CODE BEGIN SysInit */
+  /* USER CODE BEGIN SysInit */
 
-    /* USER CODE END SysInit */
+  /* USER CODE END SysInit */
 
-    /* Initialize all configured peripherals */
-    MX_GPIO_Init();
-    MX_DMA_Init();
-    MX_I2C1_Init();
-    MX_UART4_Init();
-    MX_UART5_Init();
-    MX_SPI1_Init();
-    MX_ADC1_Init();
-    MX_SPI4_Init();
-    MX_SPI2_Init();
-    /* USER CODE BEGIN 2 */
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_DMA_Init();
+  MX_I2C1_Init();
+  MX_UART4_Init();
+  MX_UART5_Init();
+  MX_SPI1_Init();
+  MX_ADC1_Init();
+  MX_SPI4_Init();
+  MX_SPI2_Init();
+  /* USER CODE BEGIN 2 */
 
-    MX_CAN1_Init();
-    MX_CAN2_Init();
-    MX_TIM1_Init();
-    MX_TIM4_Init();
-    MX_TIM8_Init();
+    /* MX_CAN1_Init(); */
+    /* MX_CAN2_Init(); */
+    /* MX_TIM1_Init(); */
+    /* MX_TIM4_Init(); */
+    /* MX_TIM8_Init(); */
     HAL_GPIO_WritePin(MPU_CS_GPIO_Port, MPU_CS_Pin, GPIO_PIN_SET);
     SS_platform_init();
     SS_init();
 
-    /* USER CODE END 2 */
+  /* USER CODE END 2 */
 
-    /* Infinite loop */
-    /* USER CODE BEGIN WHILE */
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
     while(1) {
         SS_main();
         //        printf("altitude: %ld, pressure: %ld, uncompressed: %ld\r\n", ms5607.altitude, ms5607.press, ms5607.uncomp_press);
-        /* USER CODE END WHILE */
+    /* USER CODE END WHILE */
 
-        /* USER CODE BEGIN 3 */
+    /* USER CODE BEGIN 3 */
     }
-    /* USER CODE END 3 */
+  /* USER CODE END 3 */
 }
 
 /**
