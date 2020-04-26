@@ -10,6 +10,9 @@ add_custom_command(OUTPUT
   ${MOCK_DIRECTORY}/MockSS_com.h
   COMMAND ${CMOCK_COMMAND}
   ${COM}
+  ${GRAZYNA_HAL}
+  DEPENDS
+  ${COM}
   ${GRAZYNA_HAL})
 
 add_executable(grazyna_test
