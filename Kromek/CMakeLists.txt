@@ -17,7 +17,7 @@ target_include_directories(${PROJECT_NAME}.elf PRIVATE
   Inc)
 
 # DEFINE YOUR LIBRARIES HERE
-#add_compile_definitions(SS_USE_DYNAMIXEL)
+add_compile_definitions(SS_USE_DYNAMIXEL)
 add_compile_definitions(SS_USE_SERVOS)
 add_compile_definitions(SS_USE_COM)
 add_compile_definitions(SS_USE_ADS1258)

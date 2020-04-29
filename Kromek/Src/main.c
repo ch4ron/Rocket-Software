@@ -20,16 +20,15 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-
 #include "adc.h"
 #include "can.h"
 #include "crc.h"
 #include "dma.h"
-#include "gpio.h"
 #include "quadspi.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
+#include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -61,6 +60,8 @@
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+/* USER CODE BEGIN PFP */
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -114,7 +115,7 @@ int main(void) {
     MX_TIM1_Init();
     MX_TIM3_Init();
     MX_TIM8_Init();
-    MX_CRC_Init();
+    /* MX_CRC_Init(); */
 
     HAL_GPIO_WritePin(COM_RED_GPIO_Port, COM_RED_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(COM_BLUE_GPIO_Port, COM_BLUE_Pin, GPIO_PIN_SET);
@@ -124,18 +125,10 @@ int main(void) {
     HAL_GPIO_WritePin(MEM_BLUE_GPIO_Port, MEM_BLUE_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(MEM_GREEN_GPIO_Port, MEM_GREEN_Pin, GPIO_PIN_SET);
     SS_platform_init();
+
     SS_init();
     //  SS_settings_read_json(settings_json);
-    /* ComFrame frame = { */
-    /* .source = COM_KROMEK_ID, */
-    /* .destination = COM_PAUEK_ID, */
-    /* .priority = COM_LOW_PRIORITY, */
-    /* .payload = 0xDDDD1111 */
-    /* }; */
-    ComFrame frame = {.source = COM_KROMEK_ID,
-                      .destination = COM_PAUEK_ID,
-                      .priority = 1,
-                      .payload = 0xFFAABBCC};
+
     HAL_GPIO_WritePin(COM_BLUE_GPIO_Port, COM_BLUE_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(COM_RED_GPIO_Port, COM_RED_Pin, RESET);
     HAL_GPIO_WritePin(ADC_RED_GPIO_Port, ADC_RED_Pin, RESET);
@@ -145,10 +138,6 @@ int main(void) {
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while(1) {
-        SS_main();
-        SS_com_transmit(&frame);
-        HAL_Delay(1000);
-
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */

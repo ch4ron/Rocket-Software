@@ -147,10 +147,12 @@ header file. */
 /* USER CODE BEGIN 1 */
 #define configASSERT(x)           \
     if((x) == 0) {                \
+        printf("Assert\r\n");     \
         taskDISABLE_INTERRUPTS(); \
         for(;;)                   \
             ;                     \
     }
+/* TODO Proper assert */
 /* USER CODE END 1 */
 
 /* Definitions that map the FreeRTOS port interrupt handlers to their CMSIS

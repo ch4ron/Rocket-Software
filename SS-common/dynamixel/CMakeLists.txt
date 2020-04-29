@@ -11,6 +11,8 @@ target_include_directories(
         ${SS_COMMON_DIR}/mutex>)
 
 target_sources(${PROJECT_NAME} INTERFACE
-        ${CMAKE_CURRENT_SOURCE_DIR}/SS_dynamixel.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/SS_dynamixel_tests.c)
+        ${CMAKE_CURRENT_SOURCE_DIR}/SS_dynamixel.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/SS_dynamixel.c)
 
+target_test_sources(${PROJECT_NAME} INTERFACE
+  ${CMAKE_CURRENT_SOURCE_DIR}/SS_dynamixel_tests.c)

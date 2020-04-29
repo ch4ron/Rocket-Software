@@ -12,46 +12,47 @@
 
 /* Includes */
 
+#include "FreeRTOS.h"
+#include "semphr.h"
+#include "stdbool.h"
 #include "stm32f446xx.h"
 #include "usart.h"
-#include "stdbool.h"
-#include "SS_mutex.h"
 
 /* Macros */
 
 #define MAX_PACKET_LENGTH 20
 #define DYNAMIXEL_UART huart1
-#define UART_TIMEOUT 10
+#define UART_TIMEOUT 20
 
 /* Enums */
 
 typedef enum {
     /* Instruction that checks whether the Packet has arrived to a device with the same ID as Packet ID */
-    DYNAMIXEL_PING          = 0x01,
+    DYNAMIXEL_PING = 0x01,
     /* Instruction to read data from the Device */
-    DYNAMIXEL_READ          = 0x02,
+    DYNAMIXEL_READ = 0x02,
     /* Instruction to write data on the Device */
-    DYNAMIXEL_WRITE         = 0x03,
+    DYNAMIXEL_WRITE = 0x03,
     /* Instruction that registers the Instruction Packet to a standby status; Packet is later executed through the Action command */
-    DYNAMIXEL_REG_WRITE     = 0x04,
+    DYNAMIXEL_REG_WRITE = 0x04,
     /* Instruction that executes the Packet that was registered beforehand using Reg Write */
-    DYNAMIXEL_ACTION        = 0x05,
+    DYNAMIXEL_ACTION = 0x05,
     /* Instruction that resets the Control Table to its initial factory default settings */
     DYNAMIXEL_FACTORY_RESET = 0x06,
     /* Instruction to reboot the Device */
-    DYNAMIXEL_REBOOT        = 0x08,
+    DYNAMIXEL_REBOOT = 0x08,
     /* Instruction to reset certain information */
-    DYNAMIXEL_CLEAR         = 0x10,
+    DYNAMIXEL_CLEAR = 0x10,
     /* Return Instruction for the Instruction Packet */
-    DYNAMIXEL_STATUS        = 0x55,
+    DYNAMIXEL_STATUS = 0x55,
     /* For multiple devices, Instruction to read data from the same Address with the same length at once */
-    DYNAMIXEL_SYNC_READ     = 0x82,
+    DYNAMIXEL_SYNC_READ = 0x82,
     /* For multiple devices, Instruction to write data on the same Address with the same length at once */
-    DYNAMIXEL_SYNC_WRITE    = 0x83,
+    DYNAMIXEL_SYNC_WRITE = 0x83,
     /* For multiple devices, Instruction to read data from different Addresses with different lengths at once */
-    DYNAMIXEL_BULK_READ     = 0x92,
+    DYNAMIXEL_BULK_READ = 0x92,
     /* For multiple devices, Instruction to write data on different Addresses with different lengths at once */
-    DYNAMIXEL_BULK_WRITE    = 0x93,
+    DYNAMIXEL_BULK_WRITE = 0x93,
 } Dynamixel_instruction;
 
 typedef enum {
@@ -180,7 +181,8 @@ typedef struct {
     uint8_t temperature;
     bool moving;
     bool torque_enabled;
-    Mutex mutex;
+    SemaphoreHandle_t mutex;
+    QueueHandle_t tx_queue;
     Dynamixel_status last_status;
     bool systick_enabled;
     bool connected;
@@ -216,6 +218,7 @@ typedef struct {
 extern Dynamixel dynamixel;
 
 /* Init */
+void SS_dynamixel_task(void *pvParameters);
 Dynamixel_status SS_dynamixel_init(Dynamixel *servo);
 
 /********** API **********/
@@ -257,14 +260,14 @@ Dynamixel_status SS_dynamixel_transmit(Dynamixel_fifo_bufor *buff);
 Dynamixel_status SS_dynamixel_receive(uint16_t size);
 void SS_dynamixel_send_packet(Dynamixel *servo, Dynamixel_instruction instruction, uint8_t *params, uint16_t params_len);
 
-/********** DMA instructions **********/
-void SS_dynamixel_write_DMA(Dynamixel *servo, uint16_t reg, void *data, uint16_t size);
-void SS_dynamixel_read_DMA(Dynamixel *servo, uint16_t reg, void *data, uint16_t size);
-void SS_dynamixel_ping_DMA(Dynamixel *servo);
+/********** IT instructions **********/
+void SS_dynamixel_write_IT(Dynamixel *servo, uint16_t reg, void *data, uint16_t size);
+void SS_dynamixel_read_IT(Dynamixel *servo, uint16_t reg, void *data, uint16_t size);
+void SS_dynamixel_ping_IT(Dynamixel *servo);
 
-/********** DMA Communication **********/
-void SS_dynamixel_transmit_receive_DMA(Dynamixel_fifo_bufor *buff);
-void SS_dynamixel_send_packet_DMA(Dynamixel *servo, Dynamixel_instruction instruction, uint8_t *params, uint16_t params_len, uint16_t rec_len, uint8_t torque_enabled, void *data);
+/********** IT Communication **********/
+void SS_dynamixel_transmit_receive_IT(Dynamixel_fifo_bufor *buff);
+void SS_dynamixel_send_packet_IT(Dynamixel *servo, Dynamixel_instruction instruction, uint8_t *params, uint16_t params_len, uint16_t rec_len, uint8_t torque_enabled, void *data);
 
 /********** FIFO **********/
 bool SS_dynamixel_send_from_fifo();

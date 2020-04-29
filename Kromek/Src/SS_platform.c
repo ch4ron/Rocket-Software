@@ -7,6 +7,9 @@
 
 #include "SS_can.h"
 #include "SS_common.h"
+#ifdef SS_USE_DYNAMIXEL
+#include "SS_dynamixel.h"
+#endif
 #include "can.h"
 #include "spi.h"
 #include "usart.h"
@@ -126,11 +129,17 @@ Measurement measurements[] = {
           .b_coefficient = 0.75f },
 };
 
-
 static void SS_platform_ADS1258_init() {
     SS_ADS1258_measurements_init(measurements, sizeof(measurements) / sizeof(measurements[0]));
     SS_ADS1258_init(&hspi2);
 }
+
+#ifdef SS_USE_DYNAMIXEL
+Dynamixel dynamixel = {
+    .id = 0x01,
+    .opened_position = 4096,
+};
+#endif
 
 /********** MAIN INIT *********/
 
@@ -139,8 +148,12 @@ void SS_platform_init() {
     SS_platform_servos_init();
     SS_platform_supply_init();
     SS_platform_relays_init();
-    SS_platform_ADS1258_init();
+    /* SS_platform_ADS1258_init(); */
     SS_can_init(&hcan1, COM_KROMEK_ID);
     SS_grazyna_init(&huart2);
+    /* HAL_Delay(100); */
+#ifdef SS_USE_DYNAMIXEL
+    SS_dynamixel_init(&dynamixel);
+#endif
     /* SS_s25fl_init(); */
 }
