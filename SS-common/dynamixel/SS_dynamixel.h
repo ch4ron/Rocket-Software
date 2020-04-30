@@ -15,13 +15,11 @@
 #include "FreeRTOS.h"
 #include "semphr.h"
 #include "stdbool.h"
-#include "stm32f446xx.h"
-#include "usart.h"
+#include "stm32f4xx_hal.h"
 
 /* Macros */
 
 #define MAX_PACKET_LENGTH 20
-#define DYNAMIXEL_UART huart1
 #define UART_TIMEOUT 20
 
 /* Enums */
@@ -187,6 +185,9 @@ typedef struct {
     bool systick_enabled;
     bool connected;
     uint16_t connection_timeout;
+    UART_HandleTypeDef *huart;
+    GPIO_TypeDef *DE_Port;
+    uint16_t DE_Pin;
 } Dynamixel;
 
 typedef struct __attribute__((packed)) {

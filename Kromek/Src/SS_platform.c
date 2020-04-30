@@ -138,7 +138,9 @@ static void SS_platform_ADS1258_init() {
 Dynamixel dynamixel = {
     .id = 0x01,
     .opened_position = 4096,
-};
+    .huart = &huart1,
+    .DE_Port = RS485_DE_GPIO_Port,
+    .DE_Pin = RS485_DE_Pin};
 #endif
 
 /********** MAIN INIT *********/
@@ -148,10 +150,9 @@ void SS_platform_init() {
     SS_platform_servos_init();
     SS_platform_supply_init();
     SS_platform_relays_init();
-    /* SS_platform_ADS1258_init(); */
+    SS_platform_ADS1258_init();
     SS_can_init(&hcan1, COM_KROMEK_ID);
     SS_grazyna_init(&huart2);
-    /* HAL_Delay(100); */
 #ifdef SS_USE_DYNAMIXEL
     SS_dynamixel_init(&dynamixel);
 #endif

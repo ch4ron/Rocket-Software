@@ -124,6 +124,7 @@ int main(void) {
     HAL_GPIO_WritePin(MEM_RED_GPIO_Port, MEM_RED_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(MEM_BLUE_GPIO_Port, MEM_BLUE_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(MEM_GREEN_GPIO_Port, MEM_GREEN_Pin, GPIO_PIN_SET);
+
     SS_platform_init();
 
     SS_init();

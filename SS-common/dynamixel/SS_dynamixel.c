@@ -14,7 +14,6 @@
 #include "SS_dynamixel.h"
 
 #include "SS_error.h"
-#include "SS_fifo.h"
 #include "assert.h"
 #include "string.h"
 
@@ -30,8 +29,6 @@ static bool torque_status;
 static uint16_t rec_size;
 static uint8_t ping_response[3];
 
-FIFO_INIT(dynamixel, 10, Dynamixel_fifo_bufor)
-
 /* ==================================================================== */
 /* ========================= Private macros =========================== */
 /* ==================================================================== */
@@ -45,13 +42,12 @@ FIFO_INIT(dynamixel, 10, Dynamixel_fifo_bufor)
 /* ==================================================================== */
 
 void SS_dynamixel_task(void *pvParameters) {
-    static Dynamixel_fifo_bufor bufff;
+    static Dynamixel_fifo_bufor buf;
     //    Dynamixel *dynamixel = (Dynamixel *) pvParameters;
     while(1) {
-        if(xQueueReceive(dynamixel.tx_queue, &bufff, portMAX_DELAY) == pdTRUE) {
+        if(xQueueReceive(dynamixel.tx_queue, &buf, portMAX_DELAY) == pdTRUE) {
             xSemaphoreTake(dynamixel.mutex, pdMS_TO_TICKS(100));
-
-            SS_dynamixel_transmit_receive_IT(&bufff);
+            SS_dynamixel_transmit_receive_IT(&buf);
         }
     }
 }
@@ -62,12 +58,14 @@ Dynamixel_status SS_dynamixel_init(Dynamixel *servo) {
     assert(servo->mutex != NULL);
     servo->tx_queue = xQueueCreate(10, sizeof(Dynamixel_fifo_bufor));
     assert(servo->tx_queue != NULL);
-    /* SS_dynamixel_disable_torque(servo); */
-    /* HAL_Delay(UART_TIMEOUT); */
+    SS_dynamixel_disable_torque(servo);
+    HAL_Delay(UART_TIMEOUT);
     return res;
 }
 
-/********** API **********/
+/* ==================================================================== */
+/* ========================= Public functions ========================= */
+/* ==================================================================== */
 
 void SS_dynamixel_start_communication(Dynamixel *servo) {
     servo->systick_enabled = true;
@@ -232,9 +230,9 @@ Dynamixel_status SS_dynamixel_ping(Dynamixel *servo) {
 Dynamixel_status SS_dynamixel_transmit(Dynamixel_fifo_bufor *buff) {
     /* if(xSemaphoreTake(dynamixel.mutex, pdMS_TO_TICKS(10))) { */
     memcpy(tx_packet_buff, buff->packet, MAX_PACKET_LENGTH);
-    HAL_UART_AbortReceive(&DYNAMIXEL_UART);
-    HAL_GPIO_WritePin(RS485_DE_GPIO_Port, RS485_DE_Pin, SET);
-    uint8_t res = HAL_UART_Transmit(&DYNAMIXEL_UART, tx_packet_buff, buff->packet_size, 1000);
+    HAL_UART_AbortReceive(dynamixel.huart);
+    HAL_GPIO_WritePin(dynamixel.DE_Port, dynamixel.DE_Pin, SET);
+    uint8_t res = HAL_UART_Transmit(dynamixel.huart, tx_packet_buff, buff->packet_size, 1000);
 
     //    xSemaphoreGive(dynamixel.mutex);
     return DYNAMIXEL_RESULT_OK;
@@ -244,8 +242,8 @@ Dynamixel_status SS_dynamixel_transmit(Dynamixel_fifo_bufor *buff) {
 
 Dynamixel_status SS_dynamixel_receive(uint16_t size) {
     /* if(xSemaphoreTake(dynamixel.mutex, pdMS_TO_TICKS(10))) { */
-    HAL_GPIO_WritePin(RS485_DE_GPIO_Port, RS485_DE_Pin, GPIO_PIN_RESET);
-    uint8_t res = HAL_UART_Receive(&huart1, rx_packet_buff, size, 1000);
+    HAL_GPIO_WritePin(dynamixel.DE_Port, dynamixel.DE_Pin, RESET);
+    uint8_t res = HAL_UART_Receive(dynamixel.huart, rx_packet_buff, size, 1000);
     //    xSemaphoreGive(dynamixel.mutex);
     if(!SS_dynamixel_check_crc(rx_packet_buff, size)) {
         return DYNAMIXEL_REC_CRC_ERROR;
@@ -292,9 +290,8 @@ void SS_dynamixel_transmit_receive_IT(Dynamixel_fifo_bufor *buff) {
     packet_size = buff->packet_size;
     memcpy(tx_packet_buff, buff->packet, MAX_PACKET_LENGTH);
     /* HAL_UART_AbortReceive_IT(&DYNAMIXEL_UART); */
-    HAL_GPIO_WritePin(RS485_DE_GPIO_Port, RS485_DE_Pin, SET);
-
-    HAL_UART_Transmit_IT(&DYNAMIXEL_UART, tx_packet_buff, packet_size);
+    HAL_GPIO_WritePin(dynamixel.DE_Port, dynamixel.DE_Pin, SET);
+    HAL_UART_Transmit_IT(dynamixel.huart, tx_packet_buff, packet_size);
 }
 
 void SS_dynamixel_transmit_IT(Dynamixel_fifo_bufor *buff) {
@@ -315,16 +312,6 @@ void SS_dynamixel_send_packet_IT(Dynamixel *servo, Dynamixel_instruction instruc
 
 void SS_dynamixel_ping_IT(Dynamixel *servo) {
     SS_dynamixel_send_packet_IT(servo, DYNAMIXEL_PING, NULL, 0, 14, servo->torque_enabled, ping_response);
-}
-
-/********** FIFO **********/
-
-bool SS_dynamixel_send_from_fifo() {
-    bool res = false;
-    if((res = SS_fifo_get_data(&dynamixel_fifo, &tmp_packet_buff))) {
-        SS_dynamixel_transmit_receive_IT(&tmp_packet_buff);
-    }
-    return res;
 }
 
 /********** CRC **********/
@@ -378,17 +365,14 @@ Dynamixel_status SS_dynamixel_get_status() {
 /********** Callbacks **********/
 
 void SS_dynamixel_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-    BaseType_t higherPriorityTaskWoken = pdFALSE;
-    if(huart == &DYNAMIXEL_UART) {
+    /* BaseType_t higherPriorityTaskWoken = pdFALSE; */
+    if(huart == dynamixel.huart) {
         dynamixel.connection_timeout = 0;
         dynamixel.connected = true;
         dynamixel.last_status = SS_dynamixel_get_status();
         if(dynamixel.last_status != DYNAMIXEL_RESULT_OK) {
-            /* SS_mutex_unlock(&dynamixel.mutex); */
-
-            xSemaphoreGiveFromISR(dynamixel.mutex, &higherPriorityTaskWoken);
-            portYIELD_FROM_ISR(higherPriorityTaskWoken);
-            /* SS_dynamixel_send_from_fifo(); */
+            /* xSemaphoreGiveFromISR(dynamixel.mutex, &higherPriorityTaskWoken); */
+            /* portYIELD_FROM_ISR(higherPriorityTaskWoken); */
             return;
         }
         switch(GET_INSTRUCTION(tx_packet_buff)) {
@@ -419,16 +403,15 @@ void SS_dynamixel_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
             default:
                 break;
         }
-        xSemaphoreGiveFromISR(dynamixel.mutex, &higherPriorityTaskWoken);
-        portYIELD_FROM_ISR(higherPriorityTaskWoken);
-        /* SS_dynamixel_send_from_fifo(); */
+        /* xSemaphoreGiveFromISR(dynamixel.mutex, &higherPriorityTaskWoken); */
+        /* portYIELD_FROM_ISR(higherPriorityTaskWoken); */
     }
 }
 
 void SS_dynamixel_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
-    if(huart == &DYNAMIXEL_UART) {
-        HAL_GPIO_WritePin(RS485_DE_GPIO_Port, RS485_DE_Pin, RESET);
-        HAL_UART_Receive_IT(&DYNAMIXEL_UART, rx_packet_buff, rec_size);
+    if(huart == dynamixel.huart) {
+        HAL_GPIO_WritePin(dynamixel.DE_Port, dynamixel.DE_Pin, RESET);
+        HAL_UART_Receive_IT(dynamixel.huart, rx_packet_buff, rec_size);
     }
 }
 
@@ -442,34 +425,33 @@ static void (*systick_get_functions[])(Dynamixel*) = {
 /* Note that with measurements_callback disabled, every 100ms a timeout will occur*/
 static inline void SS_dynamixel_connection_timeout_callback() {
     /* TODO Check why 10 pings are sent */
-    dynamixel.connection_timeout++;
-    if(dynamixel.connection_timeout >= 100) {
-        dynamixel.connected = false;
-        SS_mutex_unlock(&dynamixel.mutex);
-        Dynamixel_fifo_bufor ignore;
-        /* Flush queue */
-        for(uint8_t i = 0; i < dynamixel_fifo.buff_size; i++) {
-            if(!SS_fifo_get_data(&dynamixel_fifo, &ignore)) {
-                break;
-            }
-        }
-        SS_dynamixel_ping_IT(&dynamixel);
-        dynamixel.connection_timeout = 0;
-    }
+    /*     dynamixel.connection_timeout++; */
+    /*     if(dynamixel.connection_timeout >= 100) { */
+    /*         dynamixel.connected = false; */
+    /*         SS_mutex_unlock(&dynamixel.mutex); */
+    /*         Dynamixel_fifo_bufor ignore; */
+    /*         /\* Flush queue *\/ */
+    /*         for(uint8_t i = 0; i < dynamixel_fifo.buff_size; i++) { */
+    /*             if(!SS_fifo_get_data(&dynamixel_fifo, &ignore)) { */
+    /*                 break; */
+    /*             } */
+    /*         } */
+    /*         SS_dynamixel_ping_IT(&dynamixel); */
+    /*         dynamixel.connection_timeout = 0; */
+    /*     } */
 }
 
 static inline void SS_dynamixel_measurements_callback() {
     static uint16_t counter = 0;
     if(dynamixel.connected && dynamixel.systick_enabled) {
         counter++;
-        if(counter >= 10*sizeof(systick_get_functions) / sizeof(systick_get_functions[0])) {
+        if(counter >= 10 * sizeof(systick_get_functions) / sizeof(systick_get_functions[0])) {
             counter = 0;
         }
         if(counter % 10 == 0) {
-            systick_get_functions[counter/10](&dynamixel);
+            systick_get_functions[counter / 10](&dynamixel);
         }
     }
-
 }
 
 void SS_dynamixel_SYSTICK_Callback() {
