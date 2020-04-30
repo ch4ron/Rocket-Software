@@ -232,7 +232,7 @@ Dynamixel_status SS_dynamixel_transmit(Dynamixel_fifo_bufor *buff) {
     memcpy(tx_packet_buff, buff->packet, MAX_PACKET_LENGTH);
     HAL_UART_AbortReceive(dynamixel.huart);
     HAL_GPIO_WritePin(dynamixel.DE_Port, dynamixel.DE_Pin, SET);
-    uint8_t res = HAL_UART_Transmit(dynamixel.huart, tx_packet_buff, buff->packet_size, 1000);
+    HAL_UART_Transmit(dynamixel.huart, tx_packet_buff, buff->packet_size, 1000);
 
     //    xSemaphoreGive(dynamixel.mutex);
     return DYNAMIXEL_RESULT_OK;

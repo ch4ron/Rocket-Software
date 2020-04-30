@@ -15,30 +15,10 @@ extern uint8_t tx_packet_buff[MAX_PACKET_LENGTH];
 extern uint8_t rx_packet_buff[MAX_PACKET_LENGTH];
 extern Dynamixel_fifo_bufor tmp_packet_buff;
 
-TEST_GROUP(dynamixel_logic);
-
 /* Connect the servo before running this group */
 TEST_GROUP(dynamixel);
 
-TEST_GROUP_RUNNER(dynamixel_logic) {
-    RUN_TEST_CASE(dynamixel_logic, crc1);
-    RUN_TEST_CASE(dynamixel_logic, crc2);
-    RUN_TEST_CASE(dynamixel_logic, prepare_packet);
-    RUN_TEST_CASE(dynamixel_logic, create_packet);
-    RUN_TEST_CASE(dynamixel_logic, crc_check);
-    RUN_TEST_CASE(dynamixel_logic, crc_check_error);
-    RUN_TEST_CASE(dynamixel_logic, Fifo);
-}
-
 TEST_GROUP_RUNNER(dynamixel) {
-    /* RUN_TEST_CASE(dynamixel_logic, opened_closed_postion); */
-    /* RUN_TEST_CASE(dynamixel_logic, write); */
-    /* RUN_TEST_CASE(dynamixel_logic, read); */
-    /* RUN_TEST_CASE(dynamixel_logic, read_IT); */
-    /* RUN_TEST_CASE(dynamixel_logic, write_IT); */
-    /* RUN_TEST_CASE(dynamixel_logic, write_homing_offset); */
-    /* RUN_TEST_CASE(dynamixel_logic, ping); */
-    /* RUN_TEST_CASE(dynamixel_logic, ping_IT); */
     /* RUN_TEST_CASE(dynamixel, get_position); */
     /* RUN_TEST_CASE(dynamixel, write_read_dma); */
     /* RUN_TEST_CASE(dynamixel, write_read_torque_enabled_IT); */
@@ -74,94 +54,12 @@ TEST_GROUP_RUNNER(dynamixel) {
     RUN_TEST_CASE(dynamixel, factory_reset);
 }
 
-TEST_SETUP(dynamixel_logic) {}
-
-TEST_TEAR_DOWN(dynamixel_logic) {}
-
 TEST_SETUP(dynamixel) {
     SS_enable_supply(&kozackie_servo_supply);
 }
 
 TEST_TEAR_DOWN(dynamixel) {
     SS_dynamixel_stop_communication(&dynamixel);
-}
-
-TEST(dynamixel_logic, crc1) {
-    uint8_t packet[] = { 0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x07, 0x00, 0x55, 0x00, 0x06, 0x04, 0x26 };
-    uint16_t crc = SS_dynamixel_update_crc(0, packet, sizeof(packet));
-    TEST_ASSERT_EQUAL_HEX16(0x5D65, crc);
-}
-
-TEST(dynamixel_logic, crc2) {
-    uint8_t packet[] = { 0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x07, 0x00, 0x02, 0x84, 0x00, 0x04, 0x00 };
-    uint16_t crc = SS_dynamixel_update_crc(0, packet, sizeof(packet));
-    TEST_ASSERT_EQUAL_HEX16(0x151D, crc);
-}
-
-TEST(dynamixel_logic, prepare_packet) {
-    uint8_t expected[] = { 0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x07, 0x00, 0x02, 0x84, 0x00, 0x04, 0x00, 0x1D, 0x15 };
-    Instruction_packet packet = { 0xFDFFFF, 0x00, 0x01, 0x07, 0x02 };
-    uint8_t data[] = { 0x84, 0x00, 0x04, 0x00 };
-    SS_dynamixel_prepare_packet(&packet, data, &tmp_packet_buff);
-    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, tmp_packet_buff.packet, sizeof(expected));
-    TEST_ASSERT_EQUAL_UINT(14, tmp_packet_buff.packet_size);
-}
-
-TEST(dynamixel_logic, create_packet) {
-    uint8_t expected[] = { 0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x07, 0x00, 0x02, 0x84, 0x00, 0x04, 0x00, 0x1D, 0x15 };
-    uint8_t data[] = { 0x84, 0x00, 0x04, 0x00 };
-    SS_dynamixel_create_packet(&dynamixel, 0x02, data, sizeof(data), &tmp_packet_buff);
-    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, tmp_packet_buff.packet, sizeof(expected));
-}
-
-TEST(dynamixel_logic, write) {
-    uint8_t expected[] = { 0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x09, 0x00, 0x03, 0x74, 0x00, 0x00, 0x02, 0x00, 0x00, 0xCA, 0x89 };
-    uint8_t data[] = { 0x00, 0x02, 0x00, 0x00 };
-    SS_dynamixel_write(&dynamixel, 0x74, data, sizeof(data));
-    /* Wait for possible servo disable message to be transmitted */
-    HAL_Delay(UART_TIMEOUT);
-    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, tx_packet_buff, sizeof(expected));
-    HAL_Delay(UART_TIMEOUT);
-}
-
-TEST(dynamixel_logic, write_IT) {
-    uint8_t expected[] = {0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x09, 0x00, 0x03, 0x74, 0x00, 0x00, 0x02, 0x00, 0x00, 0xCA, 0x89};
-    uint8_t data[] = {0x00, 0x02, 0x00, 0x00};
-    SS_dynamixel_write_IT(&dynamixel, 0x74, data, sizeof(data));
-    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, tx_packet_buff, sizeof(expected));
-    HAL_Delay(UART_TIMEOUT);
-}
-
-TEST(dynamixel_logic, read) {
-    uint8_t expected[] = { 0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x07, 0x00, 0x02, 0x84, 0x00, 0x04, 0x00, 0x1D, 0x15 };
-    SS_dynamixel_read(&dynamixel, 0x84, rx_packet_buff, 4);
-    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, tx_packet_buff, sizeof(expected));
-}
-
-TEST(dynamixel_logic, read_IT) {
-    uint8_t expected[] = {0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x07, 0x00, 0x02, 0x84, 0x00, 0x04, 0x00, 0x1D, 0x15};
-    SS_dynamixel_read_IT(&dynamixel, 0x84, rx_packet_buff, 4);
-    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, tx_packet_buff, sizeof(expected));
-    HAL_Delay(UART_TIMEOUT);
-}
-
-TEST(dynamixel_logic, crc_check) {
-    uint8_t data[] = { 0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x09, 0x00, 0x03, 0x74, 0x00, 0x00, 0x02, 0x00, 0x00, 0xCA, 0x89 };
-    uint8_t result = SS_dynamixel_check_crc(data, sizeof(data));
-    TEST_ASSERT_EQUAL_UINT8(true, result);
-}
-
-TEST(dynamixel_logic, crc_check_error) {
-    uint8_t data[] = { 0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x09, 0x00, 0x04, 0x68, 0x00, 0xC8, 0x00, 0x00, 0x00, 0xA9, 0x8E };
-    uint8_t result = SS_dynamixel_check_crc(data, sizeof(data));
-    TEST_ASSERT_EQUAL_UINT8(false, result);
-}
-
-TEST(dynamixel_logic, write_homing_offset) {
-    uint8_t expected[] = { 0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x09, 0x00, 0x03, 0x14, 0x00, 500 & 0xFF, 500 >> 8, 0x00, 0x00 };
-    uint32_t data = 500;
-    SS_dynamixel_write(&dynamixel, DYNAMIXEL_HOMING_OFFSET, &data, 4);
-    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, tx_packet_buff, sizeof(expected));
 }
 
 TEST(dynamixel, factory_reset) {
@@ -347,16 +245,16 @@ TEST(dynamixel, disable_torque_status) {
     TEST_ASSERT_FALSE(dynamixel.torque_enabled);
 }
 
-TEST(dynamixel_logic, Fifo) {
-    /* Dynamixel_fifo_bufor buff = { { 0 }, 0 }; */
-    /* Dynamixel_fifo_bufor packet = { { 33 }, 0 }; */
-    /* while(SS_fifo_get_data(&dynamixel_fifo, &buff)); */
-    /* SS_fifo_put_data(&dynamixel_fifo, &packet); */
-    /* SS_fifo_get_data(&dynamixel_fifo, &buff); */
-    /* TEST_ASSERT_EQUAL_UINT8_ARRAY(packet.packet, buff.packet, MAX_PACKET_LENGTH); */
-    /* bool res = SS_fifo_get_data(&dynamixel_fifo, buff.packet); */
-    /* TEST_ASSERT_FALSE(res); */
-}
+/* TEST(dynamixel_logic, Fifo) { */
+/* Dynamixel_fifo_bufor buff = { { 0 }, 0 }; */
+/* Dynamixel_fifo_bufor packet = { { 33 }, 0 }; */
+/* while(SS_fifo_get_data(&dynamixel_fifo, &buff)); */
+/* SS_fifo_put_data(&dynamixel_fifo, &packet); */
+/* SS_fifo_get_data(&dynamixel_fifo, &buff); */
+/* TEST_ASSERT_EQUAL_UINT8_ARRAY(packet.packet, buff.packet, MAX_PACKET_LENGTH); */
+/* bool res = SS_fifo_get_data(&dynamixel_fifo, buff.packet); */
+/* TEST_ASSERT_FALSE(res); */
+/* } */
 
 TEST(dynamixel, fifo_write) {
     /* uint8_t expected[] = {0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x09, 0x00, 0x03, 0x74, 0x00, 0x00, 0x02, 0x00, 0x00, 0xCA, 0x89}; */
@@ -499,14 +397,6 @@ TEST(dynamixel, systick_temperature) {
     TEST_ASSERT_GREATER_OR_EQUAL(15, dynamixel.temperature);
 }
 
-TEST(dynamixel_logic, opened_closed_postion) {
-    SS_dynamixel_set_closed_position(&dynamixel, 11);
-    SS_dynamixel_set_opened_position(&dynamixel, 3999);
-    TEST_ASSERT_EQUAL(11, dynamixel.closed_position);
-    TEST_ASSERT_EQUAL(3999, dynamixel.opened_position);
-    HAL_Delay(UART_TIMEOUT);
-}
-
 TEST(dynamixel, opened_closed_postion) {
     uint32_t closed_pos = 300;
     uint32_t opened_pos = 700;
@@ -589,19 +479,6 @@ TEST(dynamixel, connection) {
     SS_enable_supply(&kozackie_servo_supply);
     HAL_Delay(500);
     TEST_ASSERT_TRUE(dynamixel.connected);
-}
-
-TEST(dynamixel_logic, ping) {
-    uint8_t expected[] = { 0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x03, 0x00, 0x01, 0x19, 0x4E };
-    SS_dynamixel_ping(&dynamixel);
-    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, tx_packet_buff, sizeof(expected));
-}
-
-TEST(dynamixel_logic, ping_IT) {
-    uint8_t expected[] = {0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x03, 0x00, 0x01, 0x19, 0x4E};
-    SS_dynamixel_ping_IT(&dynamixel);
-    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, tx_packet_buff, sizeof(expected));
-    HAL_Delay(UART_TIMEOUT);
 }
 
 TEST(dynamixel, ping_IT) {
