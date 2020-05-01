@@ -15,6 +15,9 @@
 /* ==================================================================== */
 
 #include "FreeRTOS.h"
+#ifdef SS_USE_SUPPLY
+#include "SS_supply.h"
+#endif
 #include "semphr.h"
 #include "stdbool.h"
 #include "stm32f4xx_hal.h"
@@ -196,6 +199,9 @@ typedef struct {
     UART_HandleTypeDef *huart;
     GPIO_TypeDef *DE_Port;
     uint16_t DE_Pin;
+#ifdef SS_USE_SUPPLY
+    Supply *supply;
+#endif
 } Dynamixel;
 
 typedef struct __attribute__((packed)) {
@@ -253,6 +259,7 @@ DynamixelStatus SS_dynamixel_get_current(Dynamixel *servo);
 DynamixelStatus SS_dynamixel_get_temperature(Dynamixel *servo);
 
 /******** Polling instructions *********/
+
 DynamixelStatus SS_dynamixel_write(Dynamixel *servo, uint16_t reg, void *data, uint16_t size);
 DynamixelStatus SS_dynamixel_read(Dynamixel *servo, uint16_t reg, void *data, uint16_t size);
 DynamixelStatus SS_dynamixel_factory_reset(Dynamixel *servo);

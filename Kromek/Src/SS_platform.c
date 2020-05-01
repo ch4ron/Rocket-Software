@@ -138,9 +138,12 @@ static void SS_platform_ADS1258_init() {
 Dynamixel dynamixel = {
     .id = 0x01,
     .opened_position = 4095,
+    .closed_position = 0,
     .huart = &huart1,
     .DE_Port = RS485_DE_GPIO_Port,
-    .DE_Pin = RS485_DE_Pin};
+    .DE_Pin = RS485_DE_Pin,
+    .supply = &kozackie_servo_supply};
+
 #endif
 
 /********** MAIN INIT *********/

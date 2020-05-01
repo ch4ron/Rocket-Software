@@ -115,7 +115,7 @@ int main(void) {
     MX_TIM1_Init();
     MX_TIM3_Init();
     MX_TIM8_Init();
-    /* MX_CRC_Init(); */
+    MX_CRC_Init();
 
     HAL_GPIO_WritePin(COM_RED_GPIO_Port, COM_RED_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(COM_BLUE_GPIO_Port, COM_BLUE_Pin, GPIO_PIN_SET);

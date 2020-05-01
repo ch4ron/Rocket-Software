@@ -24,6 +24,9 @@
 #ifdef SS_USE_CAN
 #include "SS_can.h"
 #endif
+#ifdef SS_USE_DYNAMIXEL
+#include "SS_dynamixel_com.h"
+#endif
 
 #include "FreeRTOS.h"
 #include "SS_can.h"
@@ -105,8 +108,7 @@ QueueHandle_t SS_com_add_sender() {
 void SS_com_add_to_tx_queue(ComFrame *frame, void (*sender_fun)(ComFrame *), QueueHandle_t queue) {
     ComSender sender = {.sender_fun = sender_fun};
     memcpy(&sender.frame, frame, sizeof(ComFrame));
-    /* TODO put ms not ticks */
-    if(xQueueSend(queue, &sender, 25) != pdTRUE) {
+    if(xQueueSend(queue, &sender, pdMS_TO_TICKS(25)) != pdTRUE) {
         SS_error("Com TX queue full");
     }
 }
@@ -210,6 +212,11 @@ static ComStatus SS_com_handle_request(ComFrame *frame) {
             break;
         case COM_TENSOMETER_ID:
             break;
+#ifdef SS_USE_DYNAMIXEL
+        case COM_DYNAMIXEL_ID:
+            res = SS_dynamixel_com_request(frame);
+            break;
+#endif
         default:
             res = COM_ERROR;
             printf("Unsupported device: %d\r\n", frame->device);
@@ -240,6 +247,11 @@ static ComStatus SS_com_handle_service(ComFrame *frame) {
             break;
         case COM_TENSOMETER_ID:
             break;
+#ifdef SS_USE_DYNAMIXEL
+        case COM_DYNAMIXEL_ID:
+            res = SS_dynamixel_com_service(frame);
+            break;
+#endif
         default:
             res = COM_ERROR;
             SS_error("Unsupported device: %d\r\n", frame->action);

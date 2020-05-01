@@ -92,6 +92,7 @@ void print_payload(ComFrame *frame) {
 }
 
 void SS_com_debug_print_frame(ComFrame *frame, char *title, char *color) {
+#ifdef SS_COM_DEBUG
     printf("%s%s\t", color, title);
     printf("From: ");
     print_board(frame->source, color);
@@ -105,6 +106,7 @@ void SS_com_debug_print_frame(ComFrame *frame, char *title, char *color) {
     printf("\t operation: 0x%02x%s", frame->operation, color);
     print_payload(frame);
     printf("\r\n");
+#endif
 }
 
 void SS_can_print_message_received(ComFrame *frame) {

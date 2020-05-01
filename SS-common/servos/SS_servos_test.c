@@ -14,6 +14,8 @@
 extern Servo *servo_pointers[MAX_SERVO_COUNT];
 extern uint16_t SS_servo_get_width(uint16_t position);
 extern ServosConfig servos_config;
+extern ComStatus SS_com_handle_action(ComFrame *frame);
+
 ServosConfig tmp_config;
 
 TEST_GROUP(servos);

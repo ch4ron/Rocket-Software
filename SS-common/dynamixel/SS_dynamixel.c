@@ -13,6 +13,7 @@
 
 #include "SS_error.h"
 #include "assert.h"
+#include "stdio.h"
 #include "string.h"
 
 /* ==================================================================== */
@@ -57,6 +58,9 @@ DynamixelStatus SS_dynamixel_init(Dynamixel *servo) {
     xSemaphoreGive(servo->mutex);
     servo->tx_queue = xQueueCreate(10, sizeof(DynamixelMessage));
     assert(servo->tx_queue != NULL);
+#ifdef SS_USE_SUPPLY
+    SS_enable_supply(servo->supply);
+#endif
     return res;
 }
 
