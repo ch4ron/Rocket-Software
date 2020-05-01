@@ -20,6 +20,7 @@ TEST_SETUP(relays) {}
 TEST_TEAR_DOWN(relays) {}
 
 extern Relay *relay_pointers[MAX_RELAY_COUNT];
+extern ComStatus SS_com_handle_action(ComFrame *frame);
 
 static void test_relay_open(Relay *relay) {
     SS_relay_close(relay);

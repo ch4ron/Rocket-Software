@@ -33,17 +33,17 @@ add_link_options("-u_printf_float")
 
 project(RocketSoftware)
 
-# if(${VERBOSE_TEST_OUTPUT})
-   add_compile_definitions(VERBOSE_TEST_OUTPUT UNITY_OUTPUT_COLOR)
-# endif()
+if(${VERBOSE_TEST_OUTPUT})
+   add_compile_definitions(VERBOSE_TEST_OUTPUT)
+endif()
 if("${CMAKE_BUILD_TYPE}" STREQUAL Test)
+   add_compile_definitions(UNITY_OUTPUT_COLOR)
    add_compile_definitions(SS_RUN_TESTS)
 endif()
 
 set(ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 macro(create_target)
-
   get_directory_property(COMPILE_DEFS COMPILE_DEFINITIONS)
   if(COMPILE_DEFS MATCHES SS_RUN_TESTS)
     target_link_libraries(${PROJECT_NAME}.elf ThrowTheSwitch)
@@ -75,6 +75,7 @@ macro(create_target)
     "loadfile ${HEX_FILE}"
     "r"
     "exit")
+
   set(JLINK_FILE ${CMAKE_CURRENT_BINARY_DIR}/commands.jlink)
   file(REMOVE ${JLINK_FILE})
   file(TOUCH ${JLINK_FILE})

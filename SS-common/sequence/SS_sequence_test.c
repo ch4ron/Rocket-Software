@@ -200,6 +200,7 @@ static void fun(uint32_t value) {
 }
 
 TEST(sequence, run) {
+    TEST_IGNORE();
     for(int i = 0; i < MAX_SEQUENCE_ITEMS; i++) {
         SS_sequence_add(fun, i + 1, (i + 1) * (MAX_SEQUENCE_ITEMS + 5));
     }

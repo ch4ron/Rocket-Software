@@ -10,19 +10,25 @@
 #ifndef SS_DYNAMIXEL_H_
 #define SS_DYNAMIXEL_H_
 
-/* Includes */
+/* ==================================================================== */
+/* ============================= Includes ============================= */
+/* ==================================================================== */
 
 #include "FreeRTOS.h"
 #include "semphr.h"
 #include "stdbool.h"
 #include "stm32f4xx_hal.h"
 
-/* Macros */
+/* ==================================================================== */
+/* ============================= Macros =============================== */
+/* ==================================================================== */
 
 #define MAX_PACKET_LENGTH 20
 #define UART_TIMEOUT 20
 
-/* Enums */
+/* ==================================================================== */
+/* ============================ Datatypes ============================= */
+/* ==================================================================== */
 
 typedef enum {
     /* Instruction that checks whether the Packet has arrived to a device with the same ID as Packet ID */
@@ -166,8 +172,6 @@ typedef enum {
     DYNAMIXEL_INDIRECT_DATA_56          = 661,
 } Dynamixel_ID;
 
-/* Structs */
-
 typedef struct {
     uint8_t id;
     int32_t goal_position;
@@ -219,21 +223,21 @@ typedef struct {
     bool torque_status;
 } DynamixelMessage;
 
-/* Global variables */
+/* ==================================================================== */
+/* ========================= Extern variables ========================= */
+/* ==================================================================== */
+
 extern Dynamixel dynamixel;
 
-/* Init */
-void SS_dynamixel_task(void *pvParameters);
+/* ==================================================================== */
+/* ==================== Public function prototypes ==================== */
+/* ==================================================================== */
+
+/***************** API *****************/
+
 DynamixelStatus SS_dynamixel_init(Dynamixel *servo);
-
-/********** API **********/
-void SS_dynamixel_start_communication(Dynamixel *servo);
-void SS_dynamixel_stop_communication(Dynamixel *servo);
-
 DynamixelStatus SS_dynamixel_open(Dynamixel *servo);
 DynamixelStatus SS_dynamixel_close(Dynamixel *servo);
-
-/* Setters */
 DynamixelStatus SS_dynamixel_enable_torque(Dynamixel *servo);
 DynamixelStatus SS_dynamixel_disable_torque(Dynamixel *servo);
 DynamixelStatus SS_dynamixel_enable_led(Dynamixel *servo);
@@ -243,32 +247,20 @@ DynamixelStatus SS_dynamixel_set_velocity(Dynamixel *servo, uint32_t velocity);
 DynamixelStatus SS_dynamixel_set_velocity_limit(Dynamixel *servo, uint32_t limit);
 DynamixelStatus SS_dynamixel_set_opened_position(Dynamixel *servo, uint32_t position);
 DynamixelStatus SS_dynamixel_set_closed_position(Dynamixel *servo, uint32_t position);
-
-void SS_dynamixel_enable_torque_IT(Dynamixel *servo);
-/* Getters */
 DynamixelStatus SS_dynamixel_get_position(Dynamixel *servo);
 DynamixelStatus SS_dynamixel_get_moving(Dynamixel *servo);
 DynamixelStatus SS_dynamixel_get_current(Dynamixel *servo);
 DynamixelStatus SS_dynamixel_get_temperature(Dynamixel *servo);
 
-/********** Polling instructions **********/
+/******** Polling instructions *********/
 DynamixelStatus SS_dynamixel_write(Dynamixel *servo, uint16_t reg, void *data, uint16_t size);
 DynamixelStatus SS_dynamixel_read(Dynamixel *servo, uint16_t reg, void *data, uint16_t size);
 DynamixelStatus SS_dynamixel_factory_reset(Dynamixel *servo);
 DynamixelStatus SS_dynamixel_ping(Dynamixel *servo);
 
-/********** IT instructions **********/
-void SS_dynamixel_write_IT(Dynamixel *servo, uint16_t reg, void *data, uint16_t size);
-void SS_dynamixel_read_IT(Dynamixel *servo, uint16_t reg, void *data, uint16_t size);
-void SS_dynamixel_ping_IT(Dynamixel *servo);
+/************** Callabcks ***************/
 
-/********** IT Communication **********/
-void SS_dynamixel_transmit_receive_IT(DynamixelMessage *buff);
-void SS_dynamixel_send_packet_IT(Dynamixel *servo, DynamixelInstruction instruction, uint8_t *params, uint16_t params_len, uint16_t rec_len, uint8_t torque_enabled, void *data);
-
-/********** Callbacks **********/
 void SS_dynamixel_UART_RxCpltCallback(UART_HandleTypeDef *huart);
 void SS_dynamixel_UART_TxCpltCallback(UART_HandleTypeDef *huart);
-void SS_dynamixel_SYSTICK_Callback();
 
 #endif /* SS_DYNAMIXEL_H_ */

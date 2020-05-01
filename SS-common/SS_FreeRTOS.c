@@ -19,6 +19,7 @@ static void vLEDFlashTask(void *pvParameters) {
 }
 
 #ifdef SS_RUN_TESTS
+#include "SS_common.h"
 static void run_tests_task(void *pvParameters) {
     SS_run_all_tests();
     vTaskDelete(NULL);
@@ -38,10 +39,6 @@ __weak void vApplicationStackOverflowHook(xTaskHandle xTask,
 static void SS_FreeRTOS_create_tasks(void) {
     BaseType_t res;
     res = xTaskCreate(vLEDFlashTask, "LEDx", 128, NULL, 2, (TaskHandle_t *) NULL);
-    assert(res == pdTRUE);
-#ifdef SS_USE_DYNAMIXEL
-    res = xTaskCreate(SS_dynamixel_task, "Dynamixel task", 128, &dynamixel, 7, (TaskHandle_t *) NULL);
-#endif
     assert(res == pdTRUE);
 #ifdef SS_USE_COM
     res = xTaskCreate(SS_com_rx_handler_task, "Com Rx Handler Task", 128, NULL, 5, NULL);

@@ -44,39 +44,30 @@ TEST_TEAR_DOWN(supply_control) {
     kozackie_servo_supply_status ? SS_enable_supply(&kozackie_servo_supply) : SS_disable_supply(&kozackie_servo_supply);
 }
 
-static void run_supply_test(Supply *supply, float min_voltage, float max_voltage) {
+static void run_supply_test(Supply *supply, float target, float delta) {
     TEST_ASSERT_FALSE(SS_supply_get_state(supply));
-    if(supply->measurement.value > 0.7f) {
-        printf("\r\nVoltage is equal to: %f", supply->measurement.value);
-        TEST_FAIL_MESSAGE("Supply not turned off");
-    }
+    TEST_ASSERT_FLOAT_WITHIN(0.7f, 0.0f, supply->measurement.value);
     SS_enable_supply(supply);
     HAL_Delay(10);
     TEST_ASSERT_TRUE(SS_supply_get_state(supply));
-    if(supply->measurement.value < min_voltage) {
-        printf("\r\nVoltage is equal to: %f", supply->measurement.value);
-        TEST_FAIL_MESSAGE("Supply voltage too low");
-    }
-    if(supply->measurement.value > max_voltage) {
-        printf("\r\nVoltage is equal to: %f", supply->measurement.value);
-        TEST_FAIL_MESSAGE("Supply voltage too high");
-    }
+    TEST_ASSERT_FLOAT_WITHIN(0.7f, 0.0f, supply->measurement.value);
+    TEST_ASSERT_FLOAT_WITHIN(delta, target, supply->measurement.value);
 }
 
 TEST(supply_control, relay_supply) {
-    run_supply_test(&relay_supply, 11.8f, 12.2f);
+    run_supply_test(&relay_supply, 12.0f, 0.2f);
 }
 
 TEST(supply_control, servos1_supply) {
-    run_supply_test(&servos1_supply, 4.8f, 8.5f);
+    run_supply_test(&servos1_supply, 6.0f, 2.5f);
 }
 
 TEST(supply_control, servos2_supply) {
-    run_supply_test(&servos2_supply, 4.8f, 8.5f);
+    run_supply_test(&servos2_supply, 6.0f, 2.5f);
 }
 
 TEST(supply_control, kozackie_servo_supply) {
-    run_supply_test(&kozackie_servo_supply, 11.8f, 12.2f);
+    run_supply_test(&kozackie_servo_supply, 12.0f, 0.2f);
 }
 
 static void test_supply_timeout(Supply *supply) {

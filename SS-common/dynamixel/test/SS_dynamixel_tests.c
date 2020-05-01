@@ -31,16 +31,12 @@ TEST_GROUP_RUNNER(dynamixel) {
     RUN_TEST_CASE(dynamixel, crc_check_error);
     RUN_TEST_CASE(dynamixel, write);
     RUN_TEST_CASE(dynamixel, read);
-    /* RUN_TEST_CASE(dynamixel, read_IT); */
-    /* RUN_TEST_CASE(dynamixel, write_IT); */
     RUN_TEST_CASE(dynamixel, write_homing_offset);
     RUN_TEST_CASE(dynamixel, ping);
-    /* RUN_TEST_CASE(dynamixel, ping_IT); */
     RUN_TEST_CASE(dynamixel, opened_closed_postion);
 }
 
-TEST_SETUP(dynamixel) {
-}
+TEST_SETUP(dynamixel) {}
 
 TEST_TEAR_DOWN(dynamixel) {}
 
@@ -49,6 +45,7 @@ static void ignore_all() {
     HAL_GPIO_WritePin_Ignore();
     xQueueGenericSend_IgnoreAndReturn(pdTRUE);
     HAL_UART_Transmit_IgnoreAndReturn(HAL_OK);
+    HAL_UART_Transmit_IT_IgnoreAndReturn(HAL_OK);
     HAL_UART_Receive_IgnoreAndReturn(HAL_OK);
 }
 
@@ -80,13 +77,13 @@ TEST(dynamixel, set_closed_position) {
 
 TEST(dynamixel, crc1) {
     uint8_t packet[] = {0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x07, 0x00, 0x55, 0x00, 0x06, 0x04, 0x26};
-    uint16_t crc = SS_dynamixel_update_crc(0, packet, sizeof(packet));
+    uint16_t crc = SS_dynamixel_calculate_crc(0, packet, sizeof(packet));
     TEST_ASSERT_EQUAL_HEX16(0x5D65, crc);
 }
 
 TEST(dynamixel, crc2) {
     uint8_t packet[] = {0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x07, 0x00, 0x02, 0x84, 0x00, 0x04, 0x00};
-    uint16_t crc = SS_dynamixel_update_crc(0, packet, sizeof(packet));
+    uint16_t crc = SS_dynamixel_calculate_crc(0, packet, sizeof(packet));
     TEST_ASSERT_EQUAL_HEX16(0x151D, crc);
 }
 
@@ -119,13 +116,6 @@ TEST(dynamixel, write) {
     TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, dynamixel.tx_packet_buff, sizeof(expected));
 }
 
-TEST(dynamixel, write_IT) {
-    uint8_t expected[] = {0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x09, 0x00, 0x03, 0x74, 0x00, 0x00, 0x02, 0x00, 0x00, 0xCA, 0x89};
-    uint8_t data[] = {0x00, 0x02, 0x00, 0x00};
-    xQueueGenericSend_ExpectWithArrayAndReturn(dynamixel.tx_queue, expected, sizeof(expected), 100, queueSEND_TO_BACK, pdTRUE);
-    SS_dynamixel_write_IT(&dynamixel, 0x74, data, sizeof(data));
-}
-
 TEST(dynamixel, read) {
     HAL_UART_AbortReceive_IgnoreAndReturn(0);
     HAL_GPIO_WritePin_Ignore();
@@ -133,13 +123,6 @@ TEST(dynamixel, read) {
     HAL_UART_Transmit_ExpectWithArrayAndReturn(0, 0, expected, sizeof(expected), sizeof(expected), 1000, HAL_OK);
     SS_dynamixel_read(&dynamixel, 0x84, dynamixel.rx_packet_buff, 4);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, dynamixel.tx_packet_buff, sizeof(expected));
-}
-
-TEST(dynamixel, read_IT) {
-    HAL_GPIO_WritePin_Ignore();
-    uint8_t expected[] = {0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x07, 0x00, 0x02, 0x84, 0x00, 0x04, 0x00, 0x1D, 0x15};
-    xQueueGenericSend_ExpectWithArrayAndReturn(dynamixel.tx_queue, expected, sizeof(expected), 100, queueSEND_TO_BACK, pdTRUE);
-    SS_dynamixel_read_IT(&dynamixel, 0x84, dynamixel.rx_packet_buff, 4);
 }
 
 TEST(dynamixel, crc_check) {
@@ -170,14 +153,6 @@ TEST(dynamixel, ping) {
     uint8_t expected[] = {0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x03, 0x00, 0x01, 0x19, 0x4E};
     HAL_UART_Transmit_ExpectWithArrayAndReturn(0, 0, expected, sizeof(expected), sizeof(expected), 1000, HAL_OK);
     SS_dynamixel_ping(&dynamixel);
-    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, dynamixel.tx_packet_buff, sizeof(expected));
-}
-
-TEST(dynamixel, ping_IT) {
-    HAL_GPIO_WritePin_Ignore();
-    uint8_t expected[] = {0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x03, 0x00, 0x01, 0x19, 0x4E};
-    xQueueGenericSend_ExpectWithArrayAndReturn(dynamixel.tx_queue, expected, sizeof(expected), 100, queueSEND_TO_BACK, pdTRUE);
-    SS_dynamixel_ping_IT(&dynamixel);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, dynamixel.tx_packet_buff, sizeof(expected));
 }
 

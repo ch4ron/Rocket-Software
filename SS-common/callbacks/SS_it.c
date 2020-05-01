@@ -101,11 +101,10 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 //    printf("rxcptl half callback\r\n");
 //}
 
-// void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
-//    if(huart == &huart2)
-//    printf("uart error callback\r\n");
-
-//}
+/* void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) { */
+/* if(huart == &huart2) */
+/* printf("uart error callback: %d\r\n", huart->ErrorCode); */
+/* } */
 
 #ifdef SS_USE_S25FL
 void HAL_QSPI_TxCpltCallback(QSPI_HandleTypeDef *hqspi) {
@@ -123,9 +122,6 @@ void HAL_SYSTICK_Callback() {
 #endif
 #ifdef SS_USE_SUPPLY
     SS_supply_SYSTICK();
-#endif
-#ifdef SS_USE_DYNAMIXEL
-    SS_dynamixel_SYSTICK_Callback();
 #endif
 #ifdef SS_USE_SEQUENCE
     SS_sequence_SYSTICK();
