@@ -11,8 +11,6 @@
 #include "SS_supply.h"
 #include "unity_fixture.h"
 
-extern uint8_t tx_packet_buff[MAX_PACKET_LENGTH];
-extern uint8_t rx_packet_buff[MAX_PACKET_LENGTH];
 static DynamixelStatus res;
 /* Connect the servo before running this group */
 TEST_GROUP(dynamixel);
@@ -22,24 +20,27 @@ TEST_GROUP_RUNNER(dynamixel) {
     vTaskDelay(1000);
     RUN_TEST_CASE(dynamixel, open);
     RUN_TEST_CASE(dynamixel, close);
-    RUN_TEST_CASE(dynamixel, read);
     RUN_TEST_CASE(dynamixel, get_position);
+    RUN_TEST_CASE(dynamixel, disable_torque);
+    RUN_TEST_CASE(dynamixel, enable_torque);
+    RUN_TEST_CASE(dynamixel, enable_led);
+    RUN_TEST_CASE(dynamixel, disable_led);
+    RUN_TEST_CASE(dynamixel, set_position);
+    RUN_TEST_CASE(dynamixel, set_velocity);
+    RUN_TEST_CASE(dynamixel, set_velocity_limit);
+    RUN_TEST_CASE(dynamixel, set_opened_position);
+    RUN_TEST_CASE(dynamixel, set_closed_position);
+    RUN_TEST_CASE(dynamixel, get_moving);
+    RUN_TEST_CASE(dynamixel, read);
+    RUN_TEST_CASE(dynamixel, write_read_torque_enabled);
+    RUN_TEST_CASE(dynamixel, write_read_torque_disabled);
     /* RUN_TEST_CASE(dynamixel, write_read_dma); */
     /* RUN_TEST_CASE(dynamixel, write_read_torque_enabled_IT); */
     /* RUN_TEST_CASE(dynamixel, ping_IT); */
     /* RUN_TEST_CASE(dynamixel, connection); */
     /* RUN_TEST_CASE(dynamixel, write_read_torque_disabled_IT); */
-    RUN_TEST_CASE(dynamixel, read);
-    RUN_TEST_CASE(dynamixel, write_read_torque_enabled);
-    RUN_TEST_CASE(dynamixel, write_read_torque_disabled);
-    RUN_TEST_CASE(dynamixel, set_velocity_limit);
-    RUN_TEST_CASE(dynamixel, ping);
-    RUN_TEST_CASE(dynamixel, enable_led);
-    RUN_TEST_CASE(dynamixel, enable_torque);
-    RUN_TEST_CASE(dynamixel, disable_torque);
-    RUN_TEST_CASE(dynamixel, set_position);
-    RUN_TEST_CASE(dynamixel, enable_torque_status);
-    RUN_TEST_CASE(dynamixel, disable_torque_status);
+
+    /* RUN_TEST_CASE(dynamixel, ping); */
     /* RUN_TEST_CASE(dynamixel, fifo_write); */
     /* RUN_TEST_CASE(dynamixel, fifo_multiple_messages); */
     /* RUN_TEST_CASE(dynamixel, IT_stress_test1); */
@@ -55,7 +56,7 @@ TEST_GROUP_RUNNER(dynamixel) {
     /*     RUN_TEST_CASE(dynamixel, opened_closed_postion_inverse); */
     /*     RUN_TEST_CASE(dynamixel, opened_limit); */
     /*     RUN_TEST_CASE(dynamixel, closed_limit); */
-    /* RUN_TEST_CASE(dynamixel, factory_reset); */
+    RUN_TEST_CASE(dynamixel, factory_reset);
 }
 
 TEST_SETUP(dynamixel) {
@@ -89,11 +90,14 @@ TEST(dynamixel, close) {
 TEST(dynamixel, enable_torque) {
     uint8_t value;
     uint8_t expected[] = {0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x04, 0x00, 0x55, 0x00, 0xA1, 0x0C};
-    res = SS_dynamixel_enable_torque(&dynamixel);
+
+    /* Disable torque to ensure enable message is sent */
+    res = SS_dynamixel_disable_torque(&dynamixel);
     TEST_ASSERT_EQUAL_UINT8(DYNAMIXEL_RESULT_OK, res);
 
-    vTaskDelay(pdMS_TO_TICKS(UART_TIMEOUT));
-    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, rx_packet_buff, sizeof(expected));
+    res = SS_dynamixel_enable_torque(&dynamixel);
+    TEST_ASSERT_EQUAL_UINT8(DYNAMIXEL_RESULT_OK, res);
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, dynamixel.rx_packet_buff, sizeof(expected));
 
     res = SS_dynamixel_read(&dynamixel, DYNAMIXEL_TORQUE_ENABLE, &value, 1);
     TEST_ASSERT_EQUAL_UINT8(DYNAMIXEL_RESULT_OK, res);
@@ -103,53 +107,121 @@ TEST(dynamixel, enable_torque) {
 TEST(dynamixel, disable_torque) {
     uint8_t value;
     uint8_t expected[] = {0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x04, 0x00, 0x55, 0x00, 0xA1, 0x0C};
+
+    /* Enable torque to ensure enable message is sent */
+    res = SS_dynamixel_enable_torque(&dynamixel);
+    TEST_ASSERT_EQUAL_UINT8(DYNAMIXEL_RESULT_OK, res);
+
     res = SS_dynamixel_disable_torque(&dynamixel);
     TEST_ASSERT_EQUAL_UINT8(DYNAMIXEL_RESULT_OK, res);
-    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, rx_packet_buff, sizeof(expected));
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, dynamixel.rx_packet_buff, sizeof(expected));
 
     res = SS_dynamixel_read(&dynamixel, DYNAMIXEL_TORQUE_ENABLE, &value, 1);
     TEST_ASSERT_EQUAL_UINT8(DYNAMIXEL_RESULT_OK, res);
     TEST_ASSERT_EQUAL_UINT8(0x00, value);
 }
 
+TEST(dynamixel, enable_led) {
+    uint8_t expected[] = {0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x04, 0x00, 0x55, 0x00, 0xA1, 0x0C};
+    res = SS_dynamixel_enable_led(&dynamixel);
+    TEST_ASSERT_EQUAL_UINT8(DYNAMIXEL_RESULT_OK, res);
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, dynamixel.rx_packet_buff, sizeof(expected));
+}
+
+TEST(dynamixel, disable_led) {
+    uint8_t expected[] = {0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x04, 0x00, 0x55, 0x00, 0xA1, 0x0C};
+    res = SS_dynamixel_disable_led(&dynamixel);
+    TEST_ASSERT_EQUAL_UINT8(DYNAMIXEL_RESULT_OK, res);
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, dynamixel.rx_packet_buff, sizeof(expected));
+}
+
+TEST(dynamixel, set_position) {
+    uint32_t value;
+    uint8_t expected[] = {0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x04, 0x00, 0x55, 0x00, 0xA1, 0x0C};
+
+    res = SS_dynamixel_set_goal_position(&dynamixel, 333);
+    TEST_ASSERT_EQUAL_UINT8(DYNAMIXEL_RESULT_OK, res);
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, dynamixel.rx_packet_buff, sizeof(expected));
+
+    res = SS_dynamixel_read(&dynamixel, DYNAMIXEL_GOAL_POSITION, &value, 4);
+    TEST_ASSERT_EQUAL_UINT8(DYNAMIXEL_RESULT_OK, res);
+    TEST_ASSERT_EQUAL_UINT32(333, value);
+}
+
+TEST(dynamixel, set_velocity) {
+    uint32_t velocity;
+    SS_dynamixel_set_velocity(&dynamixel, 22);
+
+    res = SS_dynamixel_read(&dynamixel, DYNAMIXEL_GOAL_VELOCITY, &velocity, 4);
+    TEST_ASSERT_EQUAL_UINT8(DYNAMIXEL_RESULT_OK, res);
+    TEST_ASSERT_EQUAL_UINT32(22, velocity);
+}
+
+TEST(dynamixel, set_velocity_limit) {
+    uint32_t limit;
+    SS_dynamixel_set_velocity_limit(&dynamixel, 1023);
+
+    res = SS_dynamixel_read(&dynamixel, DYNAMIXEL_VELOCITY_LIMIT, &limit, 4);
+    TEST_ASSERT_EQUAL_UINT8(DYNAMIXEL_RESULT_OK, res);
+    TEST_ASSERT_EQUAL_UINT32(1023, limit);
+}
+
+TEST(dynamixel, set_opened_position) {
+    uint32_t value;
+
+    res = SS_dynamixel_set_opened_position(&dynamixel, 555);
+    TEST_ASSERT_EQUAL_UINT8(DYNAMIXEL_RESULT_OK, res);
+
+    res = SS_dynamixel_read(&dynamixel, DYNAMIXEL_MAX_POSITION_LIMIT, &value, 4);
+    TEST_ASSERT_EQUAL_UINT8(DYNAMIXEL_RESULT_OK, res);
+    TEST_ASSERT_EQUAL_UINT32(555, value);
+}
+
+TEST(dynamixel, set_closed_position) {
+    uint32_t value;
+
+    res = SS_dynamixel_set_closed_position(&dynamixel, 123);
+    TEST_ASSERT_EQUAL_UINT8(DYNAMIXEL_RESULT_OK, res);
+
+    res = SS_dynamixel_read(&dynamixel, DYNAMIXEL_MIN_POSITION_LIMIT, &value, 4);
+    TEST_ASSERT_EQUAL_UINT8(DYNAMIXEL_RESULT_OK, res);
+    TEST_ASSERT_EQUAL_UINT32(123, value);
+}
+
+TEST(dynamixel, get_moving) {
+    SS_dynamixel_set_goal_position(&dynamixel, 222);
+    SS_dynamixel_set_goal_position(&dynamixel, 333);
+    uint32_t start = HAL_GetTick();
+    while(HAL_GetTick() - start < 2500) {
+        SS_dynamixel_get_moving(&dynamixel);
+        vTaskDelay(pdMS_TO_TICKS(2 * UART_TIMEOUT));
+        if(dynamixel.moving) {
+            return;
+        }
+    }
+    TEST_FAIL_MESSAGE("Moving not true");
+}
+
 TEST(dynamixel, factory_reset) {
     uint8_t expected[] = {0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x04, 0x00, 0x55, 0x00, 0xA1, 0x0C};
     uint8_t res = SS_dynamixel_factory_reset(&dynamixel);
-    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, rx_packet_buff, sizeof(expected));
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, dynamixel.rx_packet_buff, sizeof(expected));
     TEST_ASSERT_EQUAL_UINT8(DYNAMIXEL_RESULT_OK, res);
 }
 
 TEST(dynamixel, ping) {
     uint8_t expected[] = {0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x07, 0x00, 0x55, 0x00};
     uint8_t res = SS_dynamixel_ping(&dynamixel);
-    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, rx_packet_buff, sizeof(expected));
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, dynamixel.rx_packet_buff, sizeof(expected));
     TEST_ASSERT_EQUAL_UINT8(DYNAMIXEL_RESULT_OK, res);
     vTaskDelay(pdMS_TO_TICKS(UART_TIMEOUT));
-}
-
-TEST(dynamixel, enable_led) {
-    uint8_t expected[] = {0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x04, 0x00, 0x55, 0x00, 0xA1, 0x0C};
-    SS_dynamixel_enable_led(&dynamixel);
-    vTaskDelay(pdMS_TO_TICKS(UART_TIMEOUT));
-    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, rx_packet_buff, sizeof(expected));
-}
-
-TEST(dynamixel, set_position) {
-    uint32_t value;
-    uint8_t expected[] = {0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x04, 0x00, 0x55, 0x00, 0xA1, 0x0C};
-    SS_dynamixel_enable_torque(&dynamixel);
-    SS_dynamixel_set_goal_position(&dynamixel, 333);
-    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, rx_packet_buff, sizeof(expected));
-    uint8_t res = SS_dynamixel_read(&dynamixel, DYNAMIXEL_GOAL_POSITION, &value, 4);
-    TEST_ASSERT_EQUAL_UINT8(DYNAMIXEL_RESULT_OK, res);
-    TEST_ASSERT_EQUAL_UINT32(333, value);
 }
 
 TEST(dynamixel, read) {
-    uint8_t expected[] = { 0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x05, 0x00, 0x55, 0x00, 0x01 };
+    uint8_t expected[] = {0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x05, 0x00, 0x55, 0x00, 0x01};
     uint8_t data;
     uint8_t res = SS_dynamixel_read(&dynamixel, DYNAMIXEL_ID, &data, 1);
-    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, rx_packet_buff, sizeof(expected) );
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, dynamixel.rx_packet_buff, sizeof(expected));
     TEST_ASSERT_EQUAL_UINT8(DYNAMIXEL_RESULT_OK, res);
     TEST_ASSERT_EQUAL_HEX8(0x01, data);
 }
@@ -229,10 +301,7 @@ TEST(dynamixel, write_read_dma) {
 }
 
 TEST(dynamixel, get_position) {
-    /* DynamixelStatus status = SS_dynamixel_enable_torque(&dynamixel); */
-    /* TEST_ASSERT_EQUAL_UINT8(DYNAMIXEL_RESULT_OK, status); */
     SS_dynamixel_set_goal_position(&dynamixel, 111);
-    vTaskDelay(pdMS_TO_TICKS(UART_TIMEOUT));
     uint32_t start = HAL_GetTick();
     while(HAL_GetTick() - start < 2500) {
         SS_dynamixel_get_position(&dynamixel);
@@ -241,29 +310,6 @@ TEST(dynamixel, get_position) {
             break;
     }
     TEST_ASSERT_INT_WITHIN(10, 111, dynamixel.present_position);
-}
-
-TEST(dynamixel, set_velocity_limit) {
-    SS_dynamixel_set_velocity_limit(&dynamixel, 1023);
-    vTaskDelay(pdMS_TO_TICKS(UART_TIMEOUT));
-    uint32_t limit;
-    uint8_t res = SS_dynamixel_read(&dynamixel, DYNAMIXEL_VELOCITY_LIMIT, &limit, 4);
-    TEST_ASSERT_EQUAL_UINT8(DYNAMIXEL_RESULT_OK, res);
-    TEST_ASSERT_EQUAL_UINT32(1023, limit);
-}
-
-TEST(dynamixel, enable_torque_status) {
-    SS_dynamixel_enable_torque(&dynamixel);
-    vTaskDelay(pdMS_TO_TICKS(UART_TIMEOUT));
-    TEST_ASSERT_EQUAL_UINT8(DYNAMIXEL_RESULT_OK, dynamixel.last_status);
-    TEST_ASSERT_TRUE(dynamixel.torque_enabled);
-}
-
-TEST(dynamixel, disable_torque_status) {
-    SS_dynamixel_disable_torque(&dynamixel);
-    vTaskDelay(pdMS_TO_TICKS(UART_TIMEOUT));
-    TEST_ASSERT_EQUAL_UINT8(DYNAMIXEL_RESULT_OK, dynamixel.last_status);
-    TEST_ASSERT_FALSE(dynamixel.torque_enabled);
 }
 
 /* TEST(dynamixel_logic, Fifo) { */
@@ -505,6 +551,6 @@ TEST(dynamixel, ping_IT) {
     uint8_t expected[] = {0xFF, 0xFF, 0xFD, 0x00, 0x01, 0x07, 0x00, 0x55, 0x00};
     SS_dynamixel_ping_IT(&dynamixel);
     vTaskDelay(pdMS_TO_TICKS(UART_TIMEOUT));
-    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, rx_packet_buff, sizeof(expected));
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, dynamixel.rx_packet_buff, sizeof(expected));
     TEST_ASSERT_EQUAL_UINT8(DYNAMIXEL_RESULT_OK, dynamixel.last_status);
 }

@@ -179,6 +179,8 @@ typedef struct {
     uint8_t temperature;
     bool moving;
     bool torque_enabled;
+    uint8_t tx_packet_buff[MAX_PACKET_LENGTH];
+    uint8_t rx_packet_buff[MAX_PACKET_LENGTH];
     SemaphoreHandle_t mutex;
     QueueHandle_t tx_queue;
     DynamixelStatus last_status;
@@ -213,7 +215,7 @@ typedef struct {
     uint16_t rec_size;
     void *data;
     bool torque_status;
-} DynamixelFifoBufor;
+} DynamixelMessage;
 
 /* Global variables */
 extern Dynamixel dynamixel;
@@ -259,7 +261,7 @@ void SS_dynamixel_read_IT(Dynamixel *servo, uint16_t reg, void *data, uint16_t s
 void SS_dynamixel_ping_IT(Dynamixel *servo);
 
 /********** IT Communication **********/
-void SS_dynamixel_transmit_receive_IT(DynamixelFifoBufor *buff);
+void SS_dynamixel_transmit_receive_IT(DynamixelMessage *buff);
 void SS_dynamixel_send_packet_IT(Dynamixel *servo, DynamixelInstruction instruction, uint8_t *params, uint16_t params_len, uint16_t rec_len, uint8_t torque_enabled, void *data);
 
 /********** Callbacks **********/
