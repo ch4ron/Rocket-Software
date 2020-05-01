@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.11.1)
-
 set(TARGET ADS1258)
 
 add_library(${TARGET} INTERFACE)

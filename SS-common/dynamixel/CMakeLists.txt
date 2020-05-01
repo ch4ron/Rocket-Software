@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.11.1)
-
 project(dynamixel C)
 
 add_library(${PROJECT_NAME} INTERFACE)

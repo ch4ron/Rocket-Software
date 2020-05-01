@@ -4,9 +4,11 @@
 #include "stdio.h"
 #include "task.h"
 #include "tim.h"
+#include "SS_misc.h"
 #ifdef SS_USE_COM
 #include "SS_com.h"
 #endif
+#include "SS_FreeRTOS.h"
 #ifdef SS_USE_DYNAMIXEL
 #include "SS_dynamixel.h"
 #endif
@@ -14,7 +16,7 @@
 static void vLEDFlashTask(void *pvParameters) {
     for(;;) {
         vTaskDelay(500);
-        HAL_GPIO_TogglePin(COM_RED_GPIO_Port, COM_RED_Pin);
+        SS_platform_toggle_loop_led();
     }
 }
 
@@ -38,7 +40,7 @@ __weak void vApplicationStackOverflowHook(xTaskHandle xTask,
 
 static void SS_FreeRTOS_create_tasks(void) {
     BaseType_t res;
-    res = xTaskCreate(vLEDFlashTask, "LEDx", 128, NULL, 2, (TaskHandle_t *) NULL);
+    res = xTaskCreate(vLEDFlashTask, "LED Task", 128, NULL, 2, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
 #ifdef SS_USE_COM
     res = xTaskCreate(SS_com_rx_handler_task, "Com Rx Handler Task", 128, NULL, 5, NULL);

@@ -10,6 +10,7 @@
 /* ==================================================================== */
 
 #ifdef SS_USE_GRAZYNA
+
 #include "SS_grazyna.h"
 #endif
 #ifdef SS_USE_ADS1258
@@ -33,6 +34,7 @@
 #include "SS_com.h"
 #include "SS_com_debug.h"
 #include "SS_error.h"
+#include "SS_misc.h"
 #include "assert.h"
 #include "queue.h"
 #include "stdbool.h"
@@ -114,6 +116,7 @@ void SS_com_add_to_tx_queue(ComFrame *frame, void (*sender_fun)(ComFrame *), Que
 }
 
 void __attribute__((weak)) SS_com_transmit(ComFrame *frame) {
+    SS_led_toggle_blue_com();
 #ifdef SS_USE_GRAZYNA
     if(frame->destination == COM_GRAZYNA_ID && SS_grazyna_is_enabled()) {
         SS_grazyna_transmit(frame);
@@ -162,6 +165,7 @@ static ComStatus SS_com_handle_frame(ComFrame *frame) {
     }
 #endif
     bool response_required = frame->action == COM_REQUEST || frame->source == COM_GRAZYNA_ID ? true : false;
+    SS_led_toggle_green_com();
     SS_can_print_message_received(frame);
     ComStatus res = SS_com_handle_action(frame);
     if(response_required) {

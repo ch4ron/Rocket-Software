@@ -1,8 +1,7 @@
-cmake_minimum_required(VERSION 3.11.1)
-
 set(TARGET test_runner)
 
 add_library(${TARGET} INTERFACE)
+
 target_include_directories(
         ${TARGET} INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR})

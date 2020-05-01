@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.11.1)
-
 set(TARGET fifo)
 
 add_library(${TARGET} INTERFACE)

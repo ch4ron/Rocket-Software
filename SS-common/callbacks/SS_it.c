@@ -35,8 +35,7 @@ extern void SS_grazyna_UART_RxCpltCallback(UART_HandleTypeDef *huart);
 
 #ifdef SS_RUN_TESTS
 #include "SS_ADS1258_unit_tests.h"
-extern void SS_dynamixel_test_TIM_PeriodElapsedCallback(
-    TIM_HandleTypeDef *htim);
+extern void SS_dynamixel_test_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
 #endif
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
