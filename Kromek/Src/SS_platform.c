@@ -137,7 +137,7 @@ static void SS_platform_ADS1258_init() {
 #ifdef SS_USE_DYNAMIXEL
 Dynamixel dynamixel = {
     .id = 0x01,
-    .opened_position = 4096,
+    .opened_position = 4095,
     .huart = &huart1,
     .DE_Port = RS485_DE_GPIO_Port,
     .DE_Pin = RS485_DE_Pin};

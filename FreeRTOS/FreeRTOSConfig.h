@@ -46,6 +46,7 @@
  *----------------------------------------------------------*/
 
 /* USER CODE BEGIN Includes */
+#include "assert.h"
 /* Section where include file can be added */
 /* USER CODE END Includes */
 
@@ -147,12 +148,11 @@ header file. */
 /* USER CODE BEGIN 1 */
 #define configASSERT(x)           \
     if((x) == 0) {                \
-        printf("Assert\r\n");     \
+        assert(x);                \
         taskDISABLE_INTERRUPTS(); \
         for(;;)                   \
             ;                     \
     }
-/* TODO Proper assert */
 /* USER CODE END 1 */
 
 /* Definitions that map the FreeRTOS port interrupt handlers to their CMSIS

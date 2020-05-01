@@ -51,34 +51,34 @@ typedef enum {
     DYNAMIXEL_BULK_READ = 0x92,
     /* For multiple devices, Instruction to write data on different Addresses with different lengths at once */
     DYNAMIXEL_BULK_WRITE = 0x93,
-} Dynamixel_instruction;
+} DynamixelInstruction;
 
 typedef enum {
     /* Success */
-    DYNAMIXEL_RESULT_OK            = 0x00,
+    DYNAMIXEL_RESULT_OK = 0x00,
     /* Failed to process the sent Instruction Packet */
-    DYNAMIXEL_RESULT_FAIL          = 0x01,
+    DYNAMIXEL_RESULT_FAIL = 0x01,
     /* Undefined Instruction has been used
      * Action has been used without Reg Write */
-    DYNAMIXEL_INSTRUCTION_ERROR    = 0x02,
+    DYNAMIXEL_INSTRUCTION_ERROR = 0x02,
     /* CRC of the sent Packet does not match */
-    DYNAMIXEL_SENT_CRC_ERROR       = 0x03,
+    DYNAMIXEL_SENT_CRC_ERROR = 0x03,
     /* Data to be written in the corresponding Address is outside the range of the minimum/maximum value */
-    DYNAMIXEL_DATA_RANGE_ERROR     = 0x04,
+    DYNAMIXEL_DATA_RANGE_ERROR = 0x04,
     /* Attempt to write Data that is shorter than the data length of the corresponding Address
      * (ex: when you attempt to only use 2 bytes of a item that has been defined as 4 bytes) */
-    DYNAMIXEL_DATA_LENGTH_ERROR    = 0x05,
+    DYNAMIXEL_DATA_LENGTH_ERROR = 0x05,
     /* Data to be written in the corresponding Address is outside of the Limit value */
-    DYNAMIXEL_DATA_LIMIT_ERROR     = 0x06,
+    DYNAMIXEL_DATA_LIMIT_ERROR = 0x06,
     /* Attempt to write a value in an Address that is Read Only or has not been defined
      * Attempt to read a value in an Address that is Write Only or has not been defined
      * Attempt to write a value in the ROM domain while in a state of Torque Enable(ROM Lock) */
-    DYNAMIXEL_ACCESS_ERROR         = 0x07,
+    DYNAMIXEL_ACCESS_ERROR = 0x07,
     /* CRC of the received Packet does not match */
-    DYNAMIXEL_REC_CRC_ERROR        = 0x08,
+    DYNAMIXEL_REC_CRC_ERROR = 0x08,
     /* Another transmission in progress, action added to queue */
-    DYNAMIXEL_BUSY             = 0x09
-} Dynamixel_status;
+    DYNAMIXEL_BUSY = 0x09
+} DynamixelStatus;
 
 typedef enum {
     /* EEPROM */
@@ -181,7 +181,7 @@ typedef struct {
     bool torque_enabled;
     SemaphoreHandle_t mutex;
     QueueHandle_t tx_queue;
-    Dynamixel_status last_status;
+    DynamixelStatus last_status;
     bool systick_enabled;
     bool connected;
     uint16_t connection_timeout;
@@ -196,7 +196,7 @@ typedef struct __attribute__((packed)) {
     uint8_t packetID;
     uint16_t length;
     uint8_t instruction;
-} Instruction_packet;
+} InstructionPacket;
 
 typedef struct __attribute__((packed)) {
     uint32_t header : 24;
@@ -208,58 +208,50 @@ typedef struct __attribute__((packed)) {
 } Status_packet;
 
 typedef struct {
-        uint8_t packet[MAX_PACKET_LENGTH];
-        uint16_t packet_size;
-        uint16_t rec_size;
-        void *data;
-        bool torque_status;
-} Dynamixel_fifo_bufor;
+    uint8_t packet[MAX_PACKET_LENGTH];
+    uint16_t packet_size;
+    uint16_t rec_size;
+    void *data;
+    bool torque_status;
+} DynamixelFifoBufor;
 
 /* Global variables */
 extern Dynamixel dynamixel;
 
 /* Init */
 void SS_dynamixel_task(void *pvParameters);
-Dynamixel_status SS_dynamixel_init(Dynamixel *servo);
+DynamixelStatus SS_dynamixel_init(Dynamixel *servo);
 
 /********** API **********/
 void SS_dynamixel_start_communication(Dynamixel *servo);
 void SS_dynamixel_stop_communication(Dynamixel *servo);
 
-void SS_dynamixel_open(Dynamixel *servo);
-void SS_dynamixel_close(Dynamixel *servo);
+DynamixelStatus SS_dynamixel_open(Dynamixel *servo);
+DynamixelStatus SS_dynamixel_close(Dynamixel *servo);
 
 /* Setters */
-void SS_dynamixel_enable_torque(Dynamixel *servo);
-void SS_dynamixel_disable_torque(Dynamixel *servo);
-void SS_dynamixel_enable_led(Dynamixel *servo);
-void SS_dynamixel_disable_led(Dynamixel *servo);
-void SS_dynamixel_set_goal_position(Dynamixel *servo, int32_t position);
-void SS_dynamixel_set_velocity(Dynamixel *servo, uint32_t velocity);
-void SS_dynamixel_set_velocity_limit(Dynamixel *servo, uint32_t limit);
-void SS_dynamixel_set_opened_position(Dynamixel *servo, uint32_t position);
-void SS_dynamixel_set_closed_position(Dynamixel *servo, uint32_t position);
+DynamixelStatus SS_dynamixel_enable_torque(Dynamixel *servo);
+DynamixelStatus SS_dynamixel_disable_torque(Dynamixel *servo);
+DynamixelStatus SS_dynamixel_enable_led(Dynamixel *servo);
+DynamixelStatus SS_dynamixel_disable_led(Dynamixel *servo);
+DynamixelStatus SS_dynamixel_set_goal_position(Dynamixel *servo, int32_t position);
+DynamixelStatus SS_dynamixel_set_velocity(Dynamixel *servo, uint32_t velocity);
+DynamixelStatus SS_dynamixel_set_velocity_limit(Dynamixel *servo, uint32_t limit);
+DynamixelStatus SS_dynamixel_set_opened_position(Dynamixel *servo, uint32_t position);
+DynamixelStatus SS_dynamixel_set_closed_position(Dynamixel *servo, uint32_t position);
 
+void SS_dynamixel_enable_torque_IT(Dynamixel *servo);
 /* Getters */
-void SS_dynamixel_get_position(Dynamixel *servo);
-void SS_dynamixel_get_moving(Dynamixel *servo);
-void SS_dynamixel_get_current(Dynamixel *servo);
-void SS_dynamixel_get_temperature(Dynamixel *servo);
-
-/********** Packet manipulation **********/
-void SS_dynamixel_prepare_packet(Instruction_packet *packet, uint8_t *params, Dynamixel_fifo_bufor *buff);
-void SS_dynamixel_create_packet(Dynamixel *servo, Dynamixel_instruction instruction, uint8_t *params, uint16_t params_len, Dynamixel_fifo_bufor *buff);
+DynamixelStatus SS_dynamixel_get_position(Dynamixel *servo);
+DynamixelStatus SS_dynamixel_get_moving(Dynamixel *servo);
+DynamixelStatus SS_dynamixel_get_current(Dynamixel *servo);
+DynamixelStatus SS_dynamixel_get_temperature(Dynamixel *servo);
 
 /********** Polling instructions **********/
-Dynamixel_status SS_dynamixel_write(Dynamixel *servo, uint16_t reg, void *data, uint16_t size);
-Dynamixel_status SS_dynamixel_read(Dynamixel *servo, uint16_t reg, void *data, uint16_t size);
-Dynamixel_status SS_dynamixel_factory_reset(Dynamixel *servo);
-Dynamixel_status SS_dynamixel_ping(Dynamixel *servo);
-
-/********** Polling communication **********/
-Dynamixel_status SS_dynamixel_transmit(Dynamixel_fifo_bufor *buff);
-Dynamixel_status SS_dynamixel_receive(uint16_t size);
-void SS_dynamixel_send_packet(Dynamixel *servo, Dynamixel_instruction instruction, uint8_t *params, uint16_t params_len);
+DynamixelStatus SS_dynamixel_write(Dynamixel *servo, uint16_t reg, void *data, uint16_t size);
+DynamixelStatus SS_dynamixel_read(Dynamixel *servo, uint16_t reg, void *data, uint16_t size);
+DynamixelStatus SS_dynamixel_factory_reset(Dynamixel *servo);
+DynamixelStatus SS_dynamixel_ping(Dynamixel *servo);
 
 /********** IT instructions **********/
 void SS_dynamixel_write_IT(Dynamixel *servo, uint16_t reg, void *data, uint16_t size);
@@ -267,16 +259,8 @@ void SS_dynamixel_read_IT(Dynamixel *servo, uint16_t reg, void *data, uint16_t s
 void SS_dynamixel_ping_IT(Dynamixel *servo);
 
 /********** IT Communication **********/
-void SS_dynamixel_transmit_receive_IT(Dynamixel_fifo_bufor *buff);
-void SS_dynamixel_send_packet_IT(Dynamixel *servo, Dynamixel_instruction instruction, uint8_t *params, uint16_t params_len, uint16_t rec_len, uint8_t torque_enabled, void *data);
-
-/********** FIFO **********/
-bool SS_dynamixel_send_from_fifo();
-
-/********** CRC **********/
-bool SS_dynamixel_check_crc(uint8_t *data, uint16_t size);
-uint16_t SS_dynamixel_update_crc(uint16_t crc_accum, uint8_t *data_blk_ptr, uint16_t data_blk_size);
-Dynamixel_status SS_dynamixel_get_status();
+void SS_dynamixel_transmit_receive_IT(DynamixelFifoBufor *buff);
+void SS_dynamixel_send_packet_IT(Dynamixel *servo, DynamixelInstruction instruction, uint8_t *params, uint16_t params_len, uint16_t rec_len, uint8_t torque_enabled, void *data);
 
 /********** Callbacks **********/
 void SS_dynamixel_UART_RxCpltCallback(UART_HandleTypeDef *huart);
