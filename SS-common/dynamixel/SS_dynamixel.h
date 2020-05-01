@@ -181,7 +181,9 @@ typedef struct {
     bool torque_enabled;
     uint8_t tx_packet_buff[MAX_PACKET_LENGTH];
     uint8_t rx_packet_buff[MAX_PACKET_LENGTH];
+    uint16_t rec_size;
     SemaphoreHandle_t mutex;
+    SemaphoreHandle_t transmission_semaphore;
     QueueHandle_t tx_queue;
     DynamixelStatus last_status;
     bool systick_enabled;

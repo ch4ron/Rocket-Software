@@ -40,7 +40,7 @@
 /********* Packet manipulation *********/
 
 static void SS_dynamixel_packet_to_buf(InstructionPacket *packet, uint8_t *params, DynamixelMessage *buff);
-static void SS_dynamixel_create_packet(Dynamixel *servo, DynamixelInstruction instruction, uint8_t *params, uint16_t params_len, DynamixelMessage *buff);
+static void SS_dynamixel_create_packet(Dynamixel *servo, DynamixelInstruction instruction, uint8_t *params, uint16_t params_len, uint16_t rec_size, DynamixelMessage *buff);
 
 /***************** CRC *****************/
 static bool SS_dynamixel_check_crc(uint8_t *data, uint16_t size);
@@ -49,9 +49,8 @@ static DynamixelStatus SS_dynamixel_get_status();
 
 /******** Polling communication ********/
 
-static DynamixelStatus SS_dynamixel_transmit(Dynamixel *servo, DynamixelMessage *buff);
-static DynamixelStatus SS_dynamixel_receive(Dynamixel *servo, uint16_t size);
-static DynamixelStatus SS_dynamixel_send_packet(Dynamixel *servo, DynamixelInstruction instruction, uint8_t *params, uint16_t params_len);
+static DynamixelStatus SS_dynamixel_transmit_receive(Dynamixel *servo, DynamixelMessage *buff);
+static DynamixelStatus SS_dynamixel_send_packet(Dynamixel *servo, DynamixelInstruction instruction, uint8_t *params, uint16_t params_len, uint16_t rec_param_len);
 
 void SS_dynamixel_task(void *pvParameters) {
     static DynamixelMessage buf;
@@ -67,8 +66,11 @@ void SS_dynamixel_task(void *pvParameters) {
 DynamixelStatus SS_dynamixel_init(Dynamixel *servo) {
     DynamixelStatus res = 0;
     servo->mutex = xSemaphoreCreateBinary();
-    xSemaphoreGive(servo->mutex);
+    servo->transmission_semaphore = xSemaphoreCreateBinary();
     assert(servo->mutex != NULL);
+    assert(servo->transmission_semaphore != NULL);
+    xSemaphoreGive(servo->mutex);
+
     servo->tx_queue = xQueueCreate(10, sizeof(DynamixelMessage));
     assert(servo->tx_queue != NULL);
     /* SS_dynamixel_disable_torque(servo); */
@@ -200,13 +202,14 @@ static void SS_dynamixel_packet_to_buf(InstructionPacket *packet, uint8_t *param
     buff->packet_size = sizeof(InstructionPacket) + params_size + 2;
 }
 
-static void SS_dynamixel_create_packet(Dynamixel *servo, DynamixelInstruction instruction, uint8_t *params, uint16_t params_len, DynamixelMessage *buff) {
+static void SS_dynamixel_create_packet(Dynamixel *servo, DynamixelInstruction instruction, uint8_t *params, uint16_t params_len, uint16_t rec_size, DynamixelMessage *buff) {
     InstructionPacket packet = {
         .header = 0xFDFFFF,
         .reserved = 0x00,
         .packetID = servo->id,
         .length = params_len + 3,
         .instruction = instruction};
+    servo->rec_size = rec_size;
     SS_dynamixel_packet_to_buf(&packet, params, buff);
 }
 
@@ -216,7 +219,6 @@ DynamixelStatus SS_dynamixel_write(Dynamixel *servo, uint16_t reg, void *data, u
     bool torque_status = servo->torque_enabled;
     uint8_t params[MAX_PACKET_LENGTH];
     DynamixelStatus res;
-
     if(reg < DYNAMIXEL_TORQUE_ENABLE) {
         if((res = SS_dynamixel_disable_torque(servo)) != DYNAMIXEL_RESULT_OK) {
             return res;
@@ -224,10 +226,9 @@ DynamixelStatus SS_dynamixel_write(Dynamixel *servo, uint16_t reg, void *data, u
     }
     memcpy(params, &reg, 2);
     memcpy(params + 2, data, size);
-    if((res = SS_dynamixel_send_packet(servo, DYNAMIXEL_WRITE, params, size + 2) != DYNAMIXEL_RESULT_OK)) {
+    if((res = SS_dynamixel_send_packet(servo, DYNAMIXEL_WRITE, params, size + 2, 11) != DYNAMIXEL_RESULT_OK)) {
         return res;
     }
-    res = SS_dynamixel_receive(servo, 11);
     if(torque_status && reg < DYNAMIXEL_TORQUE_ENABLE) {
         return SS_dynamixel_enable_torque(servo);
     }
@@ -239,62 +240,51 @@ DynamixelStatus SS_dynamixel_read(Dynamixel *servo, uint16_t reg, void *data, ui
     memcpy(params, &reg, 2);
     memcpy(params + 2, &size, 2);
     DynamixelStatus res;
-    if((res = SS_dynamixel_send_packet(servo, DYNAMIXEL_READ, params, 4)) != DYNAMIXEL_RESULT_OK) {
+    if((res = SS_dynamixel_send_packet(servo, DYNAMIXEL_READ, params, 4, 11 + size)) != DYNAMIXEL_RESULT_OK) {
         return res;
     }
-    res = SS_dynamixel_receive(servo, 11 + size);
     memcpy(data, servo->rx_packet_buff + 9, size);
     return res;
 }
 
 DynamixelStatus SS_dynamixel_factory_reset(Dynamixel *servo) {
     uint8_t data = 0xFF;
-    SS_dynamixel_send_packet(servo, DYNAMIXEL_FACTORY_RESET, &data, 1);
-    DynamixelStatus res = SS_dynamixel_receive(servo, 11);
+    return SS_dynamixel_send_packet(servo, DYNAMIXEL_FACTORY_RESET, &data, 1, 11);
+    /* DynamixelStatus res = SS_dynamixel_receive(servo, 11); */
     /* TODO connection timeout */
     /* Prevent connection timeout during reset */
     /* for(uint8_t i = 0; i < 8; i++) { */
     /* servo->connection_timeout = 0; */
     /* HAL_Delay(50); */
     /* } */
-    return res;
+    /* return res; */
 }
 
 DynamixelStatus SS_dynamixel_ping(Dynamixel *servo) {
-    SS_dynamixel_send_packet(servo, DYNAMIXEL_PING, NULL, 0);
-    return SS_dynamixel_receive(servo, 14);
+    return SS_dynamixel_send_packet(servo, DYNAMIXEL_PING, NULL, 0, 14);
+    /* return SS_dynamixel_receive(servo, 14); */
 }
 
 /********** Polling communication **********/
 
-static DynamixelStatus SS_dynamixel_transmit(Dynamixel *servo, DynamixelMessage *buff) {
+static DynamixelStatus SS_dynamixel_transmit_receive(Dynamixel *servo, DynamixelMessage *buff) {
     if(xSemaphoreTake(dynamixel.mutex, pdMS_TO_TICKS(100))) {
         memcpy(servo->tx_packet_buff, buff->packet, MAX_PACKET_LENGTH);
         HAL_GPIO_WritePin(dynamixel.DE_Port, dynamixel.DE_Pin, GPIO_PIN_SET);
-        HAL_UART_Transmit(dynamixel.huart, servo->tx_packet_buff, buff->packet_size, 1000);
-        xSemaphoreGive(dynamixel.mutex);
-        return DYNAMIXEL_RESULT_OK;
-    }
-    return DYNAMIXEL_RESULT_FAIL;
-}
-
-static DynamixelStatus SS_dynamixel_receive(Dynamixel *servo, uint16_t size) {
-    if(xSemaphoreTake(dynamixel.mutex, pdMS_TO_TICKS(100))) {
-        HAL_GPIO_WritePin(dynamixel.DE_Port, dynamixel.DE_Pin, GPIO_PIN_RESET);
-        HAL_UART_Receive(dynamixel.huart, servo->rx_packet_buff, size, 1000);
-        xSemaphoreGive(dynamixel.mutex);
-        if(!SS_dynamixel_check_crc(servo->rx_packet_buff, size)) {
-            return DYNAMIXEL_REC_CRC_ERROR;
+        HAL_UART_Transmit_IT(dynamixel.huart, servo->tx_packet_buff, buff->packet_size);
+        BaseType_t res = xSemaphoreTake(dynamixel.transmission_semaphore, pdMS_TO_TICKS(100));
+        xSemaphoreGive(servo->mutex);
+        if(res) {
+            return DYNAMIXEL_RESULT_OK;
         }
-        return servo->rx_packet_buff[8];
     }
     return DYNAMIXEL_RESULT_FAIL;
 }
 
-static DynamixelStatus SS_dynamixel_send_packet(Dynamixel *servo, DynamixelInstruction instruction, uint8_t *params, uint16_t params_len) {
+static DynamixelStatus SS_dynamixel_send_packet(Dynamixel *servo, DynamixelInstruction instruction, uint8_t *params, uint16_t params_len, uint16_t rec_param_len) {
     DynamixelMessage message;
-    SS_dynamixel_create_packet(servo, instruction, params, params_len, &message);
-    return SS_dynamixel_transmit(servo, &message);
+    SS_dynamixel_create_packet(servo, instruction, params, params_len, rec_param_len, &message);
+    return SS_dynamixel_transmit_receive(servo, &message);
 }
 
 /********** IT instructions **********/
@@ -405,12 +395,12 @@ static DynamixelStatus SS_dynamixel_get_status(Dynamixel *servo) {
 void SS_dynamixel_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
     BaseType_t higherPriorityTaskWoken = pdFALSE;
     if(huart == dynamixel.huart) {
-        dynamixel.connection_timeout = 0;
-        dynamixel.connected = true;
+        /* dynamixel.connection_timeout = 0; */
+        /* dynamixel.connected = true; */
         /*         dynamixel.last_status = SS_dynamixel_get_status(); */
         /*         if(dynamixel.last_status != DYNAMIXEL_RESULT_OK) { */
-        /*             xSemaphoreGiveFromISR(dynamixel.mutex, &higherPriorityTaskWoken); */
-        /*             portYIELD_FROM_ISR(higherPriorityTaskWoken); */
+        xSemaphoreGiveFromISR(dynamixel.transmission_semaphore, &higherPriorityTaskWoken);
+        portYIELD_FROM_ISR(higherPriorityTaskWoken);
         /*             return; */
         /*         } */
         /*         switch(GET_INSTRUCTION(tx_packet_buff)) { */
@@ -446,11 +436,16 @@ void SS_dynamixel_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
     }
 }
 
-void SS_dynamixel_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
-    if(huart == dynamixel.huart) {
-        /* HAL_GPIO_WritePin(dynamixel.DE_Port, dynamixel.DE_Pin, RESET); */
-        /* HAL_UART_Receive_IT(dynamixel.huart, rx_packet_buff, rec_size); */
+void SS_dynamixel_single_UART_TxCpltCallback(Dynamixel *dynamixel, UART_HandleTypeDef *huart) {
+    if(huart == dynamixel->huart) {
+        HAL_GPIO_WritePin(dynamixel->DE_Port, dynamixel->DE_Pin, GPIO_PIN_RESET);
+        HAL_UART_Receive_IT(dynamixel->huart, dynamixel->rx_packet_buff, dynamixel->rec_size);
+        /* printf("receive: %d\r\n", dynamixel->rec_size); */
     }
+}
+
+void SS_dynamixel_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
+    SS_dynamixel_single_UART_TxCpltCallback(&dynamixel, huart);
 }
 
 static void (*systick_get_functions[])(Dynamixel*) = {
