@@ -46,7 +46,10 @@
  *----------------------------------------------------------*/
 
 /* USER CODE BEGIN Includes */
+#include "assert.h"
+#ifndef SS_USE_MOCK
 #include "SS_log.h"
+#endif
 /* Section where include file can be added */
 /* USER CODE END Includes */
 
