@@ -178,6 +178,6 @@ void SS_platform_init() {
     SS_grazyna_init(&huart2);
 #ifdef SS_USE_DYNAMIXEL
     SS_dynamixel_init(&dynamixel);
-#endif
+
     /* SS_s25fl_init(); */
 }

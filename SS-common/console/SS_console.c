@@ -36,6 +36,7 @@ typedef struct {
 
 static void SS_console_print_help(char *args);
 static void SS_print_tasks_info(char *args);
+static void SS_print_runtime_stats(char *args);
 static void SS_handle_console_input(char *buf);
 
 /* ==================================================================== */
@@ -49,6 +50,7 @@ static volatile uint8_t idx;
 
 ConsoleCommand commands[] = {
     {"tasks", "Print task info", SS_print_tasks_info},
+    {"stats", "Print task info", SS_print_runtime_stats},
     {"help", "Print help", SS_console_print_help},
 };
 
@@ -71,10 +73,12 @@ void SS_console_task(void *pvParameters) {
                 idx = 0;
                 HAL_UART_Receive_IT(console_huart, (uint8_t *) console_buf, 1);
             } else if(console_buf[idx] == '\n' || console_buf[idx] == '\r') {
-                SS_led_toggle_green_mem();
-                idx = 0;
-                SS_handle_console_input(console_buf);
-                memset(console_buf, 0, sizeof(console_buf));
+                if(idx > 0) {
+                    SS_led_toggle_green_mem();
+                    SS_handle_console_input(console_buf);
+                    idx = 0;
+                    memset(console_buf, 0, sizeof(console_buf));
+                }
                 HAL_UART_Receive_IT(console_huart, (uint8_t *) console_buf, 1);
                 SS_led_toggle_green_adc();
             } else {
@@ -92,23 +96,34 @@ void SS_console_task(void *pvParameters) {
 static void SS_handle_console_input(char *buf) {
     for(int i = 0; i < sizeof(commands) / sizeof(commands[0]); i++) {
         ConsoleCommand *command = commands + i;
-        if(memcmp(command->command, buf, sizeof(command->command) - 1) == 0) {
-            assert(command->fun != NULL);
-            command->fun(buf + sizeof(command->command) - 1);
-            break;
-        }
-        SS_print_line("Invalid command, type 'help' for usage");
+        int len = strlen(command->command);
+        if(memcmp(command->command, buf, len) == 0 &&
+           (buf[len] == ' ' || buf[len] == '\r' || buf[len] == '\n')) {
+                assert(command->fun != NULL);
+                command->fun(buf + sizeof(command->command));
+                return;
+            }
     }
+    SS_print_line("Invalid command, type 'help' for usage");
 }
 
 static void SS_print_tasks_info(char *args) {
-    SS_print_line("Running tasks:");
     char *task_info = pvPortMalloc(1024);
     assert(task_info != NULL);
-    vTaskGetRunTimeStats(task_info);
+    vTaskList(task_info);
     SS_print("%s", task_info);
     vPortFree(task_info);
 }
+
+static void SS_print_runtime_stats(char *args) {
+    char *task_info = pvPortMalloc(1024);
+    assert(task_info != NULL);
+    vTaskGetRunTimeStats(task_info);
+    SS_print_line("Runtime stats:");
+    SS_print("%s", task_info);
+    vPortFree(task_info);
+}
+
 
 static void SS_console_print_help(char *args) {
     SS_print_line("Available commands:");

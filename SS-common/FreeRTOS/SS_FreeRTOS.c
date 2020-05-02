@@ -38,7 +38,7 @@ __weak void vApplicationStackOverflowHook(xTaskHandle xTask,
 
 static void SS_FreeRTOS_create_tasks(void) {
     BaseType_t res;
-    res = xTaskCreate(vLEDFlashTask, "LED Task", 2047, NULL, 2, (TaskHandle_t *) NULL);
+    res = xTaskCreate(vLEDFlashTask, "LED Task", 64, NULL, 2, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
 #ifdef SS_USE_COM
     res = xTaskCreate(SS_com_rx_handler_task, "Com Rx Handler Task", 128, NULL, 5, NULL);
@@ -52,7 +52,7 @@ void SS_FreeRTOS_init(void) {
     BaseType_t res;
     res =xTaskCreate(SS_log_task, "Log task", 64, NULL, 4, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
-    res = xTaskCreate(SS_console_task, "Console task", 512, NULL, 5, (TaskHandle_t *) NULL);
+    res = xTaskCreate(SS_console_task, "Console task", 256, NULL, 5, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
 #ifdef SS_RUN_TESTS
     res =xTaskCreate(run_tests_task, "Tests task", 2048, NULL, 4, (TaskHandle_t *) NULL);
