@@ -32,6 +32,7 @@
 #endif
 #include "stm32f4xx_hal.h"
 #include "SS_log.h"
+#include "SS_console.h"
 
 #ifdef SS_RUN_TESTS
 #include "SS_ADS1258_unit_tests.h"
@@ -71,13 +72,14 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 #ifdef SS_USE_GRAZYNA
     SS_grazyna_UART_RxCpltCallback(huart);
 #endif
-    SS_log_tx_isr(huart);
+    SS_console_rx_isr(huart);
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 #ifdef SS_USE_DYNAMIXEL
     SS_dynamixel_UART_TxCpltCallback(huart);
 #endif
+    SS_log_tx_isr(huart);
 }
 
 

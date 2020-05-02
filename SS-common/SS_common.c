@@ -8,9 +8,13 @@
 #include "SS_com_feed.h"
 #include "SS_common.h"
 #include "SS_log.h"
+#include "SS_misc.h"
 
 void SS_init(void) {
     SS_print("Elon!\r\n");
+    SS_led_set_adc(0, 0, 0);
+    SS_led_set_mem(0, 0, 0);
+    SS_led_set_com(0, 0, 0);
     SS_FreeRTOS_init();
 }
 

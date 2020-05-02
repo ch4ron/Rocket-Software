@@ -12,6 +12,7 @@
 #include "spi.h"
 #include "usart.h"
 #include "SS_log.h"
+#include "SS_console.h"
 
 
 /*********** LED **********/
@@ -166,6 +167,8 @@ Dynamixel dynamixel = {
 /********** MAIN INIT *********/
 
 void SS_platform_init() {
+    SS_log_init(&huart5);
+    SS_console_init(&huart5);
     SS_platform_adc_init();
     SS_platform_servos_init();
     SS_platform_supply_init();
@@ -176,6 +179,5 @@ void SS_platform_init() {
 #ifdef SS_USE_DYNAMIXEL
     SS_dynamixel_init(&dynamixel);
 #endif
-    SS_log_init(&huart5);
     /* SS_s25fl_init(); */
 }

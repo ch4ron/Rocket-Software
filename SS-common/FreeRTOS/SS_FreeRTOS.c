@@ -9,11 +9,10 @@
 #endif
 #include "SS_FreeRTOS.h"
 #include "SS_log.h"
+#include "SS_console.h"
 
 static void vLEDFlashTask(void *pvParameters) {
-    char buf[1024];
     while(1) {
-        vTaskGetRunTimeStats(buf);
         vTaskDelay(500);
         SS_platform_toggle_loop_led();
     }
@@ -50,9 +49,14 @@ static void SS_FreeRTOS_create_tasks(void) {
 }
 
 void SS_FreeRTOS_init(void) {
-    xTaskCreate(SS_log_task, "Log task", 64, NULL, 4, (TaskHandle_t *) NULL);
+    BaseType_t res;
+    res =xTaskCreate(SS_log_task, "Log task", 64, NULL, 4, (TaskHandle_t *) NULL);
+    assert(res == pdTRUE);
+    res = xTaskCreate(SS_console_task, "Console task", 512, NULL, 5, (TaskHandle_t *) NULL);
+    assert(res == pdTRUE);
 #ifdef SS_RUN_TESTS
-    xTaskCreate(run_tests_task, "Tests task", 2048, NULL, 4, (TaskHandle_t *) NULL);
+    res =xTaskCreate(run_tests_task, "Tests task", 2048, NULL, 4, (TaskHandle_t *) NULL);
+    assert(res == pdTRUE);
 #endif
     SS_FreeRTOS_create_tasks();
 #ifdef SS_FREERTOS_TRACE

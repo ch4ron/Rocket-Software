@@ -56,6 +56,7 @@ add_subdirectory(test)
 add_subdirectory(log)
 add_subdirectory(callbacks)
 add_subdirectory(FreeRTOS)
+add_subdirectory(console)
 
 
 function(target_link_common TARGET)
@@ -112,6 +113,7 @@ target_link_libraries(${TARGET} common)
 target_link_libraries(${TARGET} misc)
 target_link_libraries(${TARGET} log)
 target_link_libraries(${TARGET} callbacks)
+target_link_libraries(${TARGET} console)
 target_link_libraries(${TARGET} FreeRTOS_setup)
 
 endfunction()

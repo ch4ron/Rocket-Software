@@ -34,7 +34,9 @@ void vApplicationGetTimerTaskMemory (StaticTask_t **ppxTimerTaskTCBBuffer, Stack
 }
 
 #ifndef SS_USE_MOCK
+
 extern void Error_Handler(void);
+
 extern TIM_HandleTypeDef htim14;
 
 void __attribute__((weak)) vConfigureTimerForRunTimeStats(void) {
@@ -83,9 +85,10 @@ void __attribute__((weak)) vConfigureTimerForRunTimeStats(void) {
 
 volatile uint32_t counter25khz;
 
-void SS_FreeRTOS_25khz_timer_callback(TIM_HandleTypeDef *htim) {
+void __attribute__((weak)) SS_FreeRTOS_25khz_timer_callback(TIM_HandleTypeDef *htim) {
     if(htim == &htim14) {
         counter25khz++;
     }
 }
+
 #endif
