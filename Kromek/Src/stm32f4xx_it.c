@@ -24,8 +24,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "FreeRTOS.h"
-#include "SS_error.h"
-#include "stdio.h"
+#include "SS_log.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -75,7 +74,7 @@ extern DMA_HandleTypeDef hdma_spi4_tx;
 extern SPI_HandleTypeDef hspi2;
 extern SPI_HandleTypeDef hspi4;
 extern TIM_HandleTypeDef htim8;
-extern TIM_HandleTypeDef htim13;
+extern TIM_HandleTypeDef htim14;
 extern DMA_HandleTypeDef hdma_usart2_rx;
 extern DMA_HandleTypeDef hdma_usart2_tx;
 extern UART_HandleTypeDef huart5;
@@ -83,7 +82,7 @@ extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart3;
 extern UART_HandleTypeDef huart6;
-extern TIM_HandleTypeDef htim14;
+extern TIM_HandleTypeDef htim13;
 
 /* USER CODE BEGIN EV */
 
@@ -111,7 +110,7 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
-    SS_error("Hard Fault\r\n");
+    assert(0);
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
   {
@@ -141,7 +140,7 @@ void MemManage_Handler(void)
 void BusFault_Handler(void)
 {
   /* USER CODE BEGIN BusFault_IRQn 0 */
-    SS_error("Bus Fault");
+    assert(0);
   /* USER CODE END BusFault_IRQn 0 */
   while (1)
   {
@@ -156,7 +155,7 @@ void BusFault_Handler(void)
 void UsageFault_Handler(void)
 {
   /* USER CODE BEGIN UsageFault_IRQn 0 */
-    SS_error("Usage Fault");
+    assert(0);
 
   /* USER CODE END UsageFault_IRQn 0 */
   while (1)

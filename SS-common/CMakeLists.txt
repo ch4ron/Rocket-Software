@@ -53,7 +53,7 @@ add_subdirectory(supply)
 add_subdirectory(MS5X)
 add_subdirectory(can)
 add_subdirectory(test)
-add_subdirectory(error)
+add_subdirectory(log)
 add_subdirectory(callbacks)
 add_subdirectory(FreeRTOS)
 
@@ -110,7 +110,7 @@ endif()
 # Mandatory
 target_link_libraries(${TARGET} common)
 target_link_libraries(${TARGET} misc)
-target_link_libraries(${TARGET} error)
+target_link_libraries(${TARGET} log)
 target_link_libraries(${TARGET} callbacks)
 target_link_libraries(${TARGET} FreeRTOS_setup)
 

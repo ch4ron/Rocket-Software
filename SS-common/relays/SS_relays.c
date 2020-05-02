@@ -9,7 +9,7 @@
 #include "SS_relays.h"
 #include "SS_supply.h"
 #include "SS_platform.h"
-#include "SS_error.h"
+#include "SS_log.h"
 
 Relay *relay_pointers[MAX_RELAY_COUNT];
 

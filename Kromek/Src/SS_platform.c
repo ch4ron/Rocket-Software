@@ -7,19 +7,12 @@
 
 #include "SS_can.h"
 #include "SS_common.h"
-#ifdef SS_USE_DYNAMIXEL
 #include "SS_dynamixel.h"
-#endif
 #include "can.h"
 #include "spi.h"
 #include "usart.h"
+#include "SS_log.h"
 
-/********** PRINTF *********/
-
-int _write(int file, char *ptr, int len) {
-    HAL_UART_Transmit(&huart5, (uint8_t *) ptr, (uint16_t) len, 1000);
-    return len;
-}
 
 /*********** LED **********/
 
@@ -183,5 +176,6 @@ void SS_platform_init() {
 #ifdef SS_USE_DYNAMIXEL
     SS_dynamixel_init(&dynamixel);
 #endif
+    SS_log_init(&huart5);
     /* SS_s25fl_init(); */
 }

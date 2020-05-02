@@ -11,9 +11,8 @@
 
 #include "SS_dynamixel.h"
 
-#include "SS_error.h"
+#include "SS_log.h"
 #include "assert.h"
-#include "stdio.h"
 #include "string.h"
 
 /* ==================================================================== */

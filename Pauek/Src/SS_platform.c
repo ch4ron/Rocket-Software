@@ -9,13 +9,6 @@
 #include "can.h"
 #include "usart.h"
 
-/********** PRINTF *********/
-
-int _write(int file, char *ptr, int len) {
-    HAL_UART_Transmit(&huart6, (uint8_t *) ptr, (uint16_t) len, 1000);
-    return len;
-}
-
 /********** ADC *********/
 
 //static void SS_platform_adc_init() {
@@ -47,6 +40,7 @@ void SS_com_transmit(ComFrame *frame) {
 void SS_platform_init() {
     //    SS_platform_adc_init();
     //    SS_platform_supply_init();
+    SS_log_init(&huart6);
     SS_can_init(&hcan1, COM_PAUEK_ID);
     SS_can_ext_init(&hcan2);
     SS_grazyna_init(&huart1);

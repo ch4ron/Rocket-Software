@@ -29,7 +29,7 @@ set(CMAKE_C_FLAGS_INIT "${COMMON_FLAGS} -std=gnu99")
 
 add_definitions(-D__weak=__attribute__\(\(weak\)\) -D__packed=__attribute__\(\(__packed__\)\) -DUSE_HAL_DRIVER -DSTM32F446xx)
 add_compile_options(-Wall)
-add_link_options("-u_printf_float")
+
 
 project(RocketSoftware)
 
@@ -40,6 +40,7 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL Test)
    add_compile_definitions(UNITY_OUTPUT_COLOR)
    add_compile_definitions(SS_RUN_TESTS)
 endif()
+
 
 set(ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 

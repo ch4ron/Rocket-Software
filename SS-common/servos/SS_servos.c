@@ -6,9 +6,8 @@
  */
 
 #include "SS_servos.h"
-#include "stdio.h"
 #include "string.h"
-#include "SS_error.h"
+#include "SS_log.h"
 
 #define SERVO_RESOLUTION 1000
 

@@ -18,14 +18,14 @@ set(TARGET dynamixel_test)
 
 add_executable(${TARGET}
   ../SS_dynamixel.h
-  ../../error/SS_error.c
+        ../../log/SS_log.c
   SS_dynamixel_tests.c)
 
 target_include_directories(
   ${TARGET}
   PRIVATE
   ../
-  ../../error
+        ../../log
   ${MOCK_DIRECTORY})
 
 target_link_libraries(${TARGET} hal_driver FreeRTOS ThrowTheSwitch)

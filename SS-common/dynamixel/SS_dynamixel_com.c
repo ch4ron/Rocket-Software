@@ -8,7 +8,7 @@
 #include "SS_dynamixel_com.h"
 
 #include "SS_dynamixel.h"
-#include "SS_error.h"
+#include "SS_log.h"
 
 ComStatus SS_dynamixel_com_service(ComFrame *frame) {
     ComDynamixelID msgID = frame->operation;

@@ -33,12 +33,11 @@
 #include "SS_can.h"
 #include "SS_com.h"
 #include "SS_com_debug.h"
-#include "SS_error.h"
+#include "SS_log.h"
 #include "SS_misc.h"
 #include "assert.h"
 #include "queue.h"
 #include "stdbool.h"
-#include "stdio.h"
 #include "string.h"
 #include "task.h"
 
@@ -131,9 +130,9 @@ void __attribute__((weak)) SS_com_transmit(ComFrame *frame) {
 }
 
 void SS_com_rx_handler_task(void *pvParameters) {
-    static ComFrame frame_buff;
+    ComFrame frame_buff;
     while(1) {
-        if(xQueueReceive(com_queue, &frame_buff, 2000) == pdTRUE) {
+        if(xQueueReceive(com_queue, &frame_buff, portMAX_DELAY) == pdTRUE) {
             SS_com_handle_frame(&frame_buff);
         }
     }
@@ -223,7 +222,7 @@ static ComStatus SS_com_handle_request(ComFrame *frame) {
 #endif
         default:
             res = COM_ERROR;
-            printf("Unsupported device: %d\r\n", frame->device);
+            SS_error("Unsupported device: %d\r\n", frame->device);
     }
     frame->action = COM_RESPONSE;
     return res;

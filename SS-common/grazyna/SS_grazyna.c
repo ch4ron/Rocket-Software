@@ -18,7 +18,6 @@
 #include "SS_grazyna_hal.h"
 #include "queue.h"
 #include "stdbool.h"
-#include "stdio.h"
 #include "string.h"
 
 /* ==================================================================== */

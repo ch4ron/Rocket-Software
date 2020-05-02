@@ -11,13 +11,8 @@
 #include "can.h"
 #include "tim.h"
 #include "usart.h"
+#include "SS_log.h"
 
-/********** PRINTF *********/
-
-int _write(int file, char *ptr, int len) {
-    HAL_UART_Transmit(&huart4, (uint8_t *) ptr, (uint16_t) len, 1000);
-    return len;
-}
 
 /********** SERVOS *********/
 
@@ -64,6 +59,7 @@ static void SS_platform_ADS1258_init() {
 /********** MAIN INIT *********/
 
 void SS_platform_init() {
+    SS_log_init(&huart4);
     //    SS_platform_adc_init();
     /* SS_platform_servos_init(); */
     SS_platform_ADS1258_init();

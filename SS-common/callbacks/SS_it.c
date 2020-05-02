@@ -25,13 +25,13 @@
 #endif
 #ifdef SS_USE_GRAZYNA
 #include "SS_grazyna.h"
+#include "SS_grazyna_hal.h"
 #endif
 #ifdef SS_USE_SEQUENCE
 #include "SS_sequence.h"
 #endif
 #include "stm32f4xx_hal.h"
-
-extern void SS_grazyna_UART_RxCpltCallback(UART_HandleTypeDef *huart);
+#include "SS_log.h"
 
 #ifdef SS_RUN_TESTS
 #include "SS_ADS1258_unit_tests.h"
@@ -71,6 +71,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 #ifdef SS_USE_GRAZYNA
     SS_grazyna_UART_RxCpltCallback(huart);
 #endif
+    SS_log_tx_isr(huart);
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
@@ -79,29 +80,8 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 #endif
 }
 
-/* void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) { */
-/*     static uint32_t cnt; */
-/*     if(htim == &htim14) { */
-/*         cnt++; */
-/*         if(cnt >= 1000) { */
-/*             HAL_GPIO_TogglePin(MEM_BLUE_GPIO_Port, MEM_BLUE_Pin); */
-/*             cnt = 0; */
-/*         } */
-/*         /\* xPortSysTickHandler(); *\/ */
-/*     } */
-/* #ifdef RUN_TESTS */
-/*     // TODO Change test to remove this function */
-/* //    SS_dynamixel_test_TIM_PeriodElapsedCallback(htim); */
-/* #endif */
-/* } */
-/* // */
-// void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart) {
-//    if(huart == &huart2)
-//    printf("rxcptl half callback\r\n");
-//}
 
 /* void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) { */
-/* if(huart == &huart2) */
 /* printf("uart error callback: %d\r\n", huart->ErrorCode); */
 /* } */
 

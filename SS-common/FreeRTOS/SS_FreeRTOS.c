@@ -1,7 +1,6 @@
 #include "FreeRTOS.h"
 #include "assert.h"
 #include "main.h"
-#include "stdio.h"
 #include "task.h"
 #include "tim.h"
 #include "SS_misc.h"
@@ -9,12 +8,12 @@
 #include "SS_com.h"
 #endif
 #include "SS_FreeRTOS.h"
-#ifdef SS_USE_DYNAMIXEL
-#include "SS_dynamixel.h"
-#endif
+#include "SS_log.h"
 
 static void vLEDFlashTask(void *pvParameters) {
-    for(;;) {
+    char buf[1024];
+    while(1) {
+        vTaskGetRunTimeStats(buf);
         vTaskDelay(500);
         SS_platform_toggle_loop_led();
     }
@@ -40,7 +39,7 @@ __weak void vApplicationStackOverflowHook(xTaskHandle xTask,
 
 static void SS_FreeRTOS_create_tasks(void) {
     BaseType_t res;
-    res = xTaskCreate(vLEDFlashTask, "LED Task", 128, NULL, 2, (TaskHandle_t *) NULL);
+    res = xTaskCreate(vLEDFlashTask, "LED Task", 2047, NULL, 2, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
 #ifdef SS_USE_COM
     res = xTaskCreate(SS_com_rx_handler_task, "Com Rx Handler Task", 128, NULL, 5, NULL);
@@ -51,14 +50,14 @@ static void SS_FreeRTOS_create_tasks(void) {
 }
 
 void SS_FreeRTOS_init(void) {
+    xTaskCreate(SS_log_task, "Log task", 64, NULL, 4, (TaskHandle_t *) NULL);
 #ifdef SS_RUN_TESTS
     xTaskCreate(run_tests_task, "Tests task", 2048, NULL, 4, (TaskHandle_t *) NULL);
-    printf("FreeRTOS init\r\n");
 #endif
     SS_FreeRTOS_create_tasks();
 #ifdef SS_FREERTOS_TRACE
     vTraceEnable(TRC_START);
 #endif
-    printf("Scheduler started\r\n");
+    SS_print("Scheduler started\r\n");
     vTaskStartScheduler();
 }

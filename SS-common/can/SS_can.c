@@ -12,10 +12,9 @@
 
 #include "FreeRTOS.h"
 #include "SS_com_debug.h"
-#include "SS_error.h"
-#include "assert.h"
+#include "SS_log.h"
+#include "SS_log.h"
 #include "queue.h"
-#include "stdio.h"
 #include "string.h"
 
 /* ==================================================================== */
@@ -270,11 +269,9 @@ void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan) {
 }
 
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
-    printf("can rx\r\n");
     SS_can_handle_received(hcan, COM_HIGH_PRIORITY);
 }
 
 void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan) {
-    printf("can rx\r\n");
     SS_can_handle_received(hcan, COM_LOW_PRIORITY);
 }

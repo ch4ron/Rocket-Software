@@ -35,7 +35,6 @@
 #include "SS_ADS1258.h"
 #include "gpio.h"
 #include "spi.h"
-#include "stdio.h"
 #include "unity_fixture.h"
 
 /* NOTES:
