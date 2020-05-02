@@ -116,15 +116,10 @@ void __assert_func(const char *file, int line, const char *function, const char 
     taskDISABLE_INTERRUPTS();
     HAL_UART_Abort_IT(log_huart);
     const char *format = "assertion %s failed: file %s, line %d, function: %s\r\n";
-    int len = sprintf(NULL, format, assertion, file, line, function);
-    char *msg = pvPortMalloc(len);
-    if(msg != NULL) {
-        sprintf(msg, format, assertion, file, line, function);
-        HAL_UART_Transmit(log_huart, (uint8_t *) msg, len, 1000);
-        vPortFree(msg);
-    }
-    while(1)
-        ;
+    char msg[256];
+    int len = sprintf(msg, format, assertion, file, line, function);
+    HAL_UART_Transmit(log_huart, (uint8_t *) msg, len, 1000);
+    while(1);
 }
 
 /* ==================================================================== */

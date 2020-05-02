@@ -39,6 +39,7 @@ endif()
 if("${CMAKE_BUILD_TYPE}" STREQUAL Test)
    add_compile_definitions(UNITY_OUTPUT_COLOR)
    add_compile_definitions(SS_RUN_TESTS)
+   add_compile_definitions(UNITY_INCLUDE_CONFIG_H)
 endif()
 
 

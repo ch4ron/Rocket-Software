@@ -38,6 +38,12 @@ __weak void vApplicationStackOverflowHook(xTaskHandle xTask,
 
 static void SS_FreeRTOS_create_tasks(void) {
     BaseType_t res;
+    res = xTaskCreate(SS_log_task, "Log task", 64, NULL, 4, (TaskHandle_t *) NULL);
+    assert(res == pdTRUE);
+#ifdef SS_RUN_TESTS
+    res = xTaskCreate(run_tests_task, "Tests task", 512, NULL, 4, (TaskHandle_t *) NULL);
+    assert(res == pdTRUE);
+#endif
     res = xTaskCreate(vLEDFlashTask, "LED Task", 64, NULL, 2, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
 #ifdef SS_USE_COM
@@ -45,19 +51,12 @@ static void SS_FreeRTOS_create_tasks(void) {
     assert(res == pdTRUE);
     res = xTaskCreate(SS_com_tx_handler_task, "Com Tx Handler Task", 128, NULL, 5, NULL);
     assert(res == pdTRUE);
+    res = xTaskCreate(SS_console_task, "Console task", 256, NULL, 5, (TaskHandle_t *) NULL);
+    assert(res == pdTRUE);
 #endif
 }
 
 void SS_FreeRTOS_init(void) {
-    BaseType_t res;
-    res =xTaskCreate(SS_log_task, "Log task", 64, NULL, 4, (TaskHandle_t *) NULL);
-    assert(res == pdTRUE);
-    res = xTaskCreate(SS_console_task, "Console task", 256, NULL, 5, (TaskHandle_t *) NULL);
-    assert(res == pdTRUE);
-#ifdef SS_RUN_TESTS
-    res =xTaskCreate(run_tests_task, "Tests task", 2048, NULL, 4, (TaskHandle_t *) NULL);
-    assert(res == pdTRUE);
-#endif
     SS_FreeRTOS_create_tasks();
 #ifdef SS_FREERTOS_TRACE
     vTraceEnable(TRC_START);

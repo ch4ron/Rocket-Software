@@ -13,7 +13,6 @@
 
 #include "FreeRTOS.h"
 #include "SS_log.h"
-#include "SS_misc.h"
 #include "assert.h"
 #include "portmacro.h"
 #include "semphr.h"
@@ -61,11 +60,10 @@ ConsoleCommand commands[] = {
 void SS_console_init(UART_HandleTypeDef *huart) {
     console_huart = huart;
     rx_sem = xSemaphoreCreateBinary();
-    SS_led_toggle_green_com();
-    HAL_UART_Receive_IT(huart, (uint8_t *) console_buf, 1);
 }
 
 void SS_console_task(void *pvParameters) {
+    HAL_UART_Receive_IT(console_huart, (uint8_t *) console_buf, 1);
     while(1) {
         if(xSemaphoreTake(rx_sem, portMAX_DELAY) == pdTRUE) {
             if(idx >= sizeof(console_buf)) {
@@ -74,16 +72,20 @@ void SS_console_task(void *pvParameters) {
                 HAL_UART_Receive_IT(console_huart, (uint8_t *) console_buf, 1);
             } else if(console_buf[idx] == '\n' || console_buf[idx] == '\r') {
                 if(idx > 0) {
-                    SS_led_toggle_green_mem();
                     SS_handle_console_input(console_buf);
                     idx = 0;
                     memset(console_buf, 0, sizeof(console_buf));
                 }
                 HAL_UART_Receive_IT(console_huart, (uint8_t *) console_buf, 1);
-                SS_led_toggle_green_adc();
+            /* Backspace */
+            } else if(console_buf[idx] == 127) {
+                if(idx > 0) {
+                    HAL_UART_Receive_IT(console_huart, (uint8_t *) console_buf + (--idx), 1);
+                } else {
+                    HAL_UART_Receive_IT(console_huart, (uint8_t *) console_buf, 1);
+                }
             } else {
                 HAL_UART_Receive_IT(console_huart, (uint8_t *) console_buf + (++idx), 1);
-                SS_led_toggle_green_mem();
             }
         }
     }
@@ -129,7 +131,7 @@ static void SS_console_print_help(char *args) {
     SS_print_line("Available commands:");
     for(int i = 0; i < sizeof(commands) / sizeof(commands[0]); i++) {
         ConsoleCommand *command = commands + i;
-        SS_print_line("\t- %s\t\t%s", command->command, command->help);
+        SS_print_line("    - %s\t\t%s", command->command, command->help);
     }
 }
 
