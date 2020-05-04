@@ -45,6 +45,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 #endif
 }
 
+#ifdef HAL_SPI_MODULE_ENABLED
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
 #ifdef SS_USE_ADS1258
     SS_ADS1258_SPI_TxRxCpltCallback(hspi);
@@ -64,7 +65,9 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
 }
 // void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) { printf("spi
 // error\r\n"); }
+#endif
 
+#ifdef HAL_UART_MODULE_ENABLED
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 #ifdef SS_USE_DYNAMIXEL
     SS_dynamixel_UART_RxCpltCallback(huart);
@@ -81,19 +84,24 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 #endif
     SS_log_tx_isr(huart);
 }
+#endif
 
 
 /* void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) { */
 /* printf("uart error callback: %d\r\n", huart->ErrorCode); */
 /* } */
 
-#ifdef SS_USE_S25FL
+#ifdef HAL_QSPI_ENABLED
 void HAL_QSPI_TxCpltCallback(QSPI_HandleTypeDef *hqspi) {
+#ifdef SS_USE_S25FL
     SS_s25fl_txcplt_handler();
+#endif
 }
 
 void HAL_QSPI_RxCpltCallback(QSPI_HandleTypeDef *hqspi) {
+#ifdef SS_USE_S25FL
     SS_s25fl_rxcplt_handler();
+#endif
 }
 #endif
 

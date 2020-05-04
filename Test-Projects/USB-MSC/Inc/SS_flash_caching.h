@@ -1,0 +1,37 @@
+/*
+ * SS_flash_caching.h
+ *
+ *  Created on: Mar 24, 2020
+ *      Author: Mikolaj Wielgus
+ */
+
+#ifndef INC_SS_FLASH_CACHING_OLD_H_
+#define INC_SS_FLASH_CACHING_OLD_H_
+
+#include "main.h"
+
+#ifndef FLASH_CACHING_MAX_CACHE_LEN
+#define FLASH_CACHING_MAX_CACHE_LEN 2
+#endif
+
+typedef enum
+{
+	FLASH_CACHING_STATUS_OK,
+	FLASH_CACHING_STATUS_ERR,
+	FLASH_CACHING_STATUS_DISABLED,
+	FLASH_CACHING_STATUS_WRITE_PROTECTED,
+	FLASH_CACHING_STATUS_COUNT,
+}FlashCachingStatus;
+
+FlashCachingStatus SS_flash_caching_start(void);
+FlashCachingStatus SS_flash_caching_stop(void);
+FlashCachingStatus SS_flash_caching_write_pages(uint32_t first_page, uint32_t len, uint8_t *data);
+FlashCachingStatus SS_flash_caching_read_pages(uint32_t first_page, uint32_t len, uint8_t *data);
+FlashCachingStatus SS_flash_caching_qspi_rxcplt_handler(QSPI_HandleTypeDef *hqspi_);
+
+#ifdef DEBUG
+bool SS_flash_caching_debug_get_is_cache_ready(void);
+uint32_t SS_flash_caching_debug_get_cached_page(void);
+#endif
+
+#endif /* INC_SS_FLASH_CACHING_OLD_H_ */
