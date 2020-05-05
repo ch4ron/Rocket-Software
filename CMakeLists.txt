@@ -65,7 +65,7 @@ macro(create_target)
           COMMENT "Building ${HEX_FILE} Building ${BIN_FILE}")
 
   add_custom_target(${PROJECT_NAME}_flash
-    COMMAND openocd -c 'tcl_port disabled' -s openocd/scripts -c 'gdb_port 3333' -c 'telnet_port 4444' -f
+    COMMAND openocd -c 'tcl_port disabled' -c 'gdb_port 3333' -c 'telnet_port 4444' -f
     ${ROOT_DIR}/st_nucleo_f4.cfg -c 'program ${PROJECT_NAME}.elf' -c reset -c shutdown)
 
   # Generate JLink config file and add flash target

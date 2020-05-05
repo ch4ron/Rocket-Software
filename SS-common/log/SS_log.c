@@ -77,6 +77,22 @@ void SS_error(const char *format, ...) {
     va_end(arg);
 }
 
+void SS_print_bytes(uint8_t *bytes, uint16_t len) {
+    if(log_huart == NULL) {
+        return;
+    }
+    LogMessage msg;
+    msg.content = pvPortMalloc(len);
+    memcpy(msg.content, bytes, len);
+    msg.len = len;
+
+    if(msg.content != NULL) {
+        if(xQueueSend(log_queue, &msg, pdMS_TO_TICKS(10)) != pdTRUE) {
+            vPortFree(msg.content);
+        }
+    }
+}
+
 void SS_print_line(const char *format, ...) {
     if(log_huart == NULL) {
         return;
