@@ -5,10 +5,10 @@
  *      Author: maciek
  */
 
-#include <com/SS_com.h>
-#include <grazyna/SS_grazyna.h>
-#include <com/SS_com_debug.h>
 #include "SS_measurements.h"
+
+#include "SS_com.h"
+#include "SS_com_debug.h"
 #include "string.h"
 
 #define ADS1258_PREVIEW_VALUES_PERIOD 100
@@ -144,7 +144,7 @@ static void SS_ADS1258_measurement_feed(Measurement *meas, ComFrame *frame) {
     frame->action = COM_FEED;
     frame->destination = COM_GRAZYNA_ID;
     frame->device = COM_MEASUREMENT_ID;
-    frame->message_type = 0;
+    frame->operation = 0;
     frame->id = meas->channel_id;
     frame->data_type = FLOAT;
     frame->payload = *((uint32_t *) &meas->scaled);

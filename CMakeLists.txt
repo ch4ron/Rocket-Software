@@ -29,22 +29,28 @@ set(CMAKE_C_FLAGS_INIT "${COMMON_FLAGS} -std=gnu99")
 
 add_definitions(-D__weak=__attribute__\(\(weak\)\) -D__packed=__attribute__\(\(__packed__\)\) -DUSE_HAL_DRIVER -DSTM32F446xx)
 add_compile_options(-Wall)
-add_link_options("-u_printf_float")
+
 
 project(RocketSoftware)
 
 if(${VERBOSE_TEST_OUTPUT})
-    add_compile_definitions(VERBOSE_TEST_OUTPUT UNITY_OUTPUT_COLOR)
+   add_compile_definitions(VERBOSE_TEST_OUTPUT)
 endif()
-#if(${CMAKE_BUILD_TYPE} and ${CMAKE_BUILD_TYPE} STREQUAL Test)
-#    add_compile_definitions(SS_RUN_TESTS)
-#endif()
+if("${CMAKE_BUILD_TYPE}" STREQUAL Test)
+   add_compile_definitions(UNITY_OUTPUT_COLOR)
+   add_compile_definitions(SS_RUN_TESTS)
+   add_compile_definitions(UNITY_INCLUDE_CONFIG_H)
+endif()
+
 
 set(ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 macro(create_target)
-
-  target_link_libraries(${PROJECT_NAME}.elf ThrowTheSwitch FreeRTOS hal_driver)
+  get_directory_property(COMPILE_DEFS COMPILE_DEFINITIONS)
+  if(COMPILE_DEFS MATCHES SS_RUN_TESTS)
+    target_link_libraries(${PROJECT_NAME}.elf ThrowTheSwitch)
+  endif()
+  target_link_libraries(${PROJECT_NAME}.elf FreeRTOS hal_driver)
   target_link_common(${PROJECT_NAME}.elf)
   set(CMAKE_EXE_LINKER_FLAGS_INIT "-Wl,-gc-sections,--print-memory-usage -T ${LINKER_SCRIPT}")
   set(CMAKE_EXE_LINKER_FLAGS
@@ -62,18 +68,40 @@ macro(create_target)
     COMMAND openocd -c 'tcl_port disabled' -s openocd/scripts -c 'gdb_port 3333' -c 'telnet_port 4444' -f
     ${ROOT_DIR}/st_nucleo_f4.cfg -c 'program ${PROJECT_NAME}.elf' -c reset -c shutdown)
 
-  add_custom_target(${PROJECT_NAME}_gdb
-    COMMAND openocd -c 'tcl_port disabled' -s openocd/scripts -c 'gdb_port 3333' -c 'telnet_port 4444' -f
-    ${ROOT_DIR}/st_nucleo_f4.cfg -c 'program ${PROJECT_NAME}.elf' -c init;reset init;)
+  # Generate JLink config file and add flash target
+  set(JLINK_COMMANDS "si SWD"
+    "Device ${MCU}"
+    "speed 4000"
+    "r"
+    "h"
+    "loadfile ${HEX_FILE}"
+    "r"
+    "exit")
+
+  set(JLINK_FILE ${CMAKE_CURRENT_BINARY_DIR}/commands.jlink)
+  file(REMOVE ${JLINK_FILE})
+  file(TOUCH ${JLINK_FILE})
+  foreach(COMMAND ${JLINK_COMMANDS})
+    file(APPEND ${JLINK_FILE} ${COMMAND})
+    file(APPEND ${JLINK_FILE} "\n")
+  endforeach()
+  add_custom_target(${PROJECT_NAME}_jflash
+    COMMAND jlink -CommandFile ${JLINK_FILE})
+
+  # add_custom_target(${PROJECT_NAME}_gdb
+    # COMMAND openocd -c 'tcl_port disabled' -s openocd/scripts -c 'gdb_port 3333' -c 'telnet_port 4444' -f
+    # ${ROOT_DIR}/st_nucleo_f4.cfg -c 'program ${PROJECT_NAME}.elf' -c init;reset init;)
+  add_dependencies(${PROJECT_NAME}_flash ${PROJECT_NAME}.elf)
+  add_dependencies(${PROJECT_NAME}_jflash ${PROJECT_NAME}.elf)
 endmacro()
 
-# Needs to be added after adding compile definitions
 add_subdirectory(SS-common)
 add_subdirectory(External)
 add_subdirectory(FreeRTOS)
 add_subdirectory(Drivers)
 add_subdirectory(Kromek)
 add_subdirectory(Staszek)
+add_subdirectory(Pauek)
 
 set(TEST_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/test)
 set(TEST_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/SS-test)

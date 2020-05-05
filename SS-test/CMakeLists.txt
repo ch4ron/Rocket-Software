@@ -1,10 +1,5 @@
 cmake_minimum_required(VERSION 3.11)
 
-# set(CMAKE_AR arm-none-eabi-ar)
-# set(CMAKE_OBJCOPY arm-none-eabi-objcopy)
-# set(CMAKE_OBJDUMP arm-none-eabi-objdump)
-# set(SIZE arm-none-eabi-size)
-
 project(SS-test C ASM)
 
 add_compile_definitions(SS_USE_MOCK)
@@ -20,18 +15,10 @@ add_compile_definitions(USE_HAL_DRIVER)
 
 enable_testing()
 
-set(CMAKE_CXX_COMPILER g++)
-unset(CMAKE_AR)
-unset(CMAKE_OBJCOPY)
-unset(CMAKE_OBJDUMP)
-unset(SIZE)
-
 add_subdirectory(../External ThrowTheSwitch)
 add_subdirectory(../Drivers hal_driver)
 add_subdirectory(../FreeRTOS FreeRTOS)
 
-set(CMAKE_ASM_COMPILER  gcc)
-set(CMAKE_C_COMPILER gcc)
 get_filename_component(CMOCK ../External/CMock/lib/cmock.rb ABSOLUTE)
 get_filename_component(CMOCK_CONFIG cmock_config.yaml ABSOLUTE)
 

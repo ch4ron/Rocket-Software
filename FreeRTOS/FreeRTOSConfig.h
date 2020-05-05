@@ -46,6 +46,10 @@
  *----------------------------------------------------------*/
 
 /* USER CODE BEGIN Includes */
+#include "assert.h"
+#ifndef SS_USE_MOCK
+#include "SS_log.h"
+#endif
 /* Section where include file can be added */
 /* USER CODE END Includes */
 
@@ -68,7 +72,7 @@ void xPortSysTickHandler(void);
 #define configTICK_RATE_HZ ((TickType_t) 1000)
 #define configMAX_PRIORITIES (32)
 #define configMINIMAL_STACK_SIZE ((uint16_t) 128)
-#define configTOTAL_HEAP_SIZE ((size_t) 15360)
+#define configTOTAL_HEAP_SIZE ((size_t) 20360)
 #define configMAX_TASK_NAME_LEN (16)
 #define configUSE_TRACE_FACILITY 1
 #define configUSE_16_BIT_TICKS 0
@@ -78,6 +82,10 @@ void xPortSysTickHandler(void);
 #define configUSE_COUNTING_SEMAPHORES 1
 #define configUSE_QUEUE_SETS 1
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
+
+#define configGENERATE_RUN_TIME_STATS 1
+#define configUSE_STATS_FORMATTING_FUNCTIONS 2
+
 /* USER CODE BEGIN MESSAGE_BUFFER_LENGTH_TYPE */
 /* Defaults to size_t for backward compatibility, but can be changed
    if lengths will always be less than the number of bytes in a size_t. */
@@ -146,28 +154,25 @@ See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
 header file. */
 /* USER CODE BEGIN 1 */
 #define configASSERT(x)           \
-    if((x) == 0) {                \
-        taskDISABLE_INTERRUPTS(); \
-        for(;;)                   \
-            ;                     \
-    }
-/* USER CODE END 1 */
+    assert(x)
+
+extern void vConfigureTimerForRunTimeStats(void);
+extern volatile uint32_t counter25khz;
+
+#define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS() vConfigureTimerForRunTimeStats()
+#define portGET_RUN_TIME_COUNTER_VALUE() counter25khz
 
 /* Definitions that map the FreeRTOS port interrupt handlers to their CMSIS
 standard names. */
 #define vPortSVCHandler SVC_Handler
 #define xPortPendSVHandler PendSV_Handler
-
-/* IMPORTANT: This define is commented when used with STM32Cube firmware, when
-   the timebase source is SysTick, to prevent overwriting SysTick_Handler
-   defined within STM32Cube HAL */
-
 #define xPortSysTickHandler SysTick_Handler
 
 #ifdef SS_FREERTOS_TRACE
 #include "TraceRecorder/config/trcConfig.h"
 #include "TraceRecorder/include/trcRecorder.h"
 #endif
+
 /* USER CODE BEGIN Defines */
 /* Section where parameter definitions can be added (for instance, to override
  * default ones in FreeRTOS.h) */

@@ -1,16 +1,16 @@
-cmake_minimum_required(VERSION 3.11.1)
+set(TARGET dynamixel)
 
-project(dynamixel C)
-
-add_library(${PROJECT_NAME} INTERFACE)
+add_library(${TARGET} INTERFACE)
 
 target_include_directories(
-        ${PROJECT_NAME} INTERFACE
-        $<BUILD_INTERFACE:
-        ${CMAKE_CURRENT_SOURCE_DIR};
-        ${SS_COMMON_DIR}/mutex>)
+        ${TARGET} INTERFACE
+        ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_sources(${PROJECT_NAME} INTERFACE
+target_sources(${TARGET} INTERFACE
+        ${CMAKE_CURRENT_SOURCE_DIR}/SS_dynamixel.h
         ${CMAKE_CURRENT_SOURCE_DIR}/SS_dynamixel.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/SS_dynamixel_tests.c)
+        ${CMAKE_CURRENT_SOURCE_DIR}/SS_dynamixel_com.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/SS_dynamixel_com.h)
 
+target_test_sources(${TARGET} INTERFACE
+  ${CMAKE_CURRENT_SOURCE_DIR}/SS_dynamixel_tests.c)

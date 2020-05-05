@@ -42,14 +42,10 @@ if(COMPILE_DEFS MATCHES SS_USE_MOCK)
     list(APPEND MOCK_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/mocks/Mock${SRC_FILE})
   endforeach()
 
-  # add_custom_command(OUTPUT
-  #   ${MOCK_SOURCES}
-  #   COMMAND ruby ${CMAKE_CURRENT_SOURCE_DIR}/mock_drivers.rb ${MOCKS})
-
-if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/mocks)
-  execute_process(
-    COMMAND ruby ${CMAKE_CURRENT_SOURCE_DIR}/mock_drivers.rb ${MOCKS})
-endif()
+  if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/mocks)
+    execute_process(
+      COMMAND ruby ${CMAKE_CURRENT_SOURCE_DIR}/mock_drivers.rb ${MOCKS})
+  endif()
 
   set_source_files_properties(${MOCK_SOURCES} PROPERTIES GENERATED TRUE)
   add_custom_target(generate_mocks ALL DEPENDS ${MOCK_SOURCES})
@@ -57,6 +53,7 @@ endif()
   add_dependencies(${TARGET} generate_mocks)
 
   target_include_directories(${TARGET} INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}/mocks
     ${CMAKE_CURRENT_SOURCE_DIR})
 
   target_sources(${TARGET} INTERFACE ${MOCK_SOURCES})

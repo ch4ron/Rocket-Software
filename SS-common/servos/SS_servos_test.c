@@ -6,12 +6,16 @@
  */
 
 #include "SS_servos.h"
-#include "unity_fixture.h"
+
+#include "SS_com.h"
 #include "string.h"
+#include "unity_fixture.h"
 
 extern Servo *servo_pointers[MAX_SERVO_COUNT];
 extern uint16_t SS_servo_get_width(uint16_t position);
 extern ServosConfig servos_config;
+extern ComStatus SS_com_handle_action(ComFrame *frame);
+
 ServosConfig tmp_config;
 
 TEST_GROUP(servos);
@@ -150,10 +154,10 @@ TEST(servos, timeout) {
 static void test_grazyna_servo_open(uint8_t servo_id) {
     SS_servo_close(servo_pointers[servo_id]);
     ComFrame frame = {
-            .action = COM_SERVICE,
-            .device = COM_SERVO_ID,
-            .id = servo_id,
-            .message_type = COM_SERVO_OPEN };
+        .action = COM_SERVICE,
+        .device = COM_SERVO_ID,
+        .id = servo_id,
+        .operation = COM_SERVO_OPEN};
     TEST_ASSERT_EQUAL(servo_pointers[servo_id]->closed_position, servo_pointers[servo_id]->position);
     ComActionID res = (ComActionID) SS_com_handle_action(&frame);
     TEST_ASSERT_EQUAL(COM_OK, res);
@@ -163,10 +167,10 @@ static void test_grazyna_servo_open(uint8_t servo_id) {
 static void test_grazyna_servo_close(uint8_t servo_id) {
     SS_servo_open(servo_pointers[servo_id]);
     ComFrame frame = {
-            .action = COM_SERVICE,
-            .device = COM_SERVO_ID,
-            .id = servo_id,
-            .message_type = COM_SERVO_CLOSE };
+        .action = COM_SERVICE,
+        .device = COM_SERVO_ID,
+        .id = servo_id,
+        .operation = COM_SERVO_CLOSE};
     TEST_ASSERT_EQUAL(servo_pointers[servo_id]->opened_position, servo_pointers[servo_id]->position);
     ComActionID res = SS_com_handle_action(&frame);
     TEST_ASSERT_EQUAL(COM_OK, res);
@@ -177,11 +181,11 @@ static void test_grazyna_servo_set_position(uint8_t servo_id) {
     uint16_t target = 300;
     SS_servo_open(servo_pointers[servo_id]);
     ComFrame frame = {
-            .action = COM_SERVICE,
-            .device = COM_SERVO_ID,
-            .id = servo_id,
-            .message_type = COM_SERVO_POSITION,
-            .payload = target };
+        .action = COM_SERVICE,
+        .device = COM_SERVO_ID,
+        .id = servo_id,
+        .operation = COM_SERVO_POSITION,
+        .payload = target};
     TEST_ASSERT_EQUAL(servo_pointers[servo_id]->opened_position, servo_pointers[servo_id]->position);
     ComActionID res = SS_com_handle_action(&frame);
     TEST_ASSERT_EQUAL(COM_OK, res);
@@ -191,11 +195,11 @@ static void test_grazyna_servo_set_position(uint8_t servo_id) {
 static void test_grazyna_servo_set_opened_position(uint8_t servo_id) {
     uint16_t target = 444;
     ComFrame frame = {
-            .action = COM_SERVICE,
-            .device = COM_SERVO_ID,
-            .id = servo_id,
-            .message_type = COM_SERVO_OPENED_POSITION,
-            .payload = target };
+        .action = COM_SERVICE,
+        .device = COM_SERVO_ID,
+        .id = servo_id,
+        .operation = COM_SERVO_OPENED_POSITION,
+        .payload = target};
     ComActionID res = SS_com_handle_action(&frame);
     TEST_ASSERT_EQUAL(COM_OK, res);
     TEST_ASSERT_EQUAL(target, servo_pointers[servo_id]->opened_position);
@@ -204,11 +208,11 @@ static void test_grazyna_servo_set_opened_position(uint8_t servo_id) {
 static void test_grazyna_servo_set_closed_position(uint8_t servo_id) {
     uint32_t target = 531;
     ComFrame frame = {
-            .action = COM_SERVICE,
-            .device = COM_SERVO_ID,
-            .id = servo_id,
-            .message_type = COM_SERVO_CLOSED_POSITION,
-            .payload = target };
+        .action = COM_SERVICE,
+        .device = COM_SERVO_ID,
+        .id = servo_id,
+        .operation = COM_SERVO_CLOSED_POSITION,
+        .payload = target};
     ComActionID res = SS_com_handle_action(&frame);
     TEST_ASSERT_EQUAL(COM_OK, res);
     TEST_ASSERT_EQUAL(target, servo_pointers[servo_id]->closed_position);
@@ -218,10 +222,11 @@ static void test_grazyna_servo_get_position(uint8_t servo_id) {
     uint16_t target = 777;
     SS_servo_set_position(servo_pointers[servo_id], target);
     ComFrame frame = {
-            .action = COM_REQUEST,
-            .device = COM_SERVO_ID,
-            .id = servo_id,
-            .message_type = COM_SERVO_POSITION, };
+        .action = COM_REQUEST,
+        .device = COM_SERVO_ID,
+        .id = servo_id,
+        .operation = COM_SERVO_POSITION,
+    };
     ComActionID res = SS_com_handle_action(&frame);
     TEST_ASSERT_EQUAL(COM_OK, res);
     TEST_ASSERT_EQUAL(target, frame.payload);
@@ -232,10 +237,11 @@ static void test_grazyna_servo_get_opened_position(uint8_t servo_id) {
     uint16_t target = 3;
     SS_servo_set_opened_position(servo_pointers[servo_id], target);
     ComFrame frame = {
-            .action = COM_REQUEST,
-            .device = COM_SERVO_ID,
-            .id = servo_id,
-            .message_type = COM_SERVO_OPENED_POSITION, };
+        .action = COM_REQUEST,
+        .device = COM_SERVO_ID,
+        .id = servo_id,
+        .operation = COM_SERVO_OPENED_POSITION,
+    };
     ComActionID res = SS_com_handle_action(&frame);
     TEST_ASSERT_EQUAL(COM_OK, res);
     TEST_ASSERT_EQUAL(target, frame.payload);
@@ -246,10 +252,11 @@ static void test_grazyna_servo_get_closed_position(uint8_t servo_id) {
     uint16_t target = 1000;
     SS_servo_set_closed_position(servo_pointers[servo_id], target);
     ComFrame frame = {
-            .action = COM_REQUEST,
-            .device = COM_SERVO_ID,
-            .id = servo_id,
-            .message_type = COM_SERVO_CLOSED_POSITION, };
+        .action = COM_REQUEST,
+        .device = COM_SERVO_ID,
+        .id = servo_id,
+        .operation = COM_SERVO_CLOSED_POSITION,
+    };
     ComActionID res = SS_com_handle_action(&frame);
     TEST_ASSERT_EQUAL(COM_OK, res);
     TEST_ASSERT_EQUAL(target, frame.payload);
@@ -270,10 +277,10 @@ TEST(grazyna_servos, close) {
 
 TEST(grazyna_servos, wrong_id) {
     ComFrame frame = {
-            .action = COM_SERVICE,
-            .device = COM_SERVO_ID,
-            .id = MAX_SERVO_COUNT,
-            .message_type = COM_SERVO_CLOSE };
+        .action = COM_SERVICE,
+        .device = COM_SERVO_ID,
+        .id = MAX_SERVO_COUNT,
+        .operation = COM_SERVO_CLOSE};
     ComActionID res = SS_com_handle_action(&frame);
     TEST_ASSERT_EQUAL(COM_ERROR, res);
 }
@@ -298,10 +305,11 @@ TEST(grazyna_servos, set_opened_position) {
 
 TEST(grazyna_servos, disable) {
     ComFrame frame = {
-            .action = COM_SERVICE,
-            .device = COM_SERVO_ID,
-            .message_type = COM_SERVO_DISABLE, };
-    for (uint8_t i = 0; i < MAX_SERVO_COUNT; i++) {
+        .action = COM_SERVICE,
+        .device = COM_SERVO_ID,
+        .operation = COM_SERVO_DISABLE,
+    };
+    for(uint8_t i = 0; i < MAX_SERVO_COUNT; i++) {
         SS_servo_open(servo_pointers[i]);
         TEST_ASSERT_NOT_EQUAL(0, *servo_pointers[i]->pointer);
         frame.id = i;
@@ -309,8 +317,8 @@ TEST(grazyna_servos, disable) {
         ComStatus res = SS_com_handle_action(&frame);
         TEST_ASSERT_EQUAL(COM_OK, res);
     }
-    HAL_Delay(SERVO_TIMEOUT +10);
-    for (uint8_t i = 0; i < MAX_SERVO_COUNT; i++) {
+    HAL_Delay(SERVO_TIMEOUT + 10);
+    for(uint8_t i = 0; i < MAX_SERVO_COUNT; i++) {
         TEST_ASSERT_EQUAL(0, *servo_pointers[i]->pointer);
     }
 }
@@ -336,10 +344,10 @@ TEST(grazyna_servos, get_opened_position) {
 TEST(grazyna_servos, set_range) {
     uint16_t range = 2000;
     ComFrame frame = {
-            .action = COM_SERVICE,
-            .device = COM_SERVO_ID,
-            .message_type = COM_SERVOS_RANGE,
-            .payload = range };
+        .action = COM_SERVICE,
+        .device = COM_SERVO_ID,
+        .operation = COM_SERVOS_RANGE,
+        .payload = range};
     ComActionID res = SS_com_handle_action(&frame);
     TEST_ASSERT_EQUAL(COM_OK, res);
     TEST_ASSERT_EQUAL(range, servos_config.SERVO_RANGE);
@@ -348,10 +356,11 @@ TEST(grazyna_servos, set_range) {
 TEST(grazyna_servos, get_range) {
     servos_config.SERVO_RANGE = 6999;
     ComFrame frame = {
-            .action = COM_REQUEST,
-            .device = COM_SERVO_ID,
-            .message_type =
-            COM_SERVOS_RANGE, };
+        .action = COM_REQUEST,
+        .device = COM_SERVO_ID,
+        .operation =
+            COM_SERVOS_RANGE,
+    };
     ComActionID res = SS_com_handle_action(&frame);
     TEST_ASSERT_EQUAL(COM_OK, res);
     TEST_ASSERT_EQUAL(servos_config.SERVO_RANGE, frame.payload);
@@ -367,10 +376,10 @@ TEST(grazyna_servos, uninitialized_id) {
     SS_servos_deinit();
     SS_servo_init(&test_servo);
     ComFrame frame = {
-            .action = COM_SERVICE,
-            .device = COM_SERVO_ID,
-            .id = 3,
-            .message_type = COM_SERVO_CLOSE };
+        .action = COM_SERVICE,
+        .device = COM_SERVO_ID,
+        .id = 3,
+        .operation = COM_SERVO_CLOSE};
     ComStatus res = SS_com_handle_action(&frame);
     TEST_ASSERT_EQUAL(COM_ERROR, res);
     frame.id = 1;

@@ -16,8 +16,10 @@ routines except (the following should be left with priority 0):
  - System service call via SWI instruction
  - Debug monitor
 
-Override HAL interrupt handlers, put the following into stm32f4xx_it.c:
+Disable the generation of the following HAL interrupt handlers in CubeMX (In tab NVIC/Code generation):
 
-    #define SVC_Handler Dummy_SVC_Handler
-    #define PendSV_Handler Dummy_PendSV_Handler
-    #define SysTick_Handler Dummy_SysTick_Handler
+    - System service call via SWI instruction
+    - Pendable request for system service
+    - System tick timer
+    
+To analyze FreeRTOS performance, vTaskGetRunTimeStats is used. It needs a clock source with frequency of at least 10 khz to function properly. By default tim14 is used and automatically configured to run at 25khz. It needs to be enabled in STM32CubeMX and function SS_FreeRTOS_25khz_timer_callback has to be called in HAL_TIM_PeriodElapsedCallback.

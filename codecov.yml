@@ -3,3 +3,4 @@ ignore:
   - "External"
   - "**mocks"
   - "**tests.c"
+  - "**test.c"

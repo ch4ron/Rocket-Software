@@ -17,5 +17,6 @@ void SS_grazyna_init_hal(void *huart);
 void SS_grazyna_receive_hal(uint8_t *data, uint16_t length);
 void SS_grazyna_transmit_hal(uint8_t *data, uint16_t length);
 uint32_t SS_grazyna_crc_hal(uint32_t *data, uint32_t len);
+void SS_grazyna_UART_RxCpltCallback(UART_HandleTypeDef *huart);
 
 #endif /* SS_GRAZYNA_HAL_H */

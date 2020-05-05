@@ -48,6 +48,7 @@
 
 #if (TRC_USE_TRACEALYZER_RECORDER == 1)
 
+/* TODO replace stdio with printf.h */
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>

@@ -1,14 +1,17 @@
-cmake_minimum_required(VERSION 3.11.1)
+set(TARGET ADS1258)
 
-project(ADS1258 C)
-
-add_library(${PROJECT_NAME} INTERFACE)
+add_library(${TARGET} INTERFACE)
 target_include_directories(
-        ${PROJECT_NAME} INTERFACE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
+        ${TARGET} INTERFACE
+        ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_sources(${PROJECT_NAME} INTERFACE
-        ${CMAKE_CURRENT_SOURCE_DIR}/SS_ADS1258_unit_tests.c
+target_sources(${TARGET} INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/SS_measurements.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/SS_measurements.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/SS_ADS1258.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/SS_ADS1258.h)
+
+target_test_sources(${TARGET} INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/SS_measurements_tests.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/SS_ADS1258.c)
+        ${CMAKE_CURRENT_SOURCE_DIR}/SS_ADS1258_unit_tests.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/SS_ADS1258_unit_tests.c)

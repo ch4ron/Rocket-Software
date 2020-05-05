@@ -58,7 +58,6 @@ void SS_sequence_SYSTICK() {
         return;
     }
     while(sequence_items[item_number].time <= time_elapsed) {
-//        printf("t: %d, i: %d\r\n", time_elapsed, item_number);
         sequence_items[item_number].func(sequence_items[item_number].value);
         item_number++;
         if(item_number >= MAX_SEQUENCE_ITEMS || sequence_items[item_number].func == 0) {

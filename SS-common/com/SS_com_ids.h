@@ -40,6 +40,7 @@ typedef enum {
     COM_TENSOMETER_ID    = 0x06,
     COM_BAROMETER_ID     = 0x07,
     COM_MPU9250_ID       = 0x08,
+    COM_DYNAMIXEL_ID     = 0x09,
 } ComDeviceID;
 
 typedef enum {

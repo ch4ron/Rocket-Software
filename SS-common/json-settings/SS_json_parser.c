@@ -1,5 +1,5 @@
 #include "settings_json.h"
-#include "stdio.h"
+#include "SS_log.h"
 #include "string.h"
 #include "SS_json_parser.h"
 #include "stdint.h"
@@ -14,11 +14,11 @@ static int8_t jsoneq(char *json, jsmntok_t *tok, char *s) {
 
 void print_jsmntok(char *json, jsmntok_t *tok) {
     if(tok->type == JSMN_OBJECT) 
-        printf("%.*s\r\n", tok->end - tok->start, json + tok->start);
+        SS_print("%.*s\r\n", tok->end - tok->start, json + tok->start);
     else if(tok->type == JSMN_ARRAY)
-        printf("%.*s\r\n", tok->end - tok->start, json + tok->start);
+        SS_print("%.*s\r\n", tok->end - tok->start, json + tok->start);
     else 
-        printf("\r\n%.*s: %.*s\r\n", tok->end - tok->start, json + tok->start,
+        SS_print("\r\n%.*s: %.*s\r\n", tok->end - tok->start, json + tok->start,
          tok[1].end - tok[1].start, json + tok[1].start);
 }
 
@@ -187,11 +187,7 @@ void SS_json_parse_data(JsonData *it, int length, char *json, jsmntok_t *tok) {
 static int save_raw(char *json, uint16_t json_length, jsmntok_t *tok, char *str) {
 	char buff[1024];
 	uint16_t length = strlen(str);
-	if(json_length - (tok->end - tok->start) + length >= 1024) {
-	    /* TODO - test and replace with assertion */
-	    printf("Not enough space allocated for json\r\n");
-	    return -1;
-	}
+	assert(json_length - (tok->end - tok->start) + length >= 1024);
 	if(length == tok->end - tok->start) {
 	    memcpy(json + tok->start, str, length);
 	} else {

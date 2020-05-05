@@ -2,21 +2,16 @@
 // Created by maciek on 02.03.2020.
 //
 
+#include "SS_platform.h"
+
+#include "SS_MS5X.h"
 #include "SS_can.h"
 #include "SS_common.h"
-#include "SS_platform.h"
-#include "usart.h"
-#include "SS_MS5X.h"
-#include "tim.h"
 #include "SS_servos.h"
-
-
-/********** PRINTF *********/
-
-int _write(int file, char *ptr, int len) {
-	HAL_UART_Transmit(&huart4, (uint8_t*) ptr, (uint16_t) len, 1000);
-	return len;
-}
+#include "can.h"
+#include "tim.h"
+#include "usart.h"
+#include "SS_log.h"
 
 
 /********** SERVOS *********/
@@ -41,11 +36,10 @@ void SS_platform_servos_init() {
 /********** ADC *********/
 
 static void SS_platform_adc_init() {
-#if defined(SS_USE_ADC) && !defined(SIMULATE)
+#if defined(SS_USE_ADC)
     ADC_HandleTypeDef *adc[] = {
-            &hadc1, &hadc2, &hadc3
-    };
-    SS_adc_init(adc, sizeof(adc)/sizeof(adc[0]));
+        &hadc1, &hadc2, &hadc3};
+    SS_adc_init(adc, sizeof(adc) / sizeof(adc[0]));
 #endif
 }
 
@@ -59,17 +53,16 @@ Measurement measurements[] = {
 
 static void SS_platform_ADS1258_init() {
     SS_ADS1258_measurements_init(measurements, sizeof(measurements) / sizeof(measurements[0]));
-    SS_ADS1258_init(&hspi2);
+    SS_ADS1258_init(&hspi1);
 }
 
 /********** MAIN INIT *********/
 
 void SS_platform_init() {
-//    SS_platform_adc_init();
-    SS_platform_servos_init();
-#ifndef SIMULATE
+    SS_log_init(&huart4);
+    //    SS_platform_adc_init();
+    /* SS_platform_servos_init(); */
     SS_platform_ADS1258_init();
-#endif
-    SS_MS56_init(&ms5607, MS56_PRESS_4096, MS56_TEMP_4096);
-    SS_can_init(&hcan2, COM_STASZEK_ID);
+    /* SS_MS56_init(&ms5607, MS56_PRESS_4096, MS56_TEMP_4096); */
+    /* SS_can_init(&hcan2, COM_STASZEK_ID); */
 }

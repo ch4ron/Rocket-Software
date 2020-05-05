@@ -6,9 +6,8 @@
  */
 
 #include "SS_servos.h"
-#include "stdio.h"
 #include "string.h"
-#include "SS_error.h"
+#include "SS_log.h"
 
 #define SERVO_RESOLUTION 1000
 
@@ -210,7 +209,7 @@ void SS_servos_SYSTICK() {
 
 ComStatus SS_servos_com_service(ComFrame *frame) {
     if(SS_servos_check_id(frame->id) != 0) return COM_ERROR;
-    ComServoID msgID = frame->message_type;
+    ComServoID msgID = frame->operation;
     Servo *servo = servo_pointers[frame->id];
     uint32_t value = frame->payload;
     switch(msgID) {
@@ -251,7 +250,7 @@ ComStatus SS_servos_com_service(ComFrame *frame) {
 
 ComStatus SS_servos_com_request(ComFrame *frame) {
     if(SS_servos_check_id(frame->id) != 0) return COM_ERROR;
-    ComServoID msgID = frame->message_type;
+    ComServoID msgID = frame->operation;
     Servo *servo = servo_pointers[frame->id];
     switch(msgID) {
         case COM_SERVO_OPENED_POSITION:

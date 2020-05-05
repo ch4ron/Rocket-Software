@@ -91,8 +91,8 @@ TEST(grazyna, is_enabled) {
 
 TEST(grazyna, transmit) {
     ComFrame frame;
-    SS_com_add_to_rx_queue_Expect(&frame, SS_grazyna_tx, NULL);
-    SS_com_add_to_rx_queue_IgnoreArg_queue();
+    SS_com_add_to_tx_queue_Expect(&frame, SS_grazyna_tx, NULL);
+    SS_com_add_to_tx_queue_IgnoreArg_queue();
     SS_grazyna_transmit(&frame);
 }
 

@@ -4,13 +4,15 @@ add_library(ThrowTheSwitch INTERFACE)
 
 target_sources(ThrowTheSwitch INTERFACE
  ${CMAKE_CURRENT_SOURCE_DIR}/Unity/extras/fixture/src/unity_fixture.c
+ ${CMAKE_CURRENT_SOURCE_DIR}/Unity/src/unity.c
  ${CMAKE_CURRENT_SOURCE_DIR}/Unity/extras/memory/src/unity_memory.c)
 
-add_subdirectory(Unity unity)
+add_subdirectory(Unity)
 
 file(GLOB INCLUDE_DIRS
   Unity/src
   Unity/extras/fixture/src
+  ${CMAKE_CURRENT_SOURCE_DIR}
   Unity/extras/memory/src)
 
 get_directory_property(COMPILE_DEFS COMPILE_DEFINITIONS)
@@ -22,4 +24,4 @@ endif()
 
 target_include_directories(ThrowTheSwitch INTERFACE "${INCLUDE_DIRS}")
 
-target_link_libraries(ThrowTheSwitch INTERFACE unity)
+target_link_libraries(ThrowTheSwitch INTERFACE)

@@ -14,7 +14,6 @@ endif()
 add_library(common INTERFACE)
 
 target_sources(common INTERFACE
-  ${CMAKE_CURRENT_SOURCE_DIR}/SS_FreeRTOS.c
   ${CMAKE_CURRENT_SOURCE_DIR}/SS_common.c
   ${CMAKE_CURRENT_SOURCE_DIR}/SS_common.h)
 
@@ -24,6 +23,21 @@ set(SS_COMMON_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(
         common INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
+function(target_test_sources)
+get_directory_property(COMPILE_DEFS COMPILE_DEFINITIONS)
+if(COMPILE_DEFS MATCHES SS_RUN_TESTS)
+  target_sources(${ARGV})
+endif()
+endfunction()
+
+function(target_non_test_sources)
+get_directory_property(COMPILE_DEFS COMPILE_DEFINITIONS)
+if(NOT COMPILE_DEFS MATCHES SS_RUN_TESTS)
+  target_sources(${ARGV})
+endif()
+endfunction()
+
+add_subdirectory(misc)
 add_subdirectory(fifo)
 add_subdirectory(dynamixel)
 add_subdirectory(com)
@@ -31,7 +45,6 @@ add_subdirectory(servos)
 add_subdirectory(ADS1258)
 add_subdirectory(adc)
 add_subdirectory(grazyna)
-add_subdirectory(mutex)
 add_subdirectory(relays)
 add_subdirectory(S25FL)
 add_subdirectory(sequence)
@@ -40,9 +53,10 @@ add_subdirectory(supply)
 add_subdirectory(MS5X)
 add_subdirectory(can)
 add_subdirectory(test)
-add_subdirectory(support)
-add_subdirectory(error)
+add_subdirectory(log)
 add_subdirectory(callbacks)
+add_subdirectory(FreeRTOS)
+add_subdirectory(console)
 
 
 function(target_link_common TARGET)
@@ -68,9 +82,6 @@ endif()
 if(COMPILE_DEFS MATCHES SS_USE_GRAZYNA)
     target_link_libraries(${TARGET} grazyna)
 endif()
-if(COMPILE_DEFS MATCHES SS_USE_MUTEX)
-    target_link_libraries(${TARGET} mutex)
-endif()
 if(COMPILE_DEFS MATCHES SS_USE_RELAYS)
     target_link_libraries(${TARGET} relays)
 endif()
@@ -93,15 +104,16 @@ if(COMPILE_DEFS MATCHES SS_USE_CAN)
     target_link_libraries(${TARGET} can)
 endif()
 if(COMPILE_DEFS MATCHES SS_RUN_TESTS)
-    target_link_libraries(${TARGET} SS_test)
+    target_link_libraries(${TARGET} test_runner)
 endif()
 
-target_link_libraries(${TARGET} common)
 
 # Mandatory
-target_link_libraries(${TARGET} support)
-
-target_link_libraries(${TARGET} error)
-
+target_link_libraries(${TARGET} common)
+target_link_libraries(${TARGET} misc)
+target_link_libraries(${TARGET} log)
 target_link_libraries(${TARGET} callbacks)
+target_link_libraries(${TARGET} console)
+target_link_libraries(${TARGET} FreeRTOS_setup)
+
 endfunction()

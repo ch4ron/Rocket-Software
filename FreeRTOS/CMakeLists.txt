@@ -19,12 +19,12 @@ else()
   Source/tasks.c
   Source/portable/MemMang/heap_4.c
   Source/portable/GCC/ARM_CM4F/port.c)
+  target_include_directories(FreeRTOS INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/Source/portable/GCC/ARM_CM4F)
 endif()
 
 target_include_directories(FreeRTOS INTERFACE
   ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_CURRENT_SOURCE_DIR}/Source/include
-  ${CMAKE_CURRENT_SOURCE_DIR}/Source/portable/GCC/ARM_CM4F)
+  ${CMAKE_CURRENT_SOURCE_DIR}/Source/include)
 
 target_sources(FreeRTOS INTERFACE
   "${SOURCES}")

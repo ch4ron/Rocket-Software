@@ -10,6 +10,7 @@
 /* ==================================================================== */
 
 #ifdef SS_USE_GRAZYNA
+
 #include "SS_grazyna.h"
 #endif
 #ifdef SS_USE_ADS1258
@@ -24,16 +25,19 @@
 #ifdef SS_USE_CAN
 #include "SS_can.h"
 #endif
+#ifdef SS_USE_DYNAMIXEL
+#include "SS_dynamixel_com.h"
+#endif
 
 #include "FreeRTOS.h"
 #include "SS_can.h"
 #include "SS_com.h"
 #include "SS_com_debug.h"
-#include "SS_error.h"
+#include "SS_log.h"
+#include "SS_misc.h"
 #include "assert.h"
 #include "queue.h"
 #include "stdbool.h"
-#include "stdio.h"
 #include "string.h"
 #include "task.h"
 
@@ -58,10 +62,8 @@ typedef struct {
 /* =================== Private function prototypes ==================== */
 /* ==================================================================== */
 
-static void SS_com_rx_handler_task(void *pvParameters);
-static void SS_com_tx_handler_task(void *pvParameters);
+ComStatus SS_com_handle_action(ComFrame *frame);
 static ComStatus SS_com_handle_frame(ComFrame *frame);
-static ComStatus SS_com_handle_action(ComFrame *frame);
 static ComStatus SS_com_handle_request(ComFrame *frame);
 static ComStatus SS_com_handle_service(ComFrame *frame);
 
@@ -90,11 +92,6 @@ void SS_com_message_received(ComFrame *frame) {
 void SS_com_init(ComBoardID board) {
     board_id = board;
     /* TODO add macros for priorities */
-    BaseType_t res;
-    res = xTaskCreate(SS_com_rx_handler_task, "Com Rx Handler Task", 128, NULL, 5, NULL);
-    assert(res == pdTRUE);
-    res = xTaskCreate(SS_com_tx_handler_task, "Com Tx Handler Task", 128, NULL, 5, NULL);
-    assert(res == pdTRUE);
     com_queue = xQueueCreate(SS_COM_RX_QUEUE_SIZE, sizeof(ComFrame));
     assert(com_queue != NULL);
     com_queue_set = xQueueCreateSet(SS_COM_QUEUE_SET_SIZE * SS_COM_TX_QUEUE_SIZE);
@@ -102,22 +99,23 @@ void SS_com_init(ComBoardID board) {
 }
 
 QueueHandle_t SS_com_add_sender() {
+    assert(com_queue_set != NULL);
     QueueHandle_t queue = xQueueCreate(SS_COM_TX_QUEUE_SIZE, sizeof(ComSender));
     assert(queue != NULL);
     xQueueAddToSet(queue, com_queue_set);
     return queue;
 }
 
-void SS_com_add_to_rx_queue(ComFrame *frame, void (*sender_fun)(ComFrame *), QueueHandle_t queue) {
+void SS_com_add_to_tx_queue(ComFrame *frame, void (*sender_fun)(ComFrame *), QueueHandle_t queue) {
     ComSender sender = {.sender_fun = sender_fun};
     memcpy(&sender.frame, frame, sizeof(ComFrame));
-    /* TODO put ms not ticks */
-    if(xQueueSend(queue, &sender, 25) != pdTRUE) {
+    if(xQueueSend(queue, &sender, pdMS_TO_TICKS(25)) != pdTRUE) {
         SS_error("Com TX queue full");
     }
 }
 
 void __attribute__((weak)) SS_com_transmit(ComFrame *frame) {
+    SS_led_toggle_blue_com();
 #ifdef SS_USE_GRAZYNA
     if(frame->destination == COM_GRAZYNA_ID && SS_grazyna_is_enabled()) {
         SS_grazyna_transmit(frame);
@@ -131,20 +129,16 @@ void __attribute__((weak)) SS_com_transmit(ComFrame *frame) {
 #endif
 }
 
-/* ==================================================================== */
-/* ======================== Private functions ========================= */
-/* ==================================================================== */
-
-static void SS_com_rx_handler_task(void *pvParameters) {
-    static ComFrame frame_buff;
+void SS_com_rx_handler_task(void *pvParameters) {
+    ComFrame frame_buff;
     while(1) {
-        if(xQueueReceive(com_queue, &frame_buff, 2000) == pdTRUE) {
+        if(xQueueReceive(com_queue, &frame_buff, portMAX_DELAY) == pdTRUE) {
             SS_com_handle_frame(&frame_buff);
         }
     }
 }
 
-static void SS_com_tx_handler_task(void *pvParameters) {
+void SS_com_tx_handler_task(void *pvParameters) {
     QueueHandle_t queue;
     ComSender sender;
     while(1) {
@@ -153,6 +147,10 @@ static void SS_com_tx_handler_task(void *pvParameters) {
         sender.sender_fun(&sender.frame);
     }
 }
+
+/* ==================================================================== */
+/* ======================== Private functions ========================= */
+/* ==================================================================== */
 
 static ComStatus SS_com_handle_frame(ComFrame *frame) {
 #ifdef SS_USE_GRAZYNA
@@ -166,6 +164,7 @@ static ComStatus SS_com_handle_frame(ComFrame *frame) {
     }
 #endif
     bool response_required = frame->action == COM_REQUEST || frame->source == COM_GRAZYNA_ID ? true : false;
+    SS_led_toggle_green_com();
     SS_can_print_message_received(frame);
     ComStatus res = SS_com_handle_action(frame);
     if(response_required) {
@@ -176,7 +175,7 @@ static ComStatus SS_com_handle_frame(ComFrame *frame) {
     return res;
 }
 
-static ComStatus SS_com_handle_action(ComFrame *frame) {
+ComStatus SS_com_handle_action(ComFrame *frame) {
     ComActionID action = frame->action;
     switch(action) {
         case COM_REQUEST:
@@ -216,9 +215,14 @@ static ComStatus SS_com_handle_request(ComFrame *frame) {
             break;
         case COM_TENSOMETER_ID:
             break;
+#ifdef SS_USE_DYNAMIXEL
+        case COM_DYNAMIXEL_ID:
+            res = SS_dynamixel_com_request(frame);
+            break;
+#endif
         default:
             res = COM_ERROR;
-            printf("Unsupported device: %d\r\n", frame->device);
+            SS_error("Unsupported device: %d\r\n", frame->device);
     }
     frame->action = COM_RESPONSE;
     return res;
@@ -246,6 +250,11 @@ static ComStatus SS_com_handle_service(ComFrame *frame) {
             break;
         case COM_TENSOMETER_ID:
             break;
+#ifdef SS_USE_DYNAMIXEL
+        case COM_DYNAMIXEL_ID:
+            res = SS_dynamixel_com_service(frame);
+            break;
+#endif
         default:
             res = COM_ERROR;
             SS_error("Unsupported device: %d\r\n", frame->action);

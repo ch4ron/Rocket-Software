@@ -1,18 +1,21 @@
-cmake_minimum_required(VERSION 3.11.1)
+set(TARGET json-settings)
 
-project(json-settings C)
+add_library(${TARGET} INTERFACE)
 
-add_library(${PROJECT_NAME} INTERFACE)
 target_include_directories(
-        ${PROJECT_NAME} INTERFACE
-        $<BUILD_INTERFACE:
-        ${CMAKE_CURRENT_SOURCE_DIR};
-        ${CMAKE_CURRENT_SOURCE_DIR}/jsmn>)
+        ${TARGET} INTERFACE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/jsmn
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
-target_sources(${PROJECT_NAME} INTERFACE
+target_sources(${TARGET} INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/settings_json.c
         ${CMAKE_CURRENT_SOURCE_DIR}/SS_json_parser.c
         ${CMAKE_CURRENT_SOURCE_DIR}/jsmn/jsmn.c
         ${CMAKE_CURRENT_SOURCE_DIR}/SS_settings.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/tests/SS_json_tests.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_json.c)
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_json.h)
+
+target_test_sources(${TARGET} INTERFACE
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_json.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_json.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/SS_json_tests.c)

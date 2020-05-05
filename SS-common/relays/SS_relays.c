@@ -9,7 +9,7 @@
 #include "SS_relays.h"
 #include "SS_supply.h"
 #include "SS_platform.h"
-#include "SS_error.h"
+#include "SS_log.h"
 
 Relay *relay_pointers[MAX_RELAY_COUNT];
 
@@ -56,7 +56,7 @@ void SS_relay_close(Relay *relay) {
 
 ComStatus SS_relay_com_service(ComFrame *frame) {
     if(SS_relays_check_id(frame->id) != 0) return COM_ERROR;
-    ComRelayID msgID = frame->message_type;
+    ComRelayID msgID = frame->operation;
     Relay *relay = relay_pointers[frame->id];
     switch(msgID) {
         case COM_RELAY_OPEN :
@@ -74,7 +74,7 @@ ComStatus SS_relay_com_service(ComFrame *frame) {
 
 ComStatus SS_relays_com_request(ComFrame *frame) {
     if(SS_relays_check_id(frame->id) != 0) return COM_ERROR;
-    ComRelayID msgID = frame->message_type;
+    ComRelayID msgID = frame->operation;
     Relay *relay = relay_pointers[frame->id];
     switch(msgID) {
         case COM_RELAY_STATUS:

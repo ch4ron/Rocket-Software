@@ -10,10 +10,10 @@
 #ifdef SS_USE_MS5X
 #include "SS_MS5X.h"
 #endif
-
-#include <S25FL/SS_flash_ctrl.h>
-#include <S25FL/SS_s25fl.h>
-
+#ifdef SS_USE_S25FL
+#include "SS_flash_ctrl.h"
+#include "SS_s25fl.h"
+#endif
 #include "FreeRTOS.h"
 #include "SS_ADS1258.h"
 #endif
@@ -25,17 +25,18 @@
 #endif
 #ifdef SS_USE_GRAZYNA
 #include "SS_grazyna.h"
+#include "SS_grazyna_hal.h"
 #endif
 #ifdef SS_USE_SEQUENCE
 #include "SS_sequence.h"
 #endif
+#include "stm32f4xx_hal.h"
+#include "SS_log.h"
+#include "SS_console.h"
 
-extern void SS_grazyna_UART_RxCpltCallback(UART_HandleTypeDef *huart);
-
-#ifdef RUN_TESTS
+#ifdef SS_RUN_TESTS
 #include "SS_ADS1258_unit_tests.h"
-extern void SS_dynamixel_test_TIM_PeriodElapsedCallback(
-    TIM_HandleTypeDef *htim);
+extern void SS_dynamixel_test_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
 #endif
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
@@ -71,42 +72,20 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 #ifdef SS_USE_GRAZYNA
     SS_grazyna_UART_RxCpltCallback(huart);
 #endif
+    SS_console_rx_isr(huart);
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 #ifdef SS_USE_DYNAMIXEL
     SS_dynamixel_UART_TxCpltCallback(huart);
 #endif
+    SS_log_tx_isr(huart);
 }
 
-#include "stdio.h"
 
-/* void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) { */
-/*     static uint32_t cnt; */
-/*     if(htim == &htim14) { */
-/*         cnt++; */
-/*         if(cnt >= 1000) { */
-/*             HAL_GPIO_TogglePin(MEM_BLUE_GPIO_Port, MEM_BLUE_Pin); */
-/*             cnt = 0; */
-/*         } */
-/*         /\* xPortSysTickHandler(); *\/ */
-/*     } */
-/* #ifdef RUN_TESTS */
-/*     // TODO Change test to remove this function */
-/* //    SS_dynamixel_test_TIM_PeriodElapsedCallback(htim); */
-/* #endif */
+/* void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) { */
+/* printf("uart error callback: %d\r\n", huart->ErrorCode); */
 /* } */
-/* // */
-// void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart) {
-//    if(huart == &huart2)
-//    printf("rxcptl half callback\r\n");
-//}
-
-// void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
-//    if(huart == &huart2)
-//    printf("uart error callback\r\n");
-
-//}
 
 #ifdef SS_USE_S25FL
 void HAL_QSPI_TxCpltCallback(QSPI_HandleTypeDef *hqspi) {
@@ -124,9 +103,6 @@ void HAL_SYSTICK_Callback() {
 #endif
 #ifdef SS_USE_SUPPLY
     SS_supply_SYSTICK();
-#endif
-#ifdef SS_USE_DYNAMIXEL
-    SS_dynamixel_SYSTICK_Callback();
 #endif
 #ifdef SS_USE_SEQUENCE
     SS_sequence_SYSTICK();
