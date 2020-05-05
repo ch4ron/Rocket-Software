@@ -77,7 +77,7 @@ void SS_console_task(void *pvParameters) {
                     memset(console_buf, 0, sizeof(console_buf));
                 }
                 HAL_UART_Receive_IT(console_huart, (uint8_t *) console_buf, 1);
-            /* Backspace */
+                /* Backspace */
             } else if(console_buf[idx] == 127) {
                 if(idx > 0) {
                     HAL_UART_Receive_IT(console_huart, (uint8_t *) console_buf + (--idx), 1);
@@ -101,10 +101,10 @@ static void SS_handle_console_input(char *buf) {
         int len = strlen(command->command);
         if(memcmp(command->command, buf, len) == 0 &&
            (buf[len] == ' ' || buf[len] == '\r' || buf[len] == '\n')) {
-                assert(command->fun != NULL);
-                command->fun(buf + sizeof(command->command));
-                return;
-            }
+            assert(command->fun != NULL);
+            command->fun(buf + sizeof(command->command));
+            return;
+        }
     }
     SS_print_line("Invalid command, type 'help' for usage");
 }
@@ -125,7 +125,6 @@ static void SS_print_runtime_stats(char *args) {
     SS_print("%s", task_info);
     vPortFree(task_info);
 }
-
 
 static void SS_console_print_help(char *args) {
     SS_print_line("Available commands:");

@@ -51,7 +51,7 @@ static void SS_FreeRTOS_create_tasks(void) {
     assert(res == pdTRUE);
     res = xTaskCreate(SS_com_tx_handler_task, "Com Tx Handler Task", 128, NULL, 5, NULL);
     assert(res == pdTRUE);
-    res = xTaskCreate(SS_console_task, "Console task", 256, NULL, 5, (TaskHandle_t *) NULL);
+    /* res = xTaskCreate(SS_console_task, "Console task", 256, NULL, 5, (TaskHandle_t *) NULL); */
     assert(res == pdTRUE);
 #endif
 }

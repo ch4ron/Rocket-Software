@@ -55,6 +55,9 @@ void SS_log_init(UART_HandleTypeDef *huart) {
 }
 
 void SS_error(const char *format, ...) {
+    if(log_huart == NULL) {
+        return;
+    }
     va_list arg;
     va_start(arg, format);
 
@@ -63,6 +66,7 @@ void SS_error(const char *format, ...) {
 
     char *error = pvPortMalloc(len);
     if(error == NULL) {
+        va_end(arg);
         return;
     }
     sprintf(error, error_format, format);
@@ -74,6 +78,9 @@ void SS_error(const char *format, ...) {
 }
 
 void SS_print_line(const char *format, ...) {
+    if(log_huart == NULL) {
+        return;
+    }
     va_list arg;
     va_start(arg, format);
 
@@ -82,6 +89,7 @@ void SS_print_line(const char *format, ...) {
 
     char *error = pvPortMalloc(len);
     if(error == NULL) {
+        va_end(arg);
         return;
     }
     sprintf(error, line_format, format);
@@ -93,6 +101,9 @@ void SS_print_line(const char *format, ...) {
 }
 
 void SS_print(const char *format, ...) {
+    if(log_huart == NULL) {
+        return;
+    }
     va_list arg;
     va_start(arg, format);
 
@@ -102,6 +113,9 @@ void SS_print(const char *format, ...) {
 }
 
 void SS_log_task(void *pvParameters) {
+    if(log_huart == NULL) {
+        vTaskDelete(NULL);
+    }
     LogMessage msg;
     while(1) {
         if(xQueueReceive(log_queue, &msg, portMAX_DELAY) == pdTRUE) {
@@ -114,11 +128,13 @@ void SS_log_task(void *pvParameters) {
 
 void __assert_func(const char *file, int line, const char *function, const char *assertion) {
     taskDISABLE_INTERRUPTS();
-    HAL_UART_Abort_IT(log_huart);
-    const char *format = "assertion %s failed: file %s, line %d, function: %s\r\n";
-    char msg[256];
-    int len = sprintf(msg, format, assertion, file, line, function);
-    HAL_UART_Transmit(log_huart, (uint8_t *) msg, len, 1000);
+    if(log_huart != NULL) {
+        HAL_UART_Abort_IT(log_huart);
+        const char *format = "assertion %s failed: file %s, line %d, function: %s\r\n";
+        char msg[256];
+        int len = sprintf(msg, format, assertion, file, line, function);
+        HAL_UART_Transmit(log_huart, (uint8_t *) msg, len, 1000);
+    }
     while(1);
 }
 
@@ -127,6 +143,9 @@ void __assert_func(const char *file, int line, const char *function, const char 
 /* ==================================================================== */
 
 static void _SS_vprint(const char *format, va_list args) {
+    if(log_huart == NULL) {
+        return;
+    }
     LogMessage msg;
     int len = vsnprintf(NULL, 2048, format, args) + 1;
 
