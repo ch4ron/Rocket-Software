@@ -103,6 +103,7 @@ int main(void)
   MX_USB_DEVICE_Init();
   MX_TIM14_Init();
   /* USER CODE BEGIN 2 */
+	printf("Reset\r\n");
   SS_s25fl_init();
 	//SS_init();
   /* USER CODE END 2 */

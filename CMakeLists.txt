@@ -68,11 +68,16 @@ macro(create_target)
           COMMENT "Building ${HEX_FILE} Building ${BIN_FILE}")
 
 
-  if(COMMAND OPENOCD)
+  if(OPENOCD)
     add_custom_target(${PROJECT_NAME}_flash
       COMMAND openocd -c 'tcl_port disabled' -s openocd/scripts -c 'gdb_port 3333' -c 'telnet_port 4444' -f
       ${ROOT_DIR}/st_nucleo_f4.cfg -c 'program ${PROJECT_NAME}.elf' -c reset -c shutdown)
     add_dependencies(${PROJECT_NAME}_flash ${PROJECT_NAME}.elf)
+
+    add_custom_target(${PROJECT_NAME}_gdb
+      COMMAND openocd -c 'tcl_port disabled' -s openocd/scripts -c 'gdb_port 3333' -c 'telnet_port 4444' -f
+      ${ROOT_DIR}/st_nucleo_f4.cfg -c 'program ${PROJECT_NAME}.elf' -c init;reset init;)
+    add_dependencies(${PROJECT_NAME}_gdb ${PROJECT_NAME}.elf)
   endif()
 
   # You must create a link 'cubeprogrammer-bin' to STM32CubeProgrammer bin directory.
@@ -81,7 +86,9 @@ macro(create_target)
     add_custom_target(${PROJECT_NAME}_debug
       COMMAND ST-LINK_gdbserver -d -v -cp ${ROOT_DIR}/cubeprogrammer-bin &
       COMMAND arm-none-eabi-gdb ${PROJECT_NAME}.elf
-        -ex 'target remote localhost:61234' -ex 'load ${PROJECT_NAME}.elf')
+      -ex 'target extended-remote localhost:61234'
+      -ex 'monitor reset halt'
+      -ex 'load')
     add_dependencies(${PROJECT_NAME}_debug ${PROJECT_NAME}.elf)
   endif()
 
@@ -105,9 +112,6 @@ macro(create_target)
   add_custom_target(${PROJECT_NAME}_jflash
     COMMAND jlink -CommandFile ${JLINK_FILE})
 
-  # add_custom_target(${PROJECT_NAME}_gdb
-    # COMMAND openocd -c 'tcl_port disabled' -s openocd/scripts -c 'gdb_port 3333' -c 'telnet_port 4444' -f
-    # ${ROOT_DIR}/st_nucleo_f4.cfg -c 'program ${PROJECT_NAME}.elf' -c init;reset init;)
   add_dependencies(${PROJECT_NAME}_jflash ${PROJECT_NAME}.elf)
 endmacro()
 
