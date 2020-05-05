@@ -29,10 +29,11 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "SS_common.h"
 #include "SS_s25fl.h"
+#include "SS_flash_caching.h"
 #include "SS_flash_ctrl.h"
 #include "test.h"
-//#endif
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -103,6 +104,7 @@ int main(void)
   MX_TIM14_Init();
   /* USER CODE BEGIN 2 */
   SS_s25fl_init();
+	//SS_init();
   /* USER CODE END 2 */
 
   /* Infinite loop */

@@ -30,8 +30,11 @@ set(CMAKE_C_FLAGS_INIT "${COMMON_FLAGS} -std=gnu99")
 add_definitions(-D__weak=__attribute__\(\(weak\)\) -D__packed=__attribute__\(\(__packed__\)\) -DUSE_HAL_DRIVER -DSTM32F446xx)
 add_compile_options(-Wall)
 
-
 project(RocketSoftware)
+
+find_program(GDBSERVER ST-LINK_gdbserver)
+find_program(GDB arm-none-eabi-gdb)
+find_program(OPENOCD openocd)
 
 if(${VERBOSE_TEST_OUTPUT})
    add_compile_definitions(VERBOSE_TEST_OUTPUT)
@@ -64,9 +67,23 @@ macro(create_target)
           COMMAND ${CMAKE_OBJCOPY} -Obinary $<TARGET_FILE:${PROJECT_NAME}.elf> ${BIN_FILE}
           COMMENT "Building ${HEX_FILE} Building ${BIN_FILE}")
 
-  add_custom_target(${PROJECT_NAME}_flash
-    COMMAND openocd -c 'tcl_port disabled' -s openocd/scripts -c 'gdb_port 3333' -c 'telnet_port 4444' -f
-    ${ROOT_DIR}/st_nucleo_f4.cfg -c 'program ${PROJECT_NAME}.elf' -c reset -c shutdown)
+
+  if(COMMAND OPENOCD)
+    add_custom_target(${PROJECT_NAME}_flash
+      COMMAND openocd -c 'tcl_port disabled' -s openocd/scripts -c 'gdb_port 3333' -c 'telnet_port 4444' -f
+      ${ROOT_DIR}/st_nucleo_f4.cfg -c 'program ${PROJECT_NAME}.elf' -c reset -c shutdown)
+    add_dependencies(${PROJECT_NAME}_flash ${PROJECT_NAME}.elf)
+  endif()
+
+  # You must create a link 'cubeprogrammer-bin' to STM32CubeProgrammer bin directory.
+  # Under MSYS2 (Windows) you can do it using `cmd //c mklink`.
+  if(GDB AND GDBSERVER)
+    add_custom_target(${PROJECT_NAME}_debug
+      COMMAND ST-LINK_gdbserver -d -v -cp ${ROOT_DIR}/cubeprogrammer-bin &
+      COMMAND arm-none-eabi-gdb ${PROJECT_NAME}.elf
+        -ex 'target remote localhost:61234' -ex 'load ${PROJECT_NAME}.elf')
+    add_dependencies(${PROJECT_NAME}_debug ${PROJECT_NAME}.elf)
+  endif()
 
   # Generate JLink config file and add flash target
   set(JLINK_COMMANDS "si SWD"
@@ -91,7 +108,6 @@ macro(create_target)
   # add_custom_target(${PROJECT_NAME}_gdb
     # COMMAND openocd -c 'tcl_port disabled' -s openocd/scripts -c 'gdb_port 3333' -c 'telnet_port 4444' -f
     # ${ROOT_DIR}/st_nucleo_f4.cfg -c 'program ${PROJECT_NAME}.elf' -c init;reset init;)
-  add_dependencies(${PROJECT_NAME}_flash ${PROJECT_NAME}.elf)
   add_dependencies(${PROJECT_NAME}_jflash ${PROJECT_NAME}.elf)
 endmacro()
 
