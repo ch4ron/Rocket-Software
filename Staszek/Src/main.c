@@ -106,13 +106,15 @@ int main(void) {
     MX_SPI2_Init();
     /* USER CODE BEGIN 2 */
 
-    /* MX_CAN1_Init(); */
-    /* MX_CAN2_Init(); */
-    /* MX_TIM1_Init(); */
-    /* MX_TIM4_Init(); */
-    /* MX_TIM8_Init(); */
+    MX_CAN1_Init();
+    MX_CAN2_Init();
+    MX_TIM1_Init();
+    MX_TIM4_Init();
+    MX_TIM8_Init();
     HAL_GPIO_WritePin(MPU_CS_GPIO_Port, MPU_CS_Pin, GPIO_PIN_SET);
+
     SS_platform_init();
+
     SS_init();
 
     /* USER CODE END 2 */
@@ -120,8 +122,6 @@ int main(void) {
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while(1) {
-        SS_main();
-        //        printf("altitude: %ld, pressure: %ld, uncompressed: %ld\r\n", ms5607.altitude, ms5607.press, ms5607.uncomp_press);
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */

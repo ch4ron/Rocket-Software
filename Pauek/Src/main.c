@@ -109,13 +109,7 @@ int main(void) {
     MX_TIM8_Init();
     MX_TIM14_Init();
     /* USER CODE BEGIN 2 */
-    HAL_GPIO_WritePin(COM_RED_GPIO_Port, COM_RED_Pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(COM_BLUE_GPIO_Port, COM_BLUE_Pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(COM_GREEN_GPIO_Port, COM_GREEN_Pin, GPIO_PIN_SET);
 
-    HAL_GPIO_WritePin(MEM_RED_GPIO_Port, MEM_RED_Pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(MEM_BLUE_GPIO_Port, MEM_BLUE_Pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(MEM_GREEN_GPIO_Port, MEM_GREEN_Pin, GPIO_PIN_SET);
     SS_platform_init();
     SS_init();
     /* USER CODE END 2 */
@@ -123,7 +117,6 @@ int main(void) {
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while(1) {
-        SS_main();
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */

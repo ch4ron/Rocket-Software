@@ -17,12 +17,22 @@ Building
 
 Targets
 
-  - \<board\>.elf - Build
-  - \<board\>_flash - Upload
-  - test - build and run tests
+- \<board\>.elf - Build
+- \<board\>_flash - Upload
+- test - build and run tests
   
 From CLion
 
 https://www.jetbrains.com/help/clion/openocd-support.html
 
 Select st_nucleo_f4.cfg as board config file
+
+Cloning
+--------
+To clone with all the submodules use:
+
+  git clone https://github.com/ch4ron/Rocket-Software --recurse-submodules
+
+Alternatively, download them later with:
+
+  git submodule update --init --recursive --remote

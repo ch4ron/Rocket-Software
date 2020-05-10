@@ -17,6 +17,3 @@ void SS_init(void) {
     SS_led_set_com(0, 0, 0);
     SS_FreeRTOS_init();
 }
-
-void SS_main(void) {
-}
