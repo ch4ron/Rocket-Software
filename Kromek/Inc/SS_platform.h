@@ -8,7 +8,7 @@
 #include "SS_supply.h"
 
 /********** SUPPLY *********/
-extern Supply relay_supply, servos1_supply, servos2_supply, kozackie_servo_supply;
+extern Supply relay_supply, servos1_supply, servos2_supply, dynamixel_supply;
 
 /********** MAIN INIT *********/
 void SS_platform_init();
