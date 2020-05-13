@@ -64,21 +64,20 @@ Adc adc1, adc2, adc3;
 static void
 SS_platform_adc_init() {
 #if defined(SS_USE_ADC)
-    SS_adc_init(&adc1, ADC1, 3);
+    SS_adc_init(&adc1, ADC1, 2);
     SS_adc_init(&adc2, ADC2, 1);
     SS_adc_init(&adc3, ADC3, 1);
-    SS_adc_enable_vref(&adc1);
 #endif
 }
 
 /********** SUPPLY *********/
 
-static float supply_12v_voltage_scaled(uint16_t raw, float vdd) {
-    return vdd * (float) raw / 4095.0f * (4990.0f + 20000.0f) / 4990.0f;
+static float supply_12v_voltage_scaled(float voltage) {
+    return voltage * (4990.0f + 20000.0f) / 4990.0f;
 }
 
-static float supply_servo_voltage_scaled(uint16_t raw, float vdd) {
-    return vdd * (float) raw / 4095.0f * (8450.0f + 20000.0f) / 8450.0f;
+static float supply_servo_voltage_scaled(float voltage) {
+    return voltage * (8450.0f + 20000.0f) / 8450.0f;
 }
 
 Supply relay_supply = {
@@ -113,8 +112,7 @@ Supply dynamixel_supply = {
         .channel = 5,
         .adc = &adc2}};
 
-static void
-SS_platform_supply_init() {
+static void SS_platform_supply_init() {
     SS_supply_init(&relay_supply);
     SS_supply_init(&servos1_supply);
     SS_supply_init(&servos2_supply);
@@ -135,8 +133,7 @@ Relay relays[] = {
     {.id = 8, .GPIO_Port = RELAY9_GPIO_Port, .Pin = RELAY9_Pin},
 };
 
-static void
-SS_platform_relays_init() {
+static void SS_platform_relays_init() {
     SS_relays_init(relays, sizeof(relays) / sizeof(relays[0]));
 }
 

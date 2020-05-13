@@ -106,9 +106,6 @@ int main(void) {
 
     /* STM32 CubeMX v5.4.0 bug - MX functions using DMA need to be initialized
      * after calling MX_DMA_Init() */
-    /* MX_ADC1_Init(); */
-    /* MX_ADC2_Init(); */
-    /* MX_ADC3_Init(); */
     MX_USART2_UART_Init();
 
     MX_QUADSPI_Init();
