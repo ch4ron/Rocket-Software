@@ -15,11 +15,11 @@ void SS_supply_init(Supply *supply) {
 }
 
 void SS_enable_supply(Supply *supply) {
-    HAL_GPIO_WritePin(supply->ENABLE_Port, supply->ENABLE_Pin, SET);
+    HAL_GPIO_WritePin(supply->ENABLE_Port, supply->ENABLE_Pin, GPIO_PIN_SET);
 }
 
 void SS_disable_supply(Supply *supply) {
-    HAL_GPIO_WritePin(supply->ENABLE_Port, supply->ENABLE_Pin, RESET);
+    HAL_GPIO_WritePin(supply->ENABLE_Port, supply->ENABLE_Pin, GPIO_PIN_RESET);
 }
 
 Supply_state_t SS_supply_get_state(Supply *supply) {
@@ -41,5 +41,5 @@ void SS_supply_SYSTICK() {
     SS_supply_single_SYSTICK(&relay_supply);
     SS_supply_single_SYSTICK(&servos1_supply);
     SS_supply_single_SYSTICK(&servos2_supply);
-    SS_supply_single_SYSTICK(&kozackie_servo_supply);
+    SS_supply_single_SYSTICK(&dynamixel_supply);
 }

@@ -46,7 +46,7 @@ static void tests() {
     RUN_TEST_GROUP(can);
 #endif
 #ifdef SS_USE_SUPPLY
-    /* RUN_TEST_GROUP(supply_control); */
+    RUN_TEST_GROUP(supply_control);
 #endif
 }
 

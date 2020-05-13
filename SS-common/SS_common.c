@@ -4,6 +4,9 @@
 #ifdef SS_USE_MS5X
 #include "SS_MS5X.h"
 #endif
+#ifdef SS_USE_ADC
+#include "SS_adc.h"
+#endif
 
 #include "SS_com_feed.h"
 #include "SS_common.h"
@@ -15,5 +18,8 @@ void SS_init(void) {
     SS_led_set_adc(0, 0, 0);
     SS_led_set_mem(0, 0, 0);
     SS_led_set_com(0, 0, 0);
+#ifdef SS_USE_ADC
+    SS_adc_start();
+#endif
     SS_FreeRTOS_init();
 }

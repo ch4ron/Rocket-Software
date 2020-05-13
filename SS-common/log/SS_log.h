@@ -21,10 +21,12 @@
 /* ==================================================================== */
 
 void SS_log_init(UART_HandleTypeDef *huart);
+
 void SS_error(const char *format, ...);
 void SS_print_bytes(uint8_t *bytes, uint16_t len);
 void SS_print_line(const char *format, ...);
 void SS_print(const char *format, ...);
+
 void SS_log_task(void *pvParameters);
 void SS_log_tx_isr(UART_HandleTypeDef *huart);
 

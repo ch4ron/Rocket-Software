@@ -5,6 +5,10 @@
   *      Author: Maciek
  **/
 
+/* TODO check stream buffer implementation:
+https://github.com/particle-iot/freertos/blob/master/FreeRTOS-Plus/Source/FreeRTOS-Plus-TCP/FreeRTOS_Stream_Buffer.c */
+
+
 /* ==================================================================== */
 /* ============================= Includes ============================= */
 /* ==================================================================== */
@@ -12,12 +16,14 @@
 #include "SS_log.h"
 
 #include "FreeRTOS.h"
+#include "SS_misc.h"
 #include "portable.h"
 #include "queue.h"
 #include "semphr.h"
 #include "stdarg.h"
 #include "string.h"
 #include "task.h"
+#include "SS_misc.h"
 
 /* ==================================================================== */
 /* ======================== Private datatypes ========================= */
@@ -144,6 +150,7 @@ void SS_log_task(void *pvParameters) {
 
 void __assert_func(const char *file, int line, const char *function, const char *assertion) {
     taskDISABLE_INTERRUPTS();
+    SS_led_set_all(true, false, false);
     if(log_huart != NULL) {
         HAL_UART_Abort_IT(log_huart);
         const char *format = "assertion %s failed: file %s, line %d, function: %s\r\n";
@@ -151,7 +158,14 @@ void __assert_func(const char *file, int line, const char *function, const char 
         int len = sprintf(msg, format, assertion, file, line, function);
         HAL_UART_Transmit(log_huart, (uint8_t *) msg, len, 1000);
     }
-    while(1);
+    uint32_t i = 0;
+    while(1) {
+        i++;
+        if(i > 3000000) {
+            SS_led_toggle_all(true, false, false);
+            i = 0;
+        }
+    }
 }
 
 /* ==================================================================== */
