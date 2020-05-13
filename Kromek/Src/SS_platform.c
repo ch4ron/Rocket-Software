@@ -5,6 +5,7 @@
 /* #include "SS_s25fl.h" */
 #include "SS_platform.h"
 
+#include "SS_adc.h"
 #include "SS_can.h"
 #include "SS_common.h"
 #include "SS_console.h"
@@ -58,24 +59,25 @@ void SS_platform_servos_init() {
 
 /********** ADC *********/
 
+Adc adc1, adc2, adc3;
+
 static void
 SS_platform_adc_init() {
 #if defined(SS_USE_ADC)
-    ADC_HandleTypeDef *adc[] = {
-        &hadc1, &hadc2, &hadc3};
-    SS_adc_init(adc, sizeof(adc) / sizeof(adc[0]));
+    SS_adc_init(&adc1, ADC1, 3);
+    SS_adc_init(&adc2, ADC2, 1);
+    SS_adc_init(&adc3, ADC3, 1);
+    SS_adc_enable_vref(&adc1);
 #endif
 }
 
 /********** SUPPLY *********/
 
-static float
-supply_12v_voltage_scaled(uint16_t raw, float vdd) {
+static float supply_12v_voltage_scaled(uint16_t raw, float vdd) {
     return vdd * (float) raw / 4095.0f * (4990.0f + 20000.0f) / 4990.0f;
 }
 
-static float
-supply_servo_voltage_scaled(uint16_t raw, float vdd) {
+static float supply_servo_voltage_scaled(uint16_t raw, float vdd) {
     return vdd * (float) raw / 4095.0f * (8450.0f + 20000.0f) / 8450.0f;
 }
 
@@ -83,40 +85,40 @@ Supply relay_supply = {
     .ENABLE_Port = ENABLE1_GPIO_Port,
     .ENABLE_Pin = ENABLE1_Pin,
     .measurement = {
-        .fun = supply_12v_voltage_scaled,
-        .rankId = 4,
-        .adc = &hadc1}};
+        .scale_fun = supply_12v_voltage_scaled,
+        .channel = 12,
+        .adc = &adc1}};
 
 Supply servos1_supply = {
     .ENABLE_Port = ENABLE2_GPIO_Port,
     .ENABLE_Pin = ENABLE2_Pin,
     .measurement = {
-        .fun = supply_servo_voltage_scaled,
-        .rankId = 5,
-        .adc = &hadc3}};
+        .scale_fun = supply_servo_voltage_scaled,
+        .channel = 13,
+        .adc = &adc3}};
 
 Supply servos2_supply = {
     .ENABLE_Port = ENABLE3_GPIO_Port,
     .ENABLE_Pin = ENABLE3_Pin,
     .measurement = {
-        .fun = supply_servo_voltage_scaled,
-        .rankId = 3,
-        .adc = &hadc1}};
+        .scale_fun = supply_servo_voltage_scaled,
+        .channel = 11,
+        .adc = &adc1}};
 
 Supply dynamixel_supply = {
     .ENABLE_Port = ENABLE4_GPIO_Port,
     .ENABLE_Pin = ENABLE4_Pin,
     .measurement = {
-        .fun = supply_12v_voltage_scaled,
-        .rankId = 2,
-        .adc = &hadc2}};
+        .scale_fun = supply_12v_voltage_scaled,
+        .channel = 5,
+        .adc = &adc2}};
 
 static void
 SS_platform_supply_init() {
     SS_supply_init(&relay_supply);
-    SS_supply_init(&dynamixel_supply);
     SS_supply_init(&servos1_supply);
     SS_supply_init(&servos2_supply);
+    SS_supply_init(&dynamixel_supply);
 }
 
 /********** RELAYS *********/

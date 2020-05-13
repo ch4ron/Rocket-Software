@@ -10,16 +10,33 @@
 
 #include "stdint.h"
 #include "stm32f4xx_hal.h"
+#include "stdbool.h"
 
-/* Note that channelId is equal to channel's rank, counting from 1 (dependent on CubeMX configuration) not ADC Channel */
-typedef struct {
+typedef float (*SS_adc_scale_fun)(uint16_t, float);
+
+struct AdcMeasurement_tag;
+
+typedef struct Adc_tag {
+    /* Allocated dynamically */
+    ADC_HandleTypeDef hadc;
+    struct AdcMeasurement_tag **measurements;
+    uint16_t *raw;
+
+    uint8_t channel_count;
+    bool save_to_flash;
+    uint8_t active_channels;
+} Adc;
+
+typedef struct AdcMeasurement_tag {
     float value;
-    float (*fun)(uint16_t, float);
-    uint8_t rankId;
-    ADC_HandleTypeDef* adc;
+    SS_adc_scale_fun scale_fun;
+    uint32_t channel;
+    Adc *adc;
 } AdcMeasurement;
 
-void SS_adc_init(ADC_HandleTypeDef *adc[], uint8_t count);
+void SS_adc_init(Adc *adc, ADC_TypeDef *adc_type, uint8_t channel_count);
+void SS_adc_start();
+void SS_adc_enable_vref(Adc *adc);
 void SS_adc_add_measurement(AdcMeasurement *meas);
 
 #endif /* SS_KROMEK_ADC_H_ */
