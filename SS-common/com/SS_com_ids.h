@@ -44,6 +44,7 @@ typedef enum {
 } ComDeviceID;
 
 typedef enum {
+    COM_PROHIBITED    = 0x00,
     COM_GRAZYNA_ID    = 0x01,
     COM_STASZEK_ID    = 0x02,
     COM_RADEK_ID      = 0x03,
