@@ -35,7 +35,7 @@
 #include "SS_console.h"
 
 #ifdef SS_RUN_TESTS
-#include "SS_ADS1258_unit_tests.h"
+//#include "SS_ADS1258_unit_tests.h"
 extern void SS_dynamixel_test_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
 #endif
 
