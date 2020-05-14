@@ -9,7 +9,6 @@ file(GLOB_RECURSE SOURCES
 	Src/*.*
 	Startup/*.*
 	Test/*.*
-	Unity/*.*
   Middlewares/*.*
   USB_DEVICE/*.*)
 
@@ -20,7 +19,6 @@ add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
 
 target_include_directories(${PROJECT_NAME}.elf PRIVATE
   Inc
-  Unity
   Test
   USB_DEVICE/App
   USB_DEVICE/Target
