@@ -194,7 +194,6 @@ static void SS_can_tx_common(ComFrame *frame, Can *can) {
     CAN_TxHeaderTypeDef header;
     uint8_t data[sizeof(ComFrame)];
     uint32_t mailbox;
-    SS_can_print_message_received(frame);
     SS_can_pack_frame(frame, &header, data);
     if(HAL_CAN_AddTxMessage(can->hcan, &header, data, &mailbox) != HAL_OK) {
         SS_can_error("HAL_CAN_AddTxMessage failed");

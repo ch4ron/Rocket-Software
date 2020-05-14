@@ -115,7 +115,8 @@ void SS_com_add_to_tx_queue(ComFrame *frame, void (*sender_fun)(ComFrame *), Que
 }
 
 void __attribute__((weak)) SS_com_transmit(ComFrame *frame) {
-    SS_led_toggle_blue_com();
+    SS_com_print_message_sent(frame);
+    SS_led_toggle_com(false, false, true);
 #ifdef SS_USE_GRAZYNA
     if(frame->destination == COM_GRAZYNA_ID && SS_grazyna_is_enabled()) {
         SS_grazyna_transmit(frame);
@@ -153,6 +154,7 @@ void SS_com_tx_handler_task(void *pvParameters) {
 /* ==================================================================== */
 
 static ComStatus SS_com_handle_frame(ComFrame *frame) {
+    SS_com_print_message_received(frame);
 #ifdef SS_USE_GRAZYNA
     if(SS_grazyna_is_enabled() && frame->destination != board_id) {
         SS_com_transmit(frame);
@@ -164,8 +166,7 @@ static ComStatus SS_com_handle_frame(ComFrame *frame) {
     }
 #endif
     bool response_required = frame->action == COM_REQUEST || frame->source == COM_GRAZYNA_ID ? true : false;
-    SS_led_toggle_green_com();
-    SS_can_print_message_received(frame);
+    SS_led_toggle_com(false, true, false);
     ComStatus res = SS_com_handle_action(frame);
     if(response_required) {
         frame->destination = frame->source;

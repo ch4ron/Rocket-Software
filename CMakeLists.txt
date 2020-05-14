@@ -67,11 +67,10 @@ macro(create_target)
           COMMAND ${CMAKE_OBJCOPY} -Obinary $<TARGET_FILE:${PROJECT_NAME}.elf> ${BIN_FILE}
           COMMENT "Building ${HEX_FILE} Building ${BIN_FILE}")
 
-
   if(OPENOCD)
-    add_custom_target(${PROJECT_NAME}_flash
-      COMMAND openocd -c 'tcl_port disabled' -s openocd/scripts -c 'gdb_port 3333' -c 'telnet_port 4444' -f
-      ${ROOT_DIR}/st_nucleo_f4.cfg -c 'program ${PROJECT_NAME}.elf' -c reset -c shutdown)
+		add_custom_target(${PROJECT_NAME}_flash
+			COMMAND openocd -c 'tcl_port disabled' -c 'gdb_port 3333' -c 'telnet_port 4444' -f
+			${ROOT_DIR}/st_nucleo_f4.cfg -c 'program ${PROJECT_NAME}.elf' -c reset -c shutdown)
     add_dependencies(${PROJECT_NAME}_flash ${PROJECT_NAME}.elf)
 
     add_custom_target(${PROJECT_NAME}_gdb

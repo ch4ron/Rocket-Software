@@ -24,7 +24,6 @@
 #endif
 
 void SS_init(void);
-void SS_main(void);
 void SS_FreeRTOS_init(void);
 
 #ifdef SS_RUN_TESTS
