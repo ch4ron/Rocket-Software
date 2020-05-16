@@ -32,17 +32,22 @@ add_compile_options(-Wall)
 
 project(RocketSoftware)
 
-find_program(GDBSERVER ST-LINK_gdbserver)
+#find_program(GDBSERVER ST-LINK_gdbserver)
 find_program(GDB arm-none-eabi-gdb)
 find_program(OPENOCD openocd)
+find_program(WINPTY winpty)
+
+if(WINPTY)
+    set(GDB ${WINPTY} ${GDB})
+endif()
 
 if(${VERBOSE_TEST_OUTPUT})
    add_compile_definitions(VERBOSE_TEST_OUTPUT)
 endif()
 if("${CMAKE_BUILD_TYPE}" STREQUAL Test)
-   add_compile_definitions(UNITY_OUTPUT_COLOR)
-   add_compile_definitions(SS_RUN_TESTS)
-   add_compile_definitions(UNITY_INCLUDE_CONFIG_H)
+    add_compile_definitions(UNITY_OUTPUT_COLOR)
+    add_compile_definitions(SS_RUN_TESTS)
+    add_compile_definitions(UNITY_INCLUDE_CONFIG_H)
 endif()
 
 
@@ -63,33 +68,40 @@ macro(create_target)
   set(BIN_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.bin)
 
   add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
-          COMMAND ${CMAKE_OBJCOPY} -Oihex $<TARGET_FILE:${PROJECT_NAME}.elf> ${HEX_FILE}
-          COMMAND ${CMAKE_OBJCOPY} -Obinary $<TARGET_FILE:${PROJECT_NAME}.elf> ${BIN_FILE}
-          COMMENT "Building ${HEX_FILE} Building ${BIN_FILE}")
+    COMMAND ${CMAKE_OBJCOPY} -Oihex $<TARGET_FILE:${PROJECT_NAME}.elf> ${HEX_FILE}
+    COMMAND ${CMAKE_OBJCOPY} -Obinary $<TARGET_FILE:${PROJECT_NAME}.elf> ${BIN_FILE}
+    COMMENT "Building ${HEX_FILE} Building ${BIN_FILE}")
 
   if(OPENOCD)
-		add_custom_target(${PROJECT_NAME}_flash
-			COMMAND openocd -c 'tcl_port disabled' -c 'gdb_port 3333' -c 'telnet_port 4444' -f
-			${ROOT_DIR}/st_nucleo_f4.cfg -c 'program ${PROJECT_NAME}.elf' -c reset -c shutdown)
+    add_custom_target(${PROJECT_NAME}_flash
+        COMMAND openocd -c 'tcl_port disabled' -c 'gdb_port 3333' -c 'telnet_port 4444' -f
+        ${ROOT_DIR}/st_nucleo_f4.cfg -c 'program $<TARGET_FILE:${PROJECT_NAME}.elf>' -c reset -c shutdown)
     add_dependencies(${PROJECT_NAME}_flash ${PROJECT_NAME}.elf)
 
+    add_custom_target(${PROJECT_NAME}_gdbserver
+        COMMAND ${OPENOCD} -c 'tcl_port disabled' -s openocd/scripts -c 'gdb_port 3333' -c 'telnet_port 4444' -f
+			${ROOT_DIR}/st_nucleo_f4.cfg -c 'program $<TARGET_FILE:${PROJECT_NAME}.elf>' -c init;reset init;)
+    add_dependencies(${PROJECT_NAME}_gdbserver ${PROJECT_NAME}.elf)
+
     add_custom_target(${PROJECT_NAME}_gdb
-      COMMAND openocd -c 'tcl_port disabled' -s openocd/scripts -c 'gdb_port 3333' -c 'telnet_port 4444' -f
-      ${ROOT_DIR}/st_nucleo_f4.cfg -c 'program ${PROJECT_NAME}.elf' -c init;reset init;)
+        COMMAND ${GDB} ${PROJECT_NAME}.elf
+        -ex 'target extended-remote localhost:3333'
+        -ex 'monitor reset halt'
+        -ex 'load')
     add_dependencies(${PROJECT_NAME}_gdb ${PROJECT_NAME}.elf)
   endif()
 
-  # You must create a link 'cubeprogrammer-bin' to STM32CubeProgrammer bin directory.
+	# You must create a link 'cubeprogrammer-bin' to STM32CubeProgrammer bin directory to use STM32CubeProgrammer.
   # Under MSYS2 (Windows) you can do it using `cmd //c mklink`.
-  if(GDB AND GDBSERVER)
-    add_custom_target(${PROJECT_NAME}_debug
-      COMMAND ST-LINK_gdbserver -d -v -cp ${ROOT_DIR}/cubeprogrammer-bin &
-      COMMAND arm-none-eabi-gdb ${PROJECT_NAME}.elf
-      -ex 'target extended-remote localhost:61234'
-      -ex 'monitor reset halt'
-      -ex 'load')
-    add_dependencies(${PROJECT_NAME}_debug ${PROJECT_NAME}.elf)
-  endif()
+	#if(GDB AND GDBSERVER)
+	#add_custom_target(${PROJECT_NAME}_debug
+	#COMMAND ST-LINK_gdbserver -d -v -cp ${ROOT_DIR}/cubeprogrammer-bin &
+	#COMMAND arm-none-eabi-gdb ${PROJECT_NAME}.elf
+	#-ex 'target extended-remote localhost:61234'
+	#-ex 'monitor reset halt'
+	#-ex 'load')
+	#add_dependencies(${PROJECT_NAME}_debug ${PROJECT_NAME}.elf)
+	#endif()
 
   # Generate JLink config file and add flash target
   set(JLINK_COMMANDS "si SWD"
