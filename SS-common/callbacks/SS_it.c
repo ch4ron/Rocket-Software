@@ -5,15 +5,15 @@
  *      Author: maciek
  */
 
-#ifdef SS_USE_ADS1258
 
 #ifdef SS_USE_MS5X
 #include "SS_MS5X.h"
 #endif
-#ifdef SS_USE_S25FL
+#ifdef SS_USE_FLASH
 #include "SS_flash_ctrl.h"
 #include "SS_s25fl.h"
 #endif
+#ifdef SS_USE_ADS1258
 #include "FreeRTOS.h"
 #include "SS_ADS1258.h"
 #endif
@@ -91,16 +91,22 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 /* printf("uart error callback: %d\r\n", huart->ErrorCode); */
 /* } */
 
-#ifdef HAL_QSPI_ENABLED
+#ifdef HAL_QSPI_MODULE_ENABLED
+void HAL_QSPI_CmdCpltCallback(QSPI_HandleTypeDef *hqspi) {
+#ifdef SS_USE_FLASH
+    SS_s25fl_qspi_cmdcplt_handler(hqspi);
+#endif
+}
+
 void HAL_QSPI_TxCpltCallback(QSPI_HandleTypeDef *hqspi) {
-#ifdef SS_USE_S25FL
-    SS_s25fl_txcplt_handler();
+#ifdef SS_USE_FLASH
+    SS_s25fl_qspi_txcplt_handler(hqspi);
 #endif
 }
 
 void HAL_QSPI_RxCpltCallback(QSPI_HandleTypeDef *hqspi) {
-#ifdef SS_USE_S25FL
-    SS_s25fl_rxcplt_handler();
+#ifdef SS_USE_FLASH
+    SS_s25fl_qspi_rxcplt_handler(hqspi);
 #endif
 }
 #endif
@@ -118,7 +124,7 @@ void HAL_SYSTICK_Callback() {
 #ifdef SS_USE_MS5X
     SS_MS56_SYSTICK_Callback();
 #endif
-#ifdef SS_USE_S25FL
+#ifdef SS_USE_FLASH
     SS_flash_ctrl_time_increment_handler();
 #endif
 }
