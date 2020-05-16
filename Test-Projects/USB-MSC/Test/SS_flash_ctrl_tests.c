@@ -9,9 +9,9 @@
 #include "SS_s25fl.h"
 #include "SS_flash_ctrl.h"
 
-TEST_GROUP(flash_ctrl);
+//TEST_GROUP(flash_ctrl);
 
-TEST_GROUP_RUNNER(flash_ctrl) {
+/*TEST_GROUP_RUNNER(flash_ctrl) {
 	RUN_TEST_CASE(flash_ctrl, logging_start_stop);
 	RUN_TEST_CASE(flash_ctrl, erase);
 	RUN_TEST_CASE(flash_ctrl, logging1);
@@ -117,14 +117,14 @@ TEST(flash_ctrl, logging3)
 		TEST_ASSERT_EQUAL_HEX8(i>>16, data[i*7+5]);
 		TEST_ASSERT_EQUAL_HEX8(i>>24, data[i*7+6]);
 	}
-}
+}*/
 
-TEST(flash_ctrl, write_read_pages)
+/*TEST(flash_ctrl, write_read_pages)
 {
 	// TODO.
-}
+}*/
 
-TEST(flash_ctrl, emulation)
+/*TEST(flash_ctrl, emulation)
 {
 	// TODO.
-}
+}*/

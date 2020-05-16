@@ -30,6 +30,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "SS_common.h"
+#include "SS_log.h"
 #include "SS_s25fl.h"
 #include "SS_flash_caching.h"
 #include "SS_flash_ctrl.h"
@@ -102,10 +103,15 @@ int main(void)
   MX_USART2_UART_Init();
   MX_USB_DEVICE_Init();
   MX_TIM14_Init();
+  MX_TIM8_Init();
+  MX_TIM1_Init();
+  MX_TIM4_Init();
+  MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
-	printf("Reset\r\n");
-  SS_s25fl_init();
-	//SS_init();
+    SS_s25fl_init();
+
+    SS_log_init(&huart2);
+    SS_init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -200,7 +206,7 @@ int main(void)
 				test();
 //#endif
 			} else {
-				strncpy((char *)msg, "Unknown command.\r\n", CMD_SIZE);
+				strncpy((char *)msg, "Unknown command.\r\n" __DATE__ __TIME__ "\r\n", CMD_SIZE);
 				HAL_UART_Transmit(&huart2, msg, strlen((char *)msg), 10);
 			}
 
@@ -280,6 +286,12 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+/*void HAL_QSPI_CmdCpltCallback(QSPI_HandleTypeDef *hqspi)
+{
+    SS_S25fl_qspi_cmdcplt_handler(hqspi);
+}
+
 void HAL_QSPI_TxCpltCallback(QSPI_HandleTypeDef *hqspi)
 {
 	SS_s25fl_qspi_txcplt_handler(hqspi);
@@ -289,9 +301,9 @@ void HAL_QSPI_RxCpltCallback(QSPI_HandleTypeDef *hqspi)
 {
 	SS_s25fl_qspi_rxcplt_handler(hqspi);
 	SS_flash_caching_qspi_rxcplt_handler(hqspi);
-}
+}*/
 
-int __io_putchar(int ch)
+/*int __io_putchar(int ch)
 {
 	if (ch == '\n') {
 		uint8_t cr = '\r';
@@ -304,7 +316,7 @@ int __io_putchar(int ch)
 		return EOF;
 	}
 	return ch;
-}
+}*/
 /* USER CODE END 4 */
 
  /**

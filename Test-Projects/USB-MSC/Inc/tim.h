@@ -30,12 +30,20 @@
 
 /* USER CODE END Includes */
 
+extern TIM_HandleTypeDef htim1;
+extern TIM_HandleTypeDef htim4;
+extern TIM_HandleTypeDef htim5;
+extern TIM_HandleTypeDef htim8;
 extern TIM_HandleTypeDef htim14;
 
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
 
+void MX_TIM1_Init(void);
+void MX_TIM4_Init(void);
+void MX_TIM5_Init(void);
+void MX_TIM8_Init(void);
 void MX_TIM14_Init(void);
 
 /* USER CODE BEGIN Prototypes */
