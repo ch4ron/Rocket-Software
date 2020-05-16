@@ -48,6 +48,13 @@ static void tests() {
 #ifdef SS_USE_SUPPLY
     RUN_TEST_GROUP(supply_control);
 #endif
+#ifdef SS_USE_FLASH
+    RUN_TEST_GROUP(s25fl)
+    //RUN_TEST_GROUP(flash_ctrl)
+#endif
+#ifdef SS_USE_USB
+    //RUN_TEST_GROUP(usb)
+#endif
 }
 
 /* Enable verbose output */
