@@ -119,20 +119,20 @@
 #define STATUS_REG2_PS 0x01
 
 static const QSPI_CommandTypeDef default_cmd = {
-	.Address = 0,
-	.AddressMode = QSPI_ADDRESS_NONE,
-	.AddressSize = QSPI_ADDRESS_8_BITS,
-	.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE,
-	.AlternateBytes = 0,
-	.AlternateBytesSize = QSPI_ALTERNATE_BYTES_8_BITS,
-	.DataMode = QSPI_DATA_NONE,
-	.DdrHoldHalfCycle = QSPI_DDR_HHC_ANALOG_DELAY,
-	.DdrMode = QSPI_DDR_MODE_DISABLE,
-	.DummyCycles = 0,
-	.Instruction = 0x00,
-	.InstructionMode = QSPI_INSTRUCTION_NONE,
-	.NbData = 0,
-	.SIOOMode = QSPI_SIOO_INST_EVERY_CMD
+    .Address = 0,
+    .AddressMode = QSPI_ADDRESS_NONE,
+    .AddressSize = QSPI_ADDRESS_8_BITS,
+    .AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE,
+    .AlternateBytes = 0,
+    .AlternateBytesSize = QSPI_ALTERNATE_BYTES_8_BITS,
+    .DataMode = QSPI_DATA_NONE,
+    .DdrHoldHalfCycle = QSPI_DDR_HHC_ANALOG_DELAY,
+    .DdrMode = QSPI_DDR_MODE_DISABLE,
+    .DummyCycles = 0,
+    .Instruction = 0x00,
+    .InstructionMode = QSPI_INSTRUCTION_NONE,
+    .NbData = 0,
+    .SIOOMode = QSPI_SIOO_INST_EVERY_CMD
 };
 
 // Unprotected by semaphore.
@@ -167,10 +167,10 @@ static volatile SemaphoreHandle_t semaphore;
 
 S25flStatus SS_s25fl_init(void)
 {
-	HAL_GPIO_WritePin(NRST_GPIO, NRST_PIN, GPIO_PIN_RESET);
-	HAL_Delay(1);
-	HAL_GPIO_WritePin(NRST_GPIO, NRST_PIN, GPIO_PIN_SET);
-	HAL_Delay(1);
+    HAL_GPIO_WritePin(NRST_GPIO, NRST_PIN, GPIO_PIN_RESET);
+    HAL_Delay(1);
+    HAL_GPIO_WritePin(NRST_GPIO, NRST_PIN, GPIO_PIN_SET);
+    HAL_Delay(1);
 
     semaphore = xSemaphoreCreateBinary();
     if (!xSemaphoreGive(semaphore)) {
@@ -178,28 +178,28 @@ S25flStatus SS_s25fl_init(void)
     }
 
 #ifdef S25FL_USE_QUAD
-	return cmd_write_regs(0x00, CONFIG_REG_QUAD);
+    return cmd_write_regs(0x00, CONFIG_REG_QUAD);
 #else
-	return cmd_write_regs(0x00, 0x00);
+    return cmd_write_regs(0x00, 0x00);
 #endif
 }
 
 S25flStatus SS_s25fl_read_rems_id(uint16_t *id)
 {
-	QSPI_CommandTypeDef cmd = default_cmd;
-	cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
-	cmd.Instruction = CMD_READ_ID_REMS;
-	cmd.AddressMode = QSPI_ADDRESS_1_LINE;
-	cmd.AddressSize = QSPI_ADDRESS_24_BITS;
-	cmd.Address = 0x000000;
-	cmd.DataMode = QSPI_DATA_1_LINE;
-	cmd.NbData = 2;
+    QSPI_CommandTypeDef cmd = default_cmd;
+    cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
+    cmd.Instruction = CMD_READ_ID_REMS;
+    cmd.AddressMode = QSPI_ADDRESS_1_LINE;
+    cmd.AddressSize = QSPI_ADDRESS_24_BITS;
+    cmd.Address = 0x000000;
+    cmd.DataMode = QSPI_DATA_1_LINE;
+    cmd.NbData = 2;
 
-	uint8_t data[2];
-	S25flStatus status = cmd_read(cmd, data);
-	if (status == S25FL_STATUS_OK) {
-		*id = (data[0]<<8) | data[1];
-	}
+    uint8_t data[2];
+    S25flStatus status = cmd_read(cmd, data);
+    if (status == S25FL_STATUS_OK) {
+        *id = (data[0]<<8) | data[1];
+    }
 
     return status;
 }
@@ -210,14 +210,14 @@ S25flStatus SS_s25fl_erase_all(void)
         return S25FL_STATUS_BUSY;
     }
 
-	S25flStatus status = enable_write();
-	if (status != S25FL_STATUS_OK) {
-		return status;
-	}
+    S25flStatus status = enable_write();
+    if (status != S25FL_STATUS_OK) {
+        return status;
+    }
 
-	QSPI_CommandTypeDef cmd = default_cmd;
-	cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
-	cmd.Instruction = CMD_BULK_ERASE;
+    QSPI_CommandTypeDef cmd = default_cmd;
+    cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
+    cmd.Instruction = CMD_BULK_ERASE;
 
     status = send_command(cmd);
     if (status != S25FL_STATUS_OK) {
@@ -237,17 +237,17 @@ S25flStatus SS_s25fl_erase_sector(uint32_t sector)
         return S25FL_STATUS_BUSY;
     }
 
-	S25flStatus status = enable_write();
-	if (status != S25FL_STATUS_OK) {
-		return status;
-	}
+    S25flStatus status = enable_write();
+    if (status != S25FL_STATUS_OK) {
+        return status;
+    }
 
-	QSPI_CommandTypeDef cmd = default_cmd;
-	cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
-	cmd.Instruction = CMD_4_SECTOR_ERASE;
-	cmd.AddressMode = QSPI_ADDRESS_1_LINE;
-	cmd.AddressSize = QSPI_ADDRESS_32_BITS;
-	cmd.Address = sector*S25FL_SECTOR_SIZE;
+    QSPI_CommandTypeDef cmd = default_cmd;
+    cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
+    cmd.Instruction = CMD_4_SECTOR_ERASE;
+    cmd.AddressMode = QSPI_ADDRESS_1_LINE;
+    cmd.AddressSize = QSPI_ADDRESS_32_BITS;
+    cmd.Address = sector*S25FL_SECTOR_SIZE;
 
     status = send_command(cmd);
     if (status != S25FL_STATUS_OK) {
@@ -265,69 +265,78 @@ S25flStatus SS_s25fl_erase_sector(uint32_t sector)
 
 S25flStatus SS_s25fl_write_bytes(uint32_t addr, uint8_t *data, uint32_t size)
 {
-	// Writing across more than one page will not work properly.
-	//assert(addr+size >= (addr/PAGE_SIZE+1)*PAGE_SIZE);
+    // Writing across more than one page will not work properly.
+    //assert(addr+size >= (addr/PAGE_SIZE+1)*PAGE_SIZE);
 
-	QSPI_CommandTypeDef cmd = create_write_cmd(addr, size);
-	return cmd_write(cmd, data);
+    QSPI_CommandTypeDef cmd = create_write_cmd(addr, size);
+    return cmd_write(cmd, data);
 }
 
 S25flStatus SS_s25fl_write_bytes_dma(uint32_t addr, uint8_t *data, uint32_t size)
 {
-	QSPI_CommandTypeDef cmd = create_write_cmd(addr, size);
-	return cmd_write_dma(cmd, data);
+    QSPI_CommandTypeDef cmd = create_write_cmd(addr, size);
+    return cmd_write_dma(cmd, data);
 }
 
 S25flStatus SS_s25fl_write_page(uint32_t page, uint8_t *data)
 {
-	return SS_s25fl_write_bytes(page*S25FL_PAGE_SIZE, data, S25FL_PAGE_SIZE);
+    return SS_s25fl_write_bytes(page*S25FL_PAGE_SIZE, data, S25FL_PAGE_SIZE);
 }
 
 S25flStatus SS_s25fl_write_page_dma(uint32_t page, uint8_t *data)
 {
-	return SS_s25fl_write_bytes_dma(page*S25FL_PAGE_SIZE, data, S25FL_PAGE_SIZE);
+    return SS_s25fl_write_bytes_dma(page*S25FL_PAGE_SIZE, data, S25FL_PAGE_SIZE);
 }
 
 S25flStatus SS_s25fl_read_bytes(uint32_t addr, uint8_t *data, uint32_t size)
 {
-	QSPI_CommandTypeDef cmd = create_read_cmd(addr, size);
-	return cmd_read(cmd, data);
+    QSPI_CommandTypeDef cmd = create_read_cmd(addr, size);
+    return cmd_read(cmd, data);
 }
 
 S25flStatus SS_s25fl_read_bytes_dma(uint32_t addr, uint8_t *data, uint32_t size)
 {
-	QSPI_CommandTypeDef cmd = create_read_cmd(addr, size);
-	return cmd_read_dma(cmd, data);
+    QSPI_CommandTypeDef cmd = create_read_cmd(addr, size);
+    return cmd_read_dma(cmd, data);
 }
 
 S25flStatus SS_s25fl_read_bytes_dma_wait(uint32_t addr, uint8_t *data, uint32_t size)
 {
-	QSPI_CommandTypeDef cmd = create_read_cmd(addr, size);
-	S25flStatus status = cmd_read_dma(cmd, data);
-	if (status != S25FL_STATUS_OK) {
-		return status;
-	}
-
-    if (!xSemaphoreTake(semaphore, TIMEOUT_ms)) {
-        return S25FL_STATUS_BUSY;
+    QSPI_CommandTypeDef cmd = create_read_cmd(addr, size);
+    S25flStatus status = cmd_read_dma(cmd, data);
+    if (status != S25FL_STATUS_OK) {
+        return status;
     }
 
-    return S25FL_STATUS_OK;
+    return SS_s25fl_wait_until_ready();
 }
 
 S25flStatus SS_s25fl_read_page(uint32_t page, uint8_t *data)
 {
-	return SS_s25fl_read_bytes(page*S25FL_PAGE_SIZE, data, S25FL_PAGE_SIZE);
+    return SS_s25fl_read_bytes(page*S25FL_PAGE_SIZE, data, S25FL_PAGE_SIZE);
 }
 
 S25flStatus SS_s25fl_read_page_dma(uint32_t page, uint8_t *data)
 {
-	return SS_s25fl_read_bytes_dma(page*S25FL_PAGE_SIZE, data, S25FL_PAGE_SIZE);
+    return SS_s25fl_read_bytes_dma(page*S25FL_PAGE_SIZE, data, S25FL_PAGE_SIZE);
 }
 
 S25flStatus SS_s25fl_read_page_dma_wait(uint32_t page, uint8_t *data)
 {
-	return SS_s25fl_read_bytes_dma_wait(page*S25FL_PAGE_SIZE, data, S25FL_PAGE_SIZE);
+    return SS_s25fl_read_bytes_dma_wait(page*S25FL_PAGE_SIZE, data, S25FL_PAGE_SIZE);
+}
+
+S25flStatus SS_s25fl_wait_until_ready(void)
+{
+    if (!xSemaphoreTake(semaphore, TIMEOUT_ms)) {
+        return S25FL_STATUS_BUSY;
+    }
+
+    if (!xSemaphoreGive(semaphore)) {
+        return S25FL_STATUS_ERR;
+    }
+
+    return S25FL_STATUS_OK;
 }
 
 S25flStatus SS_s25fl_get_status(void)
@@ -336,52 +345,52 @@ S25flStatus SS_s25fl_get_status(void)
         return S25FL_STATUS_BUSY;
     }
 
-	uint8_t status_reg1, status_reg2;
+    uint8_t status_reg1, status_reg2;
 
-	S25flStatus status = cmd_read_status_reg1(&status_reg1);
-	if (status != S25FL_STATUS_OK) {
-		return status;
-	}
+    S25flStatus status = cmd_read_status_reg1(&status_reg1);
+    if (status != S25FL_STATUS_OK) {
+        return status;
+    }
 
-	status = cmd_read_status_reg2(&status_reg2);
-	if (status != S25FL_STATUS_OK) {
-		return status;
-	}
+    status = cmd_read_status_reg2(&status_reg2);
+    if (status != S25FL_STATUS_OK) {
+        return status;
+    }
 
-	return translate_status_regs(status_reg1, status_reg2);
+    return translate_status_regs(status_reg1, status_reg2);
 }
 
 S25flStatus SS_s25fl_qspi_cmdcplt_handler(QSPI_HandleTypeDef *hqspi_)
 {
-	/*if (hqspi_ == &hqspi) {
+    /*if (hqspi_ == &hqspi) {
         if (!xSemaphoreGiveFromISR(semaphore, NULL)) {
             return S25FL_STATUS_ERR;
         }
-	}*/
+    }*/
 
-	return S25FL_STATUS_OK;
+    return S25FL_STATUS_OK;
 }
 
 S25flStatus SS_s25fl_qspi_txcplt_handler(QSPI_HandleTypeDef *hqspi_)
 {
-	if (hqspi_ == &hqspi) {
+    if (hqspi_ == &hqspi) {
         if (!xSemaphoreGiveFromISR(semaphore, NULL)) {
             return S25FL_STATUS_ERR;
         }
-	}
+    }
 
-	return S25FL_STATUS_OK;
+    return S25FL_STATUS_OK;
 }
 
 S25flStatus SS_s25fl_qspi_rxcplt_handler(QSPI_HandleTypeDef *hqspi_)
 {
-	if (hqspi_ == &hqspi) {
+    if (hqspi_ == &hqspi) {
         if (!xSemaphoreGiveFromISR(semaphore, NULL)) {
             return S25FL_STATUS_ERR;
         }
-	}
+    }
 
-	return S25FL_STATUS_OK;
+    return S25FL_STATUS_OK;
 }
 
 static S25flStatus send_command(QSPI_CommandTypeDef cmd)
@@ -397,9 +406,9 @@ static S25flStatus send_command(QSPI_CommandTypeDef cmd)
 
 static S25flStatus enable_write(void)
 {
-	QSPI_CommandTypeDef cmd = default_cmd;
-	cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
-	cmd.Instruction = CMD_WRITE_ENABLE;
+    QSPI_CommandTypeDef cmd = default_cmd;
+    cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
+    cmd.Instruction = CMD_WRITE_ENABLE;
 
     S25flStatus status = send_command(cmd);
     if (status != S25FL_STATUS_OK) {
@@ -436,47 +445,47 @@ static S25flStatus autopoll(uint8_t reg1_mask, uint8_t reg1_match)
 
 static S25flStatus cmd_write_regs(uint8_t status_reg1, uint8_t config_reg)
 {
-	QSPI_CommandTypeDef cmd = default_cmd;
-	cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
-	cmd.Instruction = CMD_WRITE_REGISTERS;
-	cmd.DataMode = QSPI_DATA_1_LINE;
-	cmd.NbData = 2;
+    QSPI_CommandTypeDef cmd = default_cmd;
+    cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
+    cmd.Instruction = CMD_WRITE_REGISTERS;
+    cmd.DataMode = QSPI_DATA_1_LINE;
+    cmd.NbData = 2;
 
-	uint8_t data[2] = {status_reg1, config_reg};
-	return cmd_write(cmd, data);
+    uint8_t data[2] = {status_reg1, config_reg};
+    return cmd_write(cmd, data);
 }
 
 static S25flStatus cmd_read_status_reg1(uint8_t *val)
 {
-	QSPI_CommandTypeDef cmd = default_cmd;
-	cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
-	cmd.Instruction = CMD_READ_STATUS_REG1;
-	cmd.DataMode = QSPI_DATA_1_LINE;
-	cmd.NbData = 1;
+    QSPI_CommandTypeDef cmd = default_cmd;
+    cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
+    cmd.Instruction = CMD_READ_STATUS_REG1;
+    cmd.DataMode = QSPI_DATA_1_LINE;
+    cmd.NbData = 1;
 
-	return cmd_read(cmd, val);
+    return cmd_read(cmd, val);
 }
 
 static S25flStatus cmd_read_status_reg2(uint8_t *val)
 {
-	QSPI_CommandTypeDef cmd = default_cmd;
-	cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
-	cmd.Instruction = CMD_READ_STATUS_REG2;
-	cmd.DataMode = QSPI_DATA_1_LINE;
-	cmd.NbData = 1;
+    QSPI_CommandTypeDef cmd = default_cmd;
+    cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
+    cmd.Instruction = CMD_READ_STATUS_REG2;
+    cmd.DataMode = QSPI_DATA_1_LINE;
+    cmd.NbData = 1;
 
-	return cmd_read(cmd, val);
+    return cmd_read(cmd, val);
 }
 
 static S25flStatus cmd_read_config_reg(uint8_t *val)
 {
-	QSPI_CommandTypeDef cmd = default_cmd;
-	cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
-	cmd.Instruction = CMD_READ_CONFIG_REG;
-	cmd.DataMode = QSPI_DATA_1_LINE;
-	cmd.NbData = 1;
+    QSPI_CommandTypeDef cmd = default_cmd;
+    cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
+    cmd.Instruction = CMD_READ_CONFIG_REG;
+    cmd.DataMode = QSPI_DATA_1_LINE;
+    cmd.NbData = 1;
 
-	return cmd_read(cmd, val);
+    return cmd_read(cmd, val);
 }
 
 static S25flStatus cmd_write(QSPI_CommandTypeDef cmd, uint8_t *data)
@@ -485,17 +494,17 @@ static S25flStatus cmd_write(QSPI_CommandTypeDef cmd, uint8_t *data)
         return S25FL_STATUS_BUSY;
     }
 
-	S25flStatus status = enable_write();
-	if (status != S25FL_STATUS_OK) {
-		return status;
-	}
+    S25flStatus status = enable_write();
+    if (status != S25FL_STATUS_OK) {
+        return status;
+    }
 
     status = send_command(cmd);
     if (status != S25FL_STATUS_OK) {
         return status;
     }
 
-	HAL_StatusTypeDef hal_status = HAL_QSPI_Transmit(&hqspi, data, TIMEOUT_ms);
+    HAL_StatusTypeDef hal_status = HAL_QSPI_Transmit(&hqspi, data, TIMEOUT_ms);
     if (hal_status != HAL_OK) {
         return translate_hal_status(hal_status);
     }
@@ -513,18 +522,18 @@ static S25flStatus cmd_write_dma(QSPI_CommandTypeDef cmd, uint8_t *data)
         return S25FL_STATUS_BUSY;
     }
 
-	S25flStatus status = enable_write();
-	if (status != S25FL_STATUS_OK) {
-		return status;
-	}
+    S25flStatus status = enable_write();
+    if (status != S25FL_STATUS_OK) {
+        return status;
+    }
 
     status = send_command(cmd);
     if (status != S25FL_STATUS_OK) {
         return status;
     }
 
-	HAL_StatusTypeDef hal_status = HAL_QSPI_Transmit_DMA(&hqspi, data);
-	return translate_hal_status(hal_status);
+    HAL_StatusTypeDef hal_status = HAL_QSPI_Transmit_DMA(&hqspi, data);
+    return translate_hal_status(hal_status);
 }
 
 static S25flStatus cmd_read(QSPI_CommandTypeDef cmd, uint8_t *data)
@@ -538,13 +547,13 @@ static S25flStatus cmd_read(QSPI_CommandTypeDef cmd, uint8_t *data)
         return status;
     }
 
-	HAL_StatusTypeDef hal_status = HAL_QSPI_Receive(&hqspi, data, TIMEOUT_ms);
+    HAL_StatusTypeDef hal_status = HAL_QSPI_Receive(&hqspi, data, TIMEOUT_ms);
 
     if (!xSemaphoreGive(semaphore)) {
         return S25FL_STATUS_ERR;
     }
 
-	return translate_hal_status(hal_status);
+    return translate_hal_status(hal_status);
 }
 
 static S25flStatus cmd_read_dma(QSPI_CommandTypeDef cmd, uint8_t *data)
@@ -558,105 +567,105 @@ static S25flStatus cmd_read_dma(QSPI_CommandTypeDef cmd, uint8_t *data)
         return status;
     }
 
-	HAL_StatusTypeDef hal_status = HAL_QSPI_Receive_DMA(&hqspi, data);
-	return translate_hal_status(hal_status);
+    HAL_StatusTypeDef hal_status = HAL_QSPI_Receive_DMA(&hqspi, data);
+    return translate_hal_status(hal_status);
 }
 
 static QSPI_CommandTypeDef create_write_cmd(uint32_t addr, uint32_t size)
 {
-	QSPI_CommandTypeDef cmd = default_cmd;
+    QSPI_CommandTypeDef cmd = default_cmd;
 
 #ifdef S25FL_USE_QUAD
-	cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
-	cmd.Instruction = CMD_4_QUAD_PAGE_PROGRAM;
-	cmd.AddressMode = QSPI_ADDRESS_1_LINE;
-	cmd.AddressSize = QSPI_ADDRESS_32_BITS;
-	cmd.Address = addr;
-	cmd.DataMode = QSPI_DATA_4_LINES;
-	cmd.NbData = size;
+    cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
+    cmd.Instruction = CMD_4_QUAD_PAGE_PROGRAM;
+    cmd.AddressMode = QSPI_ADDRESS_1_LINE;
+    cmd.AddressSize = QSPI_ADDRESS_32_BITS;
+    cmd.Address = addr;
+    cmd.DataMode = QSPI_DATA_4_LINES;
+    cmd.NbData = size;
 #else
-	cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
-	cmd.Instruction = CMD_4_PAGE_PROGRAM;
-	cmd.AddressMode = QSPI_ADDRESS_1_LINE;
-	cmd.AddressSize = QSPI_ADDRESS_32_BITS;
-	cmd.Address = addr;
-	cmd.DataMode = QSPI_DATA_1_LINE;
-	cmd.NbData = size;
+    cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
+    cmd.Instruction = CMD_4_PAGE_PROGRAM;
+    cmd.AddressMode = QSPI_ADDRESS_1_LINE;
+    cmd.AddressSize = QSPI_ADDRESS_32_BITS;
+    cmd.Address = addr;
+    cmd.DataMode = QSPI_DATA_1_LINE;
+    cmd.NbData = size;
 #endif
 
-	return cmd;
+    return cmd;
 }
 
 static QSPI_CommandTypeDef create_read_cmd(uint32_t addr, uint32_t size)
 {
-	QSPI_CommandTypeDef cmd = default_cmd;
+    QSPI_CommandTypeDef cmd = default_cmd;
 
 #ifdef S25FL_USE_QUAD
-	cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
-	cmd.Instruction = CMD_4_QUAD_IO_READ;
-	cmd.AddressMode = QSPI_ADDRESS_4_LINES;
-	cmd.AddressSize = QSPI_ADDRESS_32_BITS;
-	cmd.Address = addr;
-	cmd.AlternateByteMode = QSPI_ALTERNATE_BYTES_4_LINES;
-	cmd.AlternateBytesSize = QSPI_ALTERNATE_BYTES_8_BITS;
-	cmd.AlternateBytes = 0x00;
-	cmd.DummyCycles = 4;
-	cmd.DataMode = QSPI_DATA_4_LINES;
-	cmd.NbData = size;
+    cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
+    cmd.Instruction = CMD_4_QUAD_IO_READ;
+    cmd.AddressMode = QSPI_ADDRESS_4_LINES;
+    cmd.AddressSize = QSPI_ADDRESS_32_BITS;
+    cmd.Address = addr;
+    cmd.AlternateByteMode = QSPI_ALTERNATE_BYTES_4_LINES;
+    cmd.AlternateBytesSize = QSPI_ALTERNATE_BYTES_8_BITS;
+    cmd.AlternateBytes = 0x00;
+    cmd.DummyCycles = 4;
+    cmd.DataMode = QSPI_DATA_4_LINES;
+    cmd.NbData = size;
 #else
-	cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
-	cmd.Instruction = CMD_4_READ;
-	cmd.AddressMode = QSPI_ADDRESS_1_LINE;
-	cmd.AddressSize = QSPI_ADDRESS_32_BITS;
-	cmd.Address = addr;
-	cmd.DataMode = QSPI_DATA_1_LINE;
-	cmd.NbData = size;
+    cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
+    cmd.Instruction = CMD_4_READ;
+    cmd.AddressMode = QSPI_ADDRESS_1_LINE;
+    cmd.AddressSize = QSPI_ADDRESS_32_BITS;
+    cmd.Address = addr;
+    cmd.DataMode = QSPI_DATA_1_LINE;
+    cmd.NbData = size;
 #endif
 
-	return cmd;
+    return cmd;
 }
 
 static S25flStatus translate_status_regs(uint8_t status_reg1, uint8_t status_reg2)
 {
-	if ((status_reg1 & STATUS_REG1_P_ERR) || (status_reg1 & STATUS_REG1_E_ERR)) {
-		return S25FL_STATUS_ERR;
-	}
-	if ((status_reg2 & STATUS_REG2_ES) || (status_reg2 & STATUS_REG2_PS)) {
-		return S25FL_STATUS_SUSPENDED;
-	}
-	if (status_reg1 & STATUS_REG1_WIP) {
-		return S25FL_STATUS_BUSY;
-	}
+    if ((status_reg1 & STATUS_REG1_P_ERR) || (status_reg1 & STATUS_REG1_E_ERR)) {
+        return S25FL_STATUS_ERR;
+    }
+    if ((status_reg2 & STATUS_REG2_ES) || (status_reg2 & STATUS_REG2_PS)) {
+        return S25FL_STATUS_SUSPENDED;
+    }
+    if (status_reg1 & STATUS_REG1_WIP) {
+        return S25FL_STATUS_BUSY;
+    }
 
-	return S25FL_STATUS_OK;
+    return S25FL_STATUS_OK;
 }
 
 static S25flStatus translate_hal_status(HAL_StatusTypeDef hal_status)
 {
-	switch (hal_status) {
-	case HAL_OK:
-		return S25FL_STATUS_OK;
-	case HAL_BUSY:
-		return S25FL_STATUS_BUSY;
-	case HAL_ERROR:
-	default:
-		return S25FL_STATUS_ERR;
-	}
+    switch (hal_status) {
+    case HAL_OK:
+        return S25FL_STATUS_OK;
+    case HAL_BUSY:
+        return S25FL_STATUS_BUSY;
+    case HAL_ERROR:
+    default:
+        return S25FL_STATUS_ERR;
+    }
 }
 
 #ifdef DEBUG
 S25flStatus SS_s25fl_debug_read_regs(uint8_t *status_reg1, uint8_t *status_reg2, uint8_t *config_reg)
 {
-	S25flStatus status = cmd_read_status_reg1(status_reg1);
-	if (status != S25FL_STATUS_OK) {
-		return status;
-	}
+    S25flStatus status = cmd_read_status_reg1(status_reg1);
+    if (status != S25FL_STATUS_OK) {
+        return status;
+    }
 
-	status = cmd_read_status_reg2(status_reg2);
-	if (status != S25FL_STATUS_OK) {
-		return status;
-	}
+    status = cmd_read_status_reg2(status_reg2);
+    if (status != S25FL_STATUS_OK) {
+        return status;
+    }
 
-	return cmd_read_config_reg(config_reg);
+    return cmd_read_config_reg(config_reg);
 }
 #endif

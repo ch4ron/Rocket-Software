@@ -50,6 +50,7 @@ S25flStatus SS_s25fl_read_page(uint32_t page, uint8_t *data);
 S25flStatus SS_s25fl_read_page_dma(uint32_t page, uint8_t *data);
 S25flStatus SS_s25fl_read_page_dma_wait(uint32_t page, uint8_t *data);
 
+S25flStatus SS_s25fl_wait_until_ready(void);
 S25flStatus SS_s25fl_get_status(void);
 
 S25flStatus SS_s25fl_qspi_cmdcplt_handler(QSPI_HandleTypeDef *hqspi_);
