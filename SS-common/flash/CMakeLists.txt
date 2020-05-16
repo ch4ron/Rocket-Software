@@ -1,0 +1,15 @@
+set(TARGET flash)
+
+add_library(${TARGET} INTERFACE)
+
+target_include_directories(
+    ${TARGET} INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_sources(${TARGET} INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}/SS_s25fl.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/SS_s25fl.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/SS_flash_ctrl.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/SS_flash_ctrl.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/SS_flash_caching.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/SS_flash_caching.h)
