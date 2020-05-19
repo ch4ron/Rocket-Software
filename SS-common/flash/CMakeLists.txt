@@ -13,3 +13,8 @@ target_sources(${TARGET} INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/SS_flash_ctrl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/SS_flash_caching.c
     ${CMAKE_CURRENT_SOURCE_DIR}/SS_flash_caching.h)
+
+target_test_sources(${TARGET} INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}/SS_s25fl_tests.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/SS_flash_ctrl_tests.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/SS_flash_caching_tests.c)
