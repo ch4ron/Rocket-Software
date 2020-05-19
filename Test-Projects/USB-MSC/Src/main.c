@@ -34,7 +34,6 @@
 #include "SS_s25fl.h"
 #include "SS_flash_caching.h"
 #include "SS_flash_ctrl.h"
-#include "test.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -203,7 +202,7 @@ int main(void)
 				HAL_UART_Transmit(&huart2, msg, strlen((char *)msg), 10);
 			} else if (sscanf((char *)cmd, "%s", (char *)msg) == 1 && strncmp((char *)msg, "test", CMD_SIZE) == 0) {
 //#ifdef TEST
-				test();
+				//test();
 //#endif
 			} else {
 				strncpy((char *)msg, "Unknown command.\r\n" __DATE__ __TIME__ "\r\n", CMD_SIZE);
