@@ -10,8 +10,9 @@
 #include "SS_MS5X.h"
 #endif
 #ifdef SS_USE_FLASH
-#include "SS_flash_ctrl.h"
 #include "SS_s25fl.h"
+#include "SS_flash_ctrl.h"
+#include "SS_flash_caching.h"
 #endif
 #ifdef SS_USE_ADS1258
 #include "FreeRTOS.h"
@@ -107,6 +108,7 @@ void HAL_QSPI_TxCpltCallback(QSPI_HandleTypeDef *hqspi) {
 void HAL_QSPI_RxCpltCallback(QSPI_HandleTypeDef *hqspi) {
 #ifdef SS_USE_FLASH
     SS_s25fl_qspi_rxcplt_handler(hqspi);
+    SS_flash_caching_qspi_rxcplt_handler(hqspi);
 #endif
 }
 #endif
