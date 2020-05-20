@@ -44,17 +44,17 @@ TEST(flash_ctrl, erase)
 	TEST_MESSAGE("Testing log erase. This may take up to 500 seconds...");
 	TEST_ASSERT_EQUAL_INT(FLASH_CTRL_STATUS_OK, SS_flash_ctrl_erase_logs());
 
-	uint8_t data[S25FL_PAGE_SIZE];
+	static uint8_t data[S25FL_PAGE_SIZE];
 	TEST_ASSERT_EQUAL_INT(FLASH_CTRL_STATUS_OK, SS_flash_ctrl_read_page_dma_wait(0x00085200UL/S25FL_PAGE_SIZE, data));
 	TEST_ASSERT_EQUAL_HEX8(0xFF, data[0]);
 }
 
 TEST(flash_ctrl, logging1)
 {
-	uint8_t data[S25FL_PAGE_SIZE];
-	uint8_t data1[] = {0x12, 0x34, 0x56, 0x78};
-	uint8_t data2[] = {0xAA, 0xBB, 0xCC, 0xDD};
-	uint8_t data3[] = {0x11, 0x22, 0x33, 0x44};
+	static uint8_t data[S25FL_PAGE_SIZE];
+	static const uint8_t data1[] = {0x12, 0x34, 0x56, 0x78};
+	static const uint8_t data2[] = {0xAA, 0xBB, 0xCC, 0xDD};
+	static const uint8_t data3[] = {0x11, 0x22, 0x33, 0x44};
 
 	TEST_ASSERT_EQUAL_INT(FLASH_CTRL_STATUS_OK, SS_flash_ctrl_start_logging());
 	TEST_ASSERT_EQUAL_INT(FLASH_CTRL_STATUS_OK, SS_flash_ctrl_log_var(FLASH_CTRL_STREAM_FRONT, 0x01, data1, 4));
@@ -74,9 +74,9 @@ TEST(flash_ctrl, logging1)
 
 TEST(flash_ctrl, logging2)
 {
-	uint8_t data1[] = {0xAA, 0xAA, 0xBB, 0xBB};
-	uint8_t data2[] = {0xCC, 0xCC, 0xDD, 0xDD};
-	uint8_t data3[] = {0xEE, 0xEE, 0xFF, 0xFF};
+	static const uint8_t data1[] = {0xAA, 0xAA, 0xBB, 0xBB};
+	static const uint8_t data2[] = {0xCC, 0xCC, 0xDD, 0xDD};
+	static const uint8_t data3[] = {0xEE, 0xEE, 0xFF, 0xFF};
 
 	TEST_ASSERT_EQUAL_INT(FLASH_CTRL_STATUS_OK, SS_flash_ctrl_start_logging());
 	TEST_ASSERT_EQUAL_INT(FLASH_CTRL_STATUS_OK, SS_flash_ctrl_log_var(FLASH_CTRL_STREAM_FRONT, 0x04, data1, 4));
@@ -84,7 +84,7 @@ TEST(flash_ctrl, logging2)
 	TEST_ASSERT_EQUAL_INT(FLASH_CTRL_STATUS_OK, SS_flash_ctrl_log_var(FLASH_CTRL_STREAM_FRONT, 0x04, data3, 4));
 	TEST_ASSERT_EQUAL_INT(FLASH_CTRL_STATUS_OK, SS_flash_ctrl_stop_logging());
 
-	uint8_t data[S25FL_PAGE_SIZE];
+	static uint8_t data[S25FL_PAGE_SIZE];
 	TEST_ASSERT_EQUAL_INT(FLASH_CTRL_STATUS_OK, SS_flash_ctrl_read_page_dma_wait(0x00085200UL/S25FL_PAGE_SIZE, data));
 	TEST_ASSERT_EQUAL_HEX8(0xFC, data[0]);
 	TEST_ASSERT_EQUAL_HEX8(0xFF, data[1]);
@@ -107,7 +107,7 @@ TEST(flash_ctrl, logging3)
 
 	TEST_ASSERT_EQUAL_INT(FLASH_CTRL_STATUS_OK, SS_flash_ctrl_stop_logging());
 
-	uint8_t data[S25FL_PAGE_SIZE];
+	static uint8_t data[S25FL_PAGE_SIZE];
 	TEST_ASSERT_EQUAL_INT(FLASH_CTRL_STATUS_OK, SS_flash_ctrl_read_page_dma_wait(0x00089200UL/S25FL_PAGE_SIZE + 2, data));
 	// One iteration less than in previous for loop because the last write is on the next sector.
 	for (uint32_t i = 0; i < S25FL_PAGE_SIZE/7; ++i) {

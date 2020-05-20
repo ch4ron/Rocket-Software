@@ -43,7 +43,7 @@ TEST(s25fl, rems_id)
 
 TEST(s25fl, erase_all)
 {
-	uint8_t data[S25FL_PAGE_SIZE];
+	static uint8_t data[S25FL_PAGE_SIZE];
 	TEST_ASSERT_EQUAL_INT(S25FL_STATUS_OK, SS_s25fl_read_page(0, data));
 
 	if (data[0] == 0xFF) {
@@ -62,7 +62,7 @@ TEST(s25fl, erase_all)
 
 TEST(s25fl, erase)
 {
-	uint8_t data[S25FL_PAGE_SIZE];
+	static uint8_t data[S25FL_PAGE_SIZE];
 	TEST_ASSERT_EQUAL_INT(S25FL_STATUS_OK, SS_s25fl_read_page(1, data));
 
 	if (data[1] == 0xFF) {
@@ -85,7 +85,7 @@ TEST(s25fl, erase)
 TEST(s25fl, wait)
 {
 	// Call a DMA operation to make the module busy. XXX: Why DMA?
-	uint8_t data[S25FL_PAGE_SIZE] = {0};
+	static const uint8_t data[S25FL_PAGE_SIZE] = {0};
 	TEST_ASSERT_EQUAL_INT(S25FL_STATUS_OK, SS_s25fl_read_page_dma(0, data));
 
 	//TEST_ASSERT_EQUAL_INT(S25FL_STATUS_BUSY, SS_s25fl_get_status());
@@ -109,7 +109,7 @@ TEST(s25fl, wait)
 
 TEST(s25fl, write_read_bytes)
 {
-	uint8_t write_data = 0xAA, read_data = 0x00;
+	static uint8_t write_data = 0xAA, read_data = 0x00;
 	TEST_ASSERT_EQUAL_INT(S25FL_STATUS_OK, SS_s25fl_read_bytes(S25FL_PAGE_SIZE*2 + 2, &read_data, 1));
 
 	TEST_ASSERT_EQUAL_INT(S25FL_STATUS_OK, SS_s25fl_write_bytes(S25FL_PAGE_SIZE*2 + 2, &write_data, 1));
@@ -148,10 +148,10 @@ TEST(s25fl, write_read_bytes_dma)
 
 TEST(s25fl, write_read_page)
 {
-	uint8_t write_data[S25FL_PAGE_SIZE];
+	static uint8_t write_data[S25FL_PAGE_SIZE];
 	memset(write_data, 0xAA, S25FL_PAGE_SIZE);
 
-	uint8_t read_data[S25FL_PAGE_SIZE];
+	static uint8_t read_data[S25FL_PAGE_SIZE];
 	TEST_ASSERT_EQUAL_INT(S25FL_STATUS_OK, SS_s25fl_read_page(4, read_data));
 
 	TEST_ASSERT_EQUAL_INT(S25FL_STATUS_OK, SS_s25fl_write_page(4, write_data));
@@ -161,12 +161,12 @@ TEST(s25fl, write_read_page)
 
 TEST(s25fl, write_read_page_dma)
 {
-	uint8_t write_data[S25FL_PAGE_SIZE];
+	static uint8_t write_data[S25FL_PAGE_SIZE];
 	for (uint32_t i = 0; i < S25FL_PAGE_SIZE; ++i) {
 		write_data[i] = i;
 	}
 
-	uint8_t read_data[S25FL_PAGE_SIZE];
+	static uint8_t read_data[S25FL_PAGE_SIZE];
 	//TEST_ASSERT_EQUAL_INT(S25FL_STATUS_OK, SS_s25fl_read_page(5, read_data));
 
 	TEST_ASSERT_EQUAL_INT(S25FL_STATUS_OK, SS_s25fl_write_page_dma(5, write_data));
