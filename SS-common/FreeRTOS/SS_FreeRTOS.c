@@ -1,3 +1,14 @@
+/**
+  * SS_FreeRTOS.c
+  *
+  *  Created on: Mar 29, 2020
+  *      Author: Maciek
+ **/
+
+/* ==================================================================== */
+/* ============================= Includes ============================= */
+/* ==================================================================== */
+
 #include "FreeRTOS.h"
 #include "assert.h"
 #include "main.h"
@@ -12,12 +23,33 @@
 #include "SS_log.h"
 #include "SS_console.h"
 
-static void vLEDFlashTask(void *pvParameters) {
-    while(1) {
-        vTaskDelay(500);
-        SS_platform_toggle_loop_led();
-    }
+/* ==================================================================== */
+/* =================== Private function prototypes ==================== */
+/* ==================================================================== */
+
+static void vLEDFlashTask(void *pvParameters);
+static void SS_FreeRTOS_create_tasks(void);
+#ifdef SS_RUN_TESTS
+static void run_tests_task(void *pvParameters);
+#endif
+
+/* ==================================================================== */
+/* ========================= Public functions ========================= */
+/* ==================================================================== */
+
+
+void SS_FreeRTOS_init(void) {
+    SS_FreeRTOS_create_tasks();
+#ifdef SS_FREERTOS_TRACE
+    vTraceEnable(TRC_START);
+#endif
+    SS_print("Scheduler started\r\n");
+    vTaskStartScheduler();
 }
+
+/* ==================================================================== */
+/* ======================== Private functions ========================= */
+/* ==================================================================== */
 
 #ifdef SS_RUN_TESTS
 #include "SS_common.h"
@@ -27,14 +59,11 @@ static void run_tests_task(void *pvParameters) {
 }
 #endif
 
-/* Hook prototypes */
-void vApplicationStackOverflowHook(xTaskHandle xTask, signed char *pcTaskName);
-
-__weak void vApplicationStackOverflowHook(xTaskHandle xTask,
-                                          signed char *pcTaskName) {
-    /* Run time stack overflow checking is performed if
-    configCHECK_FOR_STACK_OVERFLOW is defined to 1 or 2. This hook function is
-    called if a stack overflow is detected. */
+static void vLEDFlashTask(void *pvParameters) {
+    while(1) {
+        vTaskDelay(500);
+        SS_platform_toggle_loop_led();
+    }
 }
 
 static void SS_FreeRTOS_create_tasks(void) {
@@ -61,11 +90,15 @@ static void SS_FreeRTOS_create_tasks(void) {
 #endif
 }
 
-void SS_FreeRTOS_init(void) {
-    SS_FreeRTOS_create_tasks();
-#ifdef SS_FREERTOS_TRACE
-    vTraceEnable(TRC_START);
-#endif
-    SS_print("Scheduler started\r\n");
-    vTaskStartScheduler();
+/* ==================================================================== */
+/* ============================== Hooks =============================== */
+/* ==================================================================== */
+
+void vApplicationStackOverflowHook(xTaskHandle xTask,
+                                          signed char *pcTaskName) {
+    assert(false);
+    /* Run time stack overflow checking is performed if
+    configCHECK_FOR_STACK_OVERFLOW is defined to 1 or 2. This hook function is
+    called if a stack overflow is detected. */
 }
+

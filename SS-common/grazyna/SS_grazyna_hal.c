@@ -26,7 +26,7 @@ extern void SS_grazyna_rx_isr(void);
 static UART_HandleTypeDef *grazyna_huart;
 
 /* ==================================================================== */
-/* ========================= Global functions ========================= */
+/* ========================= Public functions ========================= */
 /* ==================================================================== */
 
 /* huart is of type UART_HandleTypedef */

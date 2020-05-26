@@ -27,7 +27,7 @@ set(COMMON_FLAGS
 set(CMAKE_CXX_FLAGS_INIT "${COMMON_FLAGS} -std=c++11")
 set(CMAKE_C_FLAGS_INIT "${COMMON_FLAGS} -std=gnu99")
 
-add_definitions(-D__weak=__attribute__\(\(weak\)\) -D__packed=__attribute__\(\(__packed__\)\) -DUSE_HAL_DRIVER -DSTM32F446xx)
+add_definitions(-D__weak=__attribute__\(\(weak\)\) -D__packed=__attribute__\(\(__packed__\)\) -DUSE_HAL_DRIVER -DSTM32F446xx -DCMAKE_EXPORT_COMPILE_COMMANDS=1)
 add_compile_options(-Wall)
 
 

@@ -12,8 +12,8 @@
 #ifdef SS_USE_ADS1258
 #include "SS_measurements.h"
 #endif
-#include "SS_com_feed.h"
 #include "SS_com.h"
+#include "SS_com_feed.h"
 #include "stdbool.h"
 
 /* ==================================================================== */
@@ -27,7 +27,6 @@
 /* ==================================================================== */
 
 static ComFrame feed_frame;
-static volatile bool enabled;
 TaskHandle_t com_feed_task;
 
 /* An array of functions that send feed data
@@ -35,7 +34,7 @@ TaskHandle_t com_feed_task;
  * Follow the example from SS_ADS1258_com_feed when adding new modules */
 int8_t (*modules[])(ComFrame*) = {
 #ifdef SS_USE_ADS1258
-        SS_ADS1258_com_feed
+    SS_ADS1258_com_feed
 #endif
 };
 
@@ -52,7 +51,6 @@ void SS_com_feed_disable() {
 }
 
 void SS_com_feed_task() {
-    static uint32_t counter = 0;
     static uint8_t module = 0;
     /* Feed functions should return 0 when they transmitted all values */
     int8_t res = modules[module](&feed_frame);

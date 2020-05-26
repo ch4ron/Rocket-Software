@@ -15,7 +15,7 @@
 #define MAX_MEASUREMENT_COUNT 30
 
 typedef struct {
-    uint8_t channel_id;
+	uint8_t channel_id;
 	uint8_t reg_address;
 	uint8_t reg_mask;
 	int32_t raw;

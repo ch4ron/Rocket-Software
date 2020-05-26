@@ -197,7 +197,11 @@ DynamixelStatus SS_dynamixel_ping(Dynamixel *servo) {
 static void SS_dynamixel_packet_to_buf(InstructionPacket *packet, uint8_t *params, DynamixelMessage *buff) {
     memcpy(buff->packet, packet, sizeof(InstructionPacket));
     uint16_t params_size = packet->length - 3;
-    memcpy(buff->packet + sizeof(InstructionPacket), params, params_size);
+    if(params != NULL) {
+        memcpy(buff->packet + sizeof(InstructionPacket), params, params_size);
+    } else {
+        memset(buff->packet + sizeof(InstructionPacket), 0, params_size);
+    }
     uint16_t crc = SS_dynamixel_calculate_crc(0, (uint8_t *) buff->packet, sizeof(InstructionPacket) + params_size);
     memcpy(buff->packet + sizeof(InstructionPacket) + params_size, &crc, 2);
     buff->packet_size = sizeof(InstructionPacket) + params_size + 2;

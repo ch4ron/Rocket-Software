@@ -5,6 +5,10 @@
  *      Author: maciek
  */
 
+/* ==================================================================== */
+/* ============================= Includes ============================= */
+/* ==================================================================== */
+
 #include "SS_com_debug.h"
 
 #include "SS_com_ids.h"
@@ -15,6 +19,10 @@
 #ifdef SS_USE_GRAZYNA
 #include "SS_grazyna.h"
 #endif
+
+/* ==================================================================== */
+/* ========================= Private macros =========================== */
+/* ==================================================================== */
 
 #define COLOR_RESET "\x001b[0m"
 #define BOLD "\x001b[1m"
@@ -36,6 +44,45 @@
 #define COLOR_BG_AZURE "\x01b[48;5;6m"
 #define COLOR_BG_PINK "\x01b[48;5;9m"
 #define COLOR_BG_ORANGE "\x01b[48;5;208m"
+
+/* ==================================================================== */
+/* =================== Private function prototypes ==================== */
+/* ==================================================================== */
+
+#ifdef SS_COM_DEBUG
+static char *SS_com_board_str(ComBoardID board);
+static char *SS_com_action_str(ComActionID action);
+static char *SS_com_device_str(ComDeviceID device);
+static char *SS_com_data_type_str(ComDataType type);
+static int SS_com_sprintf_payload(ComFrame *frame, char *buf);
+static int SS_com_debug_sprintf_frame(ComFrame *frame, char *buf, char *title, char *color);
+#endif
+static void SS_com_debug_print_frame(ComFrame *frame, char *title, char *color);
+
+/* ==================================================================== */
+/* ========================= Public functions ========================= */
+/* ==================================================================== */
+
+void SS_com_print_message_received(ComFrame *frame) {
+    char color[] = "\x01b[48;5;238m";
+    char title[] = "Rec:";
+    SS_com_debug_print_frame(frame, title, color);
+}
+
+void SS_com_print_message_sent(ComFrame *frame) {
+    char color[] = "\x01b[48;5;234m";
+    char title[] = "Sent:";
+    SS_com_debug_print_frame(frame, title, color);
+}
+
+void SS_com_print_message_error(ComFrame *frame, char *error) {
+    char color[] = "\x01b[41m";
+    SS_com_debug_print_frame(frame, error, color);
+}
+
+/* ==================================================================== */
+/* ======================== Private functions ========================= */
+/* ==================================================================== */
 
 #ifdef SS_COM_DEBUG
 static char *SS_com_board_str(ComBoardID board) {
@@ -178,36 +225,23 @@ static void SS_com_debug_print_frame(ComFrame *frame, char *title, char *color) 
     int len = SS_com_debug_sprintf_frame(frame, NULL, title, color);
     char buf[len];
     SS_com_debug_sprintf_frame(frame, buf, title, color);
-    SS_print_bytes((uint8_t*) buf, len);
+    SS_print_bytes((uint8_t *) buf, len);
 #endif
 }
 
-void SS_com_print_message_received(ComFrame *frame) {
-    char color[] = "\x01b[48;5;238m";
-    char title[] = "Rec:";
-    SS_com_debug_print_frame(frame, title, color);
-}
-
-void SS_com_print_message_sent(ComFrame *frame) {
-    char color[] = "\x01b[48;5;234m";
-    char title[] = "Sent:";
-    SS_com_debug_print_frame(frame, title, color);
-}
-
-void SS_com_print_message_error(ComFrame *frame, char *error) {
-    char color[] = "\x01b[41m";
-    SS_com_debug_print_frame(frame, error, color);
-}
-
 #ifdef SS_COM_DEBUG_HEX
+
+/* ==================================================================== */
+/* ============================== Misc ================================ */
+/* ==================================================================== */
+
 #ifdef SS_USE_GRAZYNA
-static void SS_grazyna_print_hex(GrazynaFrame *frame) {
+void SS_grazyna_print_hex(GrazynaFrame *frame) {
     for(uint8_t i = 0; i < sizeof(GrazynaFrame); i++) {
         SS_print("0x%02x ", ((uint8_t *) frame)[i]);
     }
     SS_print("\r\n");
 }
-
 #endif
 
 void print_binary(uint32_t number) {
@@ -226,7 +260,7 @@ void print_binary(uint32_t number) {
     }
 }
 
-static void SS_com_print_hex(ComFrame *frame) {
+void SS_com_print_hex(ComFrame *frame) {
     SS_print("\r\n");
     for(uint8_t i = 0; i < sizeof(ComFrame); i++) {
         SS_print("0x%02x ", ((uint8_t *) frame)[i]);

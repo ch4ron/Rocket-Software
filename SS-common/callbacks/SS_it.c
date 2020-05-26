@@ -7,6 +7,10 @@
 
 #ifdef SS_USE_ADS1258
 
+/* ==================================================================== */
+/* ============================= Includes ============================= */
+/* ==================================================================== */
+
 #ifdef SS_USE_MS5X
 #include "SS_MS5X.h"
 #endif
@@ -34,10 +38,18 @@
 #include "SS_log.h"
 #include "SS_console.h"
 
+/* ==================================================================== */
+/* ========================= Global variables ========================= */
+/* ==================================================================== */
+
 #ifdef SS_RUN_TESTS
 #include "SS_ADS1258_unit_tests.h"
 extern void SS_dynamixel_test_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
 #endif
+
+/* ==================================================================== */
+/* ============================ Callbacks ============================= */
+/* ==================================================================== */
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 #ifdef SS_USE_ADS1258
@@ -62,8 +74,6 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
     SS_MS56_RxCpltCallback(hspi);
 #endif
 }
-// void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) { printf("spi
-// error\r\n"); }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 #ifdef SS_USE_DYNAMIXEL
@@ -82,11 +92,6 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
     SS_log_tx_isr(huart);
 }
 
-
-/* void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) { */
-/* printf("uart error callback: %d\r\n", huart->ErrorCode); */
-/* } */
-
 #ifdef SS_USE_S25FL
 void HAL_QSPI_TxCpltCallback(QSPI_HandleTypeDef *hqspi) {
     SS_s25fl_txcplt_handler();
@@ -98,6 +103,7 @@ void HAL_QSPI_RxCpltCallback(QSPI_HandleTypeDef *hqspi) {
 #endif
 
 void HAL_SYSTICK_Callback() {
+/* TODO Remove Systick Callback and change it to a task */
 #ifdef SS_USE_SERVOS
     SS_servos_SYSTICK();
 #endif
