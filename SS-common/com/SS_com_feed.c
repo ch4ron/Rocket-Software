@@ -5,6 +5,9 @@
  *      Author: maciek
  */
 
+/* ==================================================================== */
+/* ============================= Includes ============================= */
+/* ==================================================================== */
 
 #ifdef SS_USE_ADS1258
 #include "SS_measurements.h"
@@ -13,47 +16,54 @@
 #include "SS_com.h"
 #include "stdbool.h"
 
+/* ==================================================================== */
+/* ========================= Private macros =========================== */
+/* ==================================================================== */
+
 #define COM_FEED_PERIOD 500
+
+/* ==================================================================== */
+/* ========================= Global variables ========================= */
+/* ==================================================================== */
+
+static ComFrame feed_frame;
+static volatile bool enabled;
+TaskHandle_t com_feed_task;
 
 /* An array of functions that send feed data
  * The functions should return a number of remaining values to transmit
  * Follow the example from SS_ADS1258_com_feed when adding new modules */
-static ComFrame feed_frame;
-static volatile bool enabled;
-
 int8_t (*modules[])(ComFrame*) = {
 #ifdef SS_USE_ADS1258
         SS_ADS1258_com_feed
 #endif
 };
 
+/* ==================================================================== */
+/* ========================= Public functions ========================= */
+/* ==================================================================== */
+
 void SS_com_feed_enable() {
-   enabled = true;
+    vTaskResume(com_feed_task);
 }
 
 void SS_com_feed_disable() {
-   enabled = false;
+    vTaskSuspend(com_feed_task);
 }
 
-void SS_com_feed_main() {
+void SS_com_feed_task() {
     static uint32_t counter = 0;
     static uint8_t module = 0;
-
-    if(!enabled) return;
-    /* Send feed data with defined period */
-    if(HAL_GetTick() - counter >= COM_FEED_PERIOD) {
-        counter = HAL_GetTick();
-        /* Feed functions should return 0 when they transmitted all values */
-        int8_t res = modules[module](&feed_frame);
-        if(res <= 0) {
-            module++;
-        }
-        if(module == sizeof(modules) / sizeof(modules[0])) {
-            module = 0;
-        }
-        if(res >= 0) {
-            SS_com_transmit(&feed_frame);
-        }
+    /* Feed functions should return 0 when they transmitted all values */
+    int8_t res = modules[module](&feed_frame);
+    if(res <= 0) {
+        module++;
     }
+    if(module == sizeof(modules) / sizeof(modules[0])) {
+        module = 0;
+    }
+    if(res >= 0) {
+        SS_com_transmit(&feed_frame);
+    }
+    vTaskDelay(pdMS_TO_TICKS(COM_FEED_PERIOD));
 }
-

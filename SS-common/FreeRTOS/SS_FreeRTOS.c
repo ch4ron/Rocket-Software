@@ -6,6 +6,7 @@
 #include "SS_misc.h"
 #ifdef SS_USE_COM
 #include "SS_com.h"
+#include "SS_com_feed.h"
 #endif
 #include "SS_FreeRTOS.h"
 #include "SS_log.h"
@@ -53,6 +54,10 @@ static void SS_FreeRTOS_create_tasks(void) {
     assert(res == pdTRUE);
     res = xTaskCreate(SS_console_task, "Console task", 256, NULL, 5, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
+#ifdef SS_USE_GRAZYNA
+    res = xTaskCreate(SS_com_feed_task, "Feed task", 64, NULL, 5, (TaskHandle_t *) &com_feed_task);
+    assert(res == pdTRUE);
+#endif
 #endif
 }
 
