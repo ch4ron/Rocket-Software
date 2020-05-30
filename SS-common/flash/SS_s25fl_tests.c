@@ -85,7 +85,7 @@ TEST(s25fl, erase)
 TEST(s25fl, wait)
 {
 	// Call a DMA operation to make the module busy. XXX: Why DMA?
-	static const uint8_t data[S25FL_PAGE_SIZE] = {0};
+	static uint8_t data[S25FL_PAGE_SIZE] = {0};
 	TEST_ASSERT_EQUAL_INT(S25FL_STATUS_OK, SS_s25fl_read_page_dma(0, data));
 
 	//TEST_ASSERT_EQUAL_INT(S25FL_STATUS_BUSY, SS_s25fl_get_status());
