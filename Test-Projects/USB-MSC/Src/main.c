@@ -119,14 +119,14 @@ int main(void)
   //test_s25fl();
 //#endif
 
-  uint8_t cmd[CMD_SIZE];
-  uint32_t cmd_len = 0;
+  //uint8_t cmd[CMD_SIZE];
+  //uint32_t cmd_len = 0;
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_SET);
+	/*HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_SET);
 
 	uint8_t c;
 	if (HAL_UART_Receive(&huart2, &c, 1, 1) == HAL_OK) {
@@ -195,7 +195,7 @@ int main(void)
 				snprintf((char *)msg, CMD_SIZE, "Stop logging with result %d.\r\n", status);
 				HAL_UART_Transmit(&huart2, msg, strlen((char *)msg), 10);
 			} else if (sscanf((char *)cmd, "log 0x%X", (unsigned int *)&var) == 1) {
-				status = SS_flash_ctrl_log_var(FLASH_CTRL_STREAM_FRONT, 3, &var, 4);
+				//status = SS_flash_ctrl_log_var(FLASH_STREAM_VAR, 3, &var, 4);
 				//status = SS_flash_ctrl_log_var_u32(3, var);
 
 				snprintf((char *)msg, CMD_SIZE, "Log with result %d.\r\n", status);
@@ -218,7 +218,7 @@ int main(void)
 			HAL_UART_Transmit(&huart2, msg, strlen((char *)msg), 100);
 			cmd_len = 0;
 		}
-	}
+	}*/
   }
   /* USER CODE END 3 */
 }
