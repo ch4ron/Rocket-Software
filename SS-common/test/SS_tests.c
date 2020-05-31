@@ -5,6 +5,8 @@
  *      Author: maciek
  */
 
+#include "SS_tests.h"
+
 #include "unity_fixture.h"
 
 /* TODO remove this header */
@@ -12,7 +14,7 @@
 #include "SS_ADS1258_unit_tests.h"
 #endif
 
-static void tests() {
+static void tests(void) {
 #ifdef SS_USE_ADS1258
     SS_ADS1258_run_tests();
     RUN_TEST_GROUP(measurements);
@@ -60,7 +62,7 @@ static void tests() {
 }
 
 /* Enable verbose output */
-int SS_run_all_tests() {
+int SS_run_all_tests(void) {
 #ifdef VERBOSE_TEST_OUTPUT
     const char* args[] = {"unity", "-v"};
     int unity_code = UnityMain(2, args, tests);

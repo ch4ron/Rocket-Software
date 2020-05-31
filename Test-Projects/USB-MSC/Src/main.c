@@ -31,6 +31,7 @@
 /* USER CODE BEGIN Includes */
 #include "SS_common.h"
 #include "SS_log.h"
+#include "SS_console.h"
 #include "SS_s25fl.h"
 #include "SS_flash_caching.h"
 #include "SS_flash_ctrl.h"
@@ -55,7 +56,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+extern QSPI_HandleTypeDef hqspi;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -107,9 +108,12 @@ int main(void)
   MX_TIM4_Init();
   MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
+    //SS_s25fl_init();
     SS_s25fl_init();
+    SS_flash_init(&hqspi, GPIOA, GPIO_PIN_0);
 
     SS_log_init(&huart2);
+    SS_console_init(&huart2);
     SS_init();
   /* USER CODE END 2 */
 

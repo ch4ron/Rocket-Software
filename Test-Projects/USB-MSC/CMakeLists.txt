@@ -9,21 +9,23 @@ file(GLOB_RECURSE SOURCES
 	Src/*.*
 	Startup/*.*
 	Test/*.*
-  Middlewares/*.*
-  USB_DEVICE/*.*)
+    Middlewares/*.*
+    USB_DEVICE/*.*)
 
 # XXX.
 add_definitions(-DDEBUG)
 
+add_compile_definitions(SS_RUN_TESTS_FROM_CONSOLE)
+
 add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
 
 target_include_directories(${PROJECT_NAME}.elf PRIVATE
-  Inc
-  Test
-  USB_DEVICE/App
-  USB_DEVICE/Target
-  Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc
-  Middlewares/ST/STM32_USB_Device_Library/Core/Inc)
+    Inc
+    Test
+    USB_DEVICE/App
+    USB_DEVICE/Target
+    Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc
+    Middlewares/ST/STM32_USB_Device_Library/Core/Inc)
 
 
 # DEFINE YOUR LIBRARIES HERE

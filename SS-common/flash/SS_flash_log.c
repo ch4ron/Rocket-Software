@@ -17,6 +17,16 @@ typedef struct
 
 static QueueHandle_t var_queue;
 
+FlashStatus SS_flash_log_init(void)
+{
+    var_queue = xQueueCreate(30, sizeof(Var));
+    if (var_queue == NULL) {
+        return FLASH_STATUS_ERR;
+    }
+
+    return FLASH_STATUS_OK;
+}
+
 FlashStatus SS_flash_log_var(FlashStream stream, uint8_t id, uint64_t data)
 {
     Var var = {

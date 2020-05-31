@@ -14,6 +14,11 @@ FlashStatus SS_flash_init(QSPI_HandleTypeDef *hqspi, GPIO_TypeDef *nrst_gpio, ui
         return status;
     }
 
+    status = SS_flash_log_init();
+    if (status != FLASH_STATUS_OK) {
+        return status;
+    }
+
     return FLASH_STATUS_OK;
 }
 
