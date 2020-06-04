@@ -7,8 +7,6 @@
 #ifdef SS_USE_ADC
 #include "SS_adc.h"
 #endif
-
-#include "SS_com_feed.h"
 #include "SS_common.h"
 #include "SS_log.h"
 #include "SS_misc.h"

@@ -32,7 +32,6 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "SS_MS5X.h"
 #include "SS_common.h"
 #include "SS_platform.h"
 
