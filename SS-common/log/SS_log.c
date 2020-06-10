@@ -141,8 +141,8 @@ void SS_log_task(void *pvParameters) {
     LogMessage msg;
     while(1) {
         if(xQueueReceive(log_queue, &msg, portMAX_DELAY) == pdTRUE) {
+            xSemaphoreTake(log_mutex, 500);
             HAL_UART_Transmit_IT(log_huart, (uint8_t *) msg.content, msg.len);
-            xSemaphoreTake(log_mutex, 200);
             vPortFree(msg.content);
         }
     }

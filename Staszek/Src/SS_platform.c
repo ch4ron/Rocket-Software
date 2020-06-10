@@ -98,7 +98,7 @@ void SS_platform_init() {
     SS_log_init(&huart4);
     SS_console_init(&huart4);
     //    SS_platform_adc_init();
-    /* SS_platform_servos_init(); */
+    SS_platform_servos_init();
 #ifdef SS_USE_ADS1258
     SS_platform_ADS1258_init();
 #endif
@@ -106,5 +106,5 @@ void SS_platform_init() {
     SS_s25fl_init();
 #endif
     /* SS_MS56_init(&ms5607, MS56_PRESS_4096, MS56_TEMP_4096); */
-    /* SS_can_init(&hcan2, COM_STASZEK_ID); */
+    SS_can_init(&hcan2, COM_STASZEK_ID);
 }

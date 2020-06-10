@@ -82,8 +82,8 @@ static void SS_FreeRTOS_create_tasks(void) {
     res = xTaskCreate(SS_com_tx_handler_task, "Com Tx Handler Task", 256, NULL, 5, NULL);
     assert(res == pdTRUE);
 #ifdef SS_USE_GRAZYNA
-    res = xTaskCreate(SS_com_feed_task, "Feed task", 64, NULL, 5, (TaskHandle_t *) &com_feed_task);
-    assert(res == pdTRUE);
+    /* res = xTaskCreate(SS_com_feed_task, "Feed task", 64, NULL, 5, (TaskHandle_t *) &com_feed_task); */
+    /* assert(res == pdTRUE); */
 #endif
 #endif
     res = xTaskCreate(SS_console_task, "Console task", 256, NULL, 5, (TaskHandle_t *) NULL);
