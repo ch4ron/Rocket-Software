@@ -60,6 +60,7 @@ ConsoleCommand commands[] = {
 void SS_console_init(UART_HandleTypeDef *huart) {
     console_huart = huart;
     rx_sem = xSemaphoreCreateBinary();
+    assert(rx_sem != NULL);
 }
 
 void SS_console_task(void *pvParameters) {

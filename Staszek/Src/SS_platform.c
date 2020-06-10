@@ -17,6 +17,7 @@
 #include "SS_servos.h"
 #endif
 #include "tim.h"
+#include "SS_console.h"
 #include "usart.h"
 #include "SS_log.h"
 #include "stdbool.h"
@@ -95,6 +96,7 @@ static void SS_platform_ADS1258_init() {
 
 void SS_platform_init() {
     SS_log_init(&huart4);
+    SS_console_init(&huart4);
     //    SS_platform_adc_init();
     /* SS_platform_servos_init(); */
 #ifdef SS_USE_ADS1258
