@@ -4,6 +4,8 @@ project(SS-test C ASM)
 
 add_compile_definitions(SS_USE_MOCK)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Enable flags for code coverage
 set(CMAKE_CXX_FLAGS "-g -O0 -Wall -fprofile-arcs -ftest-coverage")
 set(CMAKE_C_FLAGS "-g -O0 -Wall -fprofile-arcs -ftest-coverage")
