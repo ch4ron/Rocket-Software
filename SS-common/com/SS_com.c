@@ -47,7 +47,6 @@
 
 #define SS_COM_QUEUE_SET_SIZE 6
 #define SS_COM_RX_QUEUE_SIZE 32
-#define SS_COM_TX_QUEUE_SIZE 8
 
 /* ==================================================================== */
 /* ======================== Private datatypes ========================= */
@@ -98,22 +97,6 @@ void SS_com_init(ComBoardID board) {
     assert(com_queue_set != NULL);
 }
 
-QueueHandle_t SS_com_add_sender() {
-    assert(com_queue_set != NULL);
-    QueueHandle_t queue = xQueueCreate(SS_COM_TX_QUEUE_SIZE, sizeof(ComSender));
-    assert(queue != NULL);
-    xQueueAddToSet(queue, com_queue_set);
-    return queue;
-}
-
-void SS_com_add_to_tx_queue(ComFrame *frame, void (*sender_fun)(ComFrame *), QueueHandle_t queue) {
-    ComSender sender = {.sender_fun = sender_fun};
-    memcpy(&sender.frame, frame, sizeof(ComFrame));
-    if(xQueueSend(queue, &sender, pdMS_TO_TICKS(25)) != pdTRUE) {
-        SS_error("Com TX queue full");
-    }
-}
-
 void __attribute__((weak)) SS_com_transmit(ComFrame *frame) {
     SS_com_print_message_sent(frame);
     SS_led_toggle_com(false, false, true);
@@ -136,16 +119,6 @@ void SS_com_rx_handler_task(void *pvParameters) {
         if(xQueueReceive(com_queue, &frame_buff, portMAX_DELAY) == pdTRUE) {
             SS_com_handle_frame(&frame_buff);
         }
-    }
-}
-
-void SS_com_tx_handler_task(void *pvParameters) {
-    QueueHandle_t queue;
-    ComSender sender;
-    while(1) {
-        queue = xQueueSelectFromSet(com_queue_set, portMAX_DELAY);
-        xQueueReceive(queue, &sender, 0);
-        sender.sender_fun(&sender.frame);
     }
 }
 

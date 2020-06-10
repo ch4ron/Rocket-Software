@@ -49,6 +49,12 @@ void SS_grazyna_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
     }
 }
 
+void SS_grazyna_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
+    if(huart == grazyna_huart) {
+        SS_grazyna_tx_isr();
+    }
+}
+
 #ifndef SS_GRAZYNA_SOFTWARE_CRC
 uint32_t SS_grazyna_crc_hal(uint32_t *data, uint32_t len) {
     return HAL_CRC_Calculate(&hcrc, data, len);

@@ -22,6 +22,12 @@
 #include "SS_FreeRTOS.h"
 #include "SS_log.h"
 #include "SS_console.h"
+#ifdef SS_USE_CAN
+#include "SS_can.h"
+#endif
+#ifdef SS_USE_GRAZYNA
+#include "SS_grazyna.h"
+#endif
 
 /* ==================================================================== */
 /* =================== Private function prototypes ==================== */
@@ -68,25 +74,33 @@ static void vLEDFlashTask(void *pvParameters) {
 
 static void SS_FreeRTOS_create_tasks(void) {
     BaseType_t res;
-    res = xTaskCreate(SS_log_task, "Log task", 64, NULL, 4, (TaskHandle_t *) NULL);
+    res = xTaskCreate(SS_log_task, "Log Task", 64, NULL, 4, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
 #ifdef SS_RUN_TESTS
-    res = xTaskCreate(run_tests_task, "Tests task", 512, NULL, 4, (TaskHandle_t *) NULL);
+    res = xTaskCreate(run_tests_task, "Tests Task", 512, NULL, 4, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
 #endif
     res = xTaskCreate(vLEDFlashTask, "LED Task", 64, NULL, 2, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
 #ifdef SS_USE_COM
-    res = xTaskCreate(SS_com_rx_handler_task, "Com Rx Handler Task", 256, NULL, 5, NULL);
-    assert(res == pdTRUE);
-    res = xTaskCreate(SS_com_tx_handler_task, "Com Tx Handler Task", 256, NULL, 5, NULL);
+    res = xTaskCreate(SS_com_rx_handler_task, "Com Rx Task", 256, NULL, 5, NULL);
     assert(res == pdTRUE);
 #ifdef SS_USE_GRAZYNA
+    res = xTaskCreate(SS_grazyna_tx_handler_task, "Grazyna Tx Task", 64, NULL, 5, NULL);
+    assert(res == pdTRUE);
     /* res = xTaskCreate(SS_com_feed_task, "Feed task", 64, NULL, 5, (TaskHandle_t *) &com_feed_task); */
     /* assert(res == pdTRUE); */
 #endif
+#ifdef SS_USE_CAN
+    res = xTaskCreate(SS_can_tx_handler_task, "Can Tx Task", 64, NULL, 5, NULL);
+    assert(res == pdTRUE);
+#ifdef SS_USE_EXT_CAN
+    res = xTaskCreate(SS_can_tx_handler_task, "Ext Can Tx Task", 64, NULL, 5, NULL);
+    assert(res == pdTRUE);
 #endif
-    res = xTaskCreate(SS_console_task, "Console task", 256, NULL, 5, (TaskHandle_t *) NULL);
+#endif
+#endif
+    res = xTaskCreate(SS_console_task, "Console Task", 256, NULL, 5, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
 }
 

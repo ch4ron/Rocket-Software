@@ -13,7 +13,7 @@
 #include "FreeRTOS.h"
 #include "SS_com_debug.h"
 #include "SS_log.h"
-#include "SS_log.h"
+#include "portmacro.h"
 #include "queue.h"
 #include "string.h"
 
@@ -87,26 +87,50 @@ void SS_can_init(CAN_HandleTypeDef *hcan, ComBoardID board) {
     com_can.hcan = hcan;
     board_id = board;
     SS_can_filters_init(hcan, board);
-    com_can.tx_queue = SS_com_add_sender();
+    com_can.tx_queue = xQueueCreate(SS_COM_TX_QUEUE_SIZE, sizeof(ComFrame));
     HAL_CAN_Start(hcan);
     SS_can_interrupts_enable(hcan);
 }
 
 void SS_can_transmit(ComFrame *frame) {
-    SS_com_add_to_tx_queue(frame, SS_can_tx, com_can.tx_queue);
+    if(xQueueSend(com_can.tx_queue, frame, pdMS_TO_TICKS(25)) != pdTRUE) {
+        SS_error("Can TX queue full");
+    }
+}
+
+void SS_can_tx_handler_task(void *pvParameters) {
+    ComFrame frame;
+    while(1) {
+        if(xQueueReceive(com_can.tx_queue, &frame, portMAX_DELAY) == pdTRUE) {
+            /* TODO handle internal fifo overrun */
+            SS_can_tx(&frame);
+        }
+    }
 }
 
 #ifdef SS_USE_EXT_CAN
 void SS_can_ext_init(CAN_HandleTypeDef *hcan) {
     ext_can.hcan = hcan;
     SS_can_filters_init_with_mask(hcan, 0, 0);
-    ext_can.tx_queue = SS_com_add_sender();
+    ext_can.tx_queue = xQueueCreate(SS_COM_TX_QUEUE_SIZE, sizeof(ComFrame));
     HAL_CAN_Start(hcan);
     SS_can_interrupts_enable(hcan);
 }
 
 void SS_can_ext_transmit(ComFrame *frame) {
-    SS_com_add_to_tx_queue(frame, SS_can_tx, ext_can.tx_queue);
+    if(xQueueSend(ext_can.tx_queue, frame, pdMS_TO_TICKS(25)) != pdTRUE) {
+        SS_error("Ext Can TX queue full");
+    }
+}
+
+void SS_ext_can_tx_handler_task(void *pvParameters) {
+    ComFrame frame;
+    while(1) {
+        if(xQueueReceive(ext_can.tx_queue, &frame, portMAX_DELAY) == pdTRUE) {
+            /* TODO handle internal fifo overrun */
+            SS_can_ext_tx(&frame);
+        }
+    }
 }
 #endif
 
@@ -143,7 +167,7 @@ static void SS_can_filter_init(CAN_HandleTypeDef *hcan, uint32_t filter_id, uint
 }
 
 static uint32_t SS_can_get_header(ComFrame *frame) {
-    return *((uint32_t*) frame) & 0x7fffffff;
+    return *((uint32_t *) frame) & 0x7fffffff;
 }
 
 static void SS_can_filters_init_with_mask(CAN_HandleTypeDef *hcan, ComBoardID board, uint8_t board_mask) {

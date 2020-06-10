@@ -36,11 +36,11 @@ void SS_platform_set_com_led(bool red, bool green, bool blue) {
     HAL_GPIO_WritePin(COM_BLUE_GPIO_Port, COM_BLUE_Pin, !blue);
 }
 
-/* void SS_platform_set_adc_led(bool red, bool green, bool blue) { */
-    /* HAL_GPIO_WritePin(ADC_RED_GPIO_Port, ADC_RED_Pin, !red); */
-    /* HAL_GPIO_WritePin(ADC_GREEN_GPIO_Port, ADC_GREEN_Pin, !green); */
-    /* HAL_GPIO_WritePin(ADC_BLUE_GPIO_Port, ADC_BLUE_Pin, !blue); */
-/* } */
+void SS_platform_set_adc_led(bool red, bool green, bool blue) {
+    HAL_GPIO_WritePin(MEAS_RED_GPIO_Port, MEAS_RED_Pin, !red);
+    HAL_GPIO_WritePin(MEAS_GREEN_GPIO_Port, MEAS_GREEN_Pin, !green);
+    HAL_GPIO_WritePin(MEAS_BLUE_GPIO_Port, MEAS_BLUE_Pin, !blue);
+}
 
 void SS_platform_toggle_loop_led() {
     HAL_GPIO_TogglePin(LOOP_LED_GPIO_Port, LOOP_LED_Pin);
