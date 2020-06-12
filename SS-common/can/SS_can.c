@@ -57,7 +57,6 @@ static void SS_can_unpack_frame(ComFrame *frame, CAN_RxHeaderTypeDef *header, ui
 static void SS_can_tx_common(ComFrame *frame, Can *can);
 static void SS_can_tx(ComFrame *frame);
 static void SS_can_handle_received(CAN_HandleTypeDef *hcan, uint8_t priority);
-static void SS_can_error(char *error);
 #ifdef SS_USE_EXT_CAN
 static void SS_can_ext_tx(ComFrame *frame);
 #endif
@@ -220,7 +219,7 @@ static void SS_can_tx_common(ComFrame *frame, Can *can) {
     uint32_t mailbox;
     SS_can_pack_frame(frame, &header, data);
     if(HAL_CAN_AddTxMessage(can->hcan, &header, data, &mailbox) != HAL_OK) {
-        SS_can_error("HAL_CAN_AddTxMessage failed");
+        SS_error("HAL_CAN_AddTxMessage failed");
         return;
     }
 }
@@ -246,11 +245,6 @@ static void SS_can_ext_tx(ComFrame *frame) {
 
 #endif
 
-static void SS_can_error(char *error) {
-#ifdef CAN_DEBUG_ERRORS
-    SS_error(error);
-#endif
-}
 
 /* ==================================================================== */
 /* ============================ Callbacks ============================= */
@@ -266,28 +260,28 @@ void HAL_CAN_TxMailbox2CompleteCallback(CAN_HandleTypeDef *hcan) {
 }
 
 void HAL_CAN_TxMailbox0AbortCallback(CAN_HandleTypeDef *hcan) {
-    SS_can_error("Mailbox Abort");
+    SS_error("Mailbox Abort");
 }
 
 void HAL_CAN_TxMailbox1AbortCallback(CAN_HandleTypeDef *hcan) {
-    SS_can_error("Mailbox Abort");
+    SS_error("Mailbox Abort");
 }
 
 void HAL_CAN_TxMailbox2AbortCallback(CAN_HandleTypeDef *hcan) {
-    SS_can_error("Mailbox Abort");
+    SS_error("Mailbox Abort");
 }
 
 void HAL_CAN_RxFifo0FullCallback(CAN_HandleTypeDef *hcan) {
-    SS_can_error("Internal can fifo 0 full");
+    SS_error("Internal can fifo 0 full");
 }
 
 void HAL_CAN_RxFifo1FullCallback(CAN_HandleTypeDef *hcan) {
-    SS_can_error("Internal can fifo 1 full");
+    SS_error("Internal can fifo 1 full");
 }
 
 void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan) {
     error = HAL_CAN_GetError(hcan);
-    SS_can_error("Can error");
+    SS_error("Can error");
     HAL_CAN_ResetError(hcan);
 }
 

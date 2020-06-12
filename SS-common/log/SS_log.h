@@ -14,6 +14,7 @@
 
 #include "printf.h"
 #include "assert.h"
+#include "stdbool.h"
 #include "stm32f4xx_hal.h"
 
 /* ==================================================================== */
@@ -21,13 +22,16 @@
 /* ==================================================================== */
 
 void SS_log_init(UART_HandleTypeDef *huart);
-
-void SS_error(const char *format, ...);
-void SS_print_bytes(uint8_t *bytes, uint16_t len);
-void SS_print_line(const char *format, ...);
-void SS_print(const char *format, ...);
-
-void SS_log_task(void *pvParameters);
+void SS_log_buf_put(char data);
+void SS_log_buf_flush(void);
 void SS_log_tx_isr(UART_HandleTypeDef *huart);
+
+void SS_print(const char *format, ...);
+#define SS_println(format, ...) SS_print(format "\r\n", ##__VA_ARGS__)
+#define SS_error(format, ...) SS_print("\x01b[41mERROR\x01b[0m@ " format "\r\n", ##__VA_ARGS__)
+
+bool SS_print_no_flush_start();
+void SS_print_no_flush_end();
+void SS_print_no_flush(const char *format, ...);
 
 #endif //SS_LOG_H

@@ -42,7 +42,7 @@
 /* ========================= Global variables ========================= */
 /* ==================================================================== */
 
-#ifdef defined(SS_RUN_TESTS) && defined(SS_USE_ADS1258)
+#if defined(SS_RUN_TESTS) && defined(SS_USE_ADS1258)
 #include "SS_ADS1258_unit_tests.h"
 extern void SS_dynamixel_test_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
 #endif

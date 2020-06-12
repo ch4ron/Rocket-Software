@@ -107,7 +107,7 @@ static void SS_handle_console_input(char *buf) {
             return;
         }
     }
-    SS_print_line("Invalid command, type 'help' for usage");
+    SS_println("Invalid command, type 'help' for usage");
 }
 
 static void SS_print_tasks_info(char *args) {
@@ -122,16 +122,16 @@ static void SS_print_runtime_stats(char *args) {
     char *task_info = pvPortMalloc(1024);
     assert(task_info != NULL);
     vTaskGetRunTimeStats(task_info);
-    SS_print_line("Runtime stats:");
+    SS_println("Runtime stats:");
     SS_print("%s", task_info);
     vPortFree(task_info);
 }
 
 static void SS_console_print_help(char *args) {
-    SS_print_line("Available commands:");
+    SS_println("Available commands:");
     for(int i = 0; i < sizeof(commands) / sizeof(commands[0]); i++) {
         ConsoleCommand *command = commands + i;
-        SS_print_line("    - %s\t\t%s", command->command, command->help);
+        SS_println("    - %s\t\t%s", command->command, command->help);
     }
 }
 
