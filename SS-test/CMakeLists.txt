@@ -14,6 +14,7 @@ set(CMAKE_EXE_LINKER_FLAGS "-fprofile-arcs -ftest-coverage")
 
 add_compile_definitions(STM32F446xx)
 add_compile_definitions(USE_HAL_DRIVER)
+add_compile_definitions(SS_DISABLE_PRINT)
 
 enable_testing()
 

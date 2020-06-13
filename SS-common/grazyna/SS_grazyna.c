@@ -20,6 +20,7 @@
 #include "semphr.h"
 #include "stdbool.h"
 #include "string.h"
+#include "SS_log.h"
 
 /* ==================================================================== */
 /* ======================== Private datatypes ========================= */

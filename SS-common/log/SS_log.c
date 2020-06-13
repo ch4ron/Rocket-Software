@@ -83,7 +83,7 @@ void SS_log_buf_flush(void) {
     }
 }
 
-void SS_print(const char *format, ...) {
+void _SS_print(const char *format, ...) {
     if(log_huart == NULL) {
         return;
     }
@@ -98,11 +98,11 @@ void SS_print(const char *format, ...) {
     va_end(arg);
 }
 
-bool SS_print_no_flush_start() {
+bool SS_print_no_flush_start(void) {
     return xSemaphoreTake(log_buf_mutex, pdMS_TO_TICKS(1));
 }
 
-void SS_print_no_flush_end() {
+void SS_print_no_flush_end(void) {
     xSemaphoreGive(log_buf_mutex);
 }
 

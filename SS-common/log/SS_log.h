@@ -26,12 +26,19 @@ void SS_log_buf_put(char data);
 void SS_log_buf_flush(void);
 void SS_log_tx_isr(UART_HandleTypeDef *huart);
 
-void SS_print(const char *format, ...);
-#define SS_println(format, ...) SS_print(format "\r\n", ##__VA_ARGS__)
-#define SS_error(format, ...) SS_print("\x01b[41mERROR\x01b[0m@ " format "\r\n", ##__VA_ARGS__)
+void _SS_print(const char *format, ...);
+#ifdef SS_DISABLE_PRINT
+#define SS_print(format, ...)
+#define SS_println(format, ...)
+#define SS_error(format, ...)
+#else
+#define SS_print(format, ...) _SS_print(format, ##__VA_ARGS__)
+#define SS_println(format, ...) _SS_print(format "\r\n", ##__VA_ARGS__)
+#define SS_error(format, ...) _SS_print("\x01b[41mERROR\x01b[0m@ " format "\r\n", ##__VA_ARGS__)
+#endif
 
-bool SS_print_no_flush_start();
-void SS_print_no_flush_end();
+bool SS_print_no_flush_start(void);
+void SS_print_no_flush_end(void);
 void SS_print_no_flush(const char *format, ...);
 
 #endif //SS_LOG_H
