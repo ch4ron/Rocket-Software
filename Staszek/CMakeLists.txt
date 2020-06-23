@@ -28,5 +28,6 @@ add_compile_definitions(SS_USE_JSON_SETTINGS)
 # add_compile_definitions(SS_USE_MS5X)
 # add_compile_definitions(SS_USE_S25FL)
 add_compile_definitions(SS_COM_DEBUG)
+add_compile_definitions(SS_USE_MPU9250)
 
 create_target(${PROJECT_NAME})
