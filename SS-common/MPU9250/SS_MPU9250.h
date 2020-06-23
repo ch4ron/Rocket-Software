@@ -5,53 +5,47 @@
  *      Author: Tomasz
  */
 
-#ifndef SS_MPU9250_H_
-#define SS_MPU9250_H_
+#ifndef SS_MPU9250_H
+#define SS_MPU9250_H
 
-#include "SS_AK8963.h"
+/* ==================================================================== */
+/* ============================= Includes ============================= */
+/* ==================================================================== */
+
 #include "printf.h"
 #include "stdint.h"
 #include "stm32f4xx_hal.h"
 
-//#include "arm_math.h"
-/* user defines */
-//#define MPU_DEBUG
-#define MPU_HSPI hspi1
-/* #define MPU_HDMA_SPI_TX hdma_spi1_tx */
-/* #define MPU_HDMA_SPI_RX hdma_spi1_rx */
-#define MULTIPLE_MPU
+/* ==================================================================== */
+/* ============================= Macros =============================== */
+/* ==================================================================== */
 
-#define MPU_RGB_LED
-//#define GYRO_CALIBRATION_TIME 5000
-#define SENSORS (GYROSCOPE | ACCELEROMETER)
+//#define MPU_DEBUG
+
 #define PRINT_CALIBRATION
 
 #define MAGNETOMETER 4
 #define GYROSCOPE 1
 #define ACCELEROMETER 2
 
-#define ACCEL_RESOLUTION 100
-#define GYRO_RESOLUTION 101
-#define MGNT_SCALE 102
-#define MGNT_BIAS 103
-#define MGNT_ASENS 104
 
-//#define ACCEL_CALIBRATION_TIME 5000
-extern struct MPU9250 mpu1;
-extern struct MPU9250 mpu2;
-extern uint8_t conversion_ongoing, sequence_start;
-extern struct MPU9250 *mpu_pointer;
+/* ==================================================================== */
+/* ============================ Datatypes ============================= */
+/* ==================================================================== */
 
-extern uint32_t mpu_cnt, mpu_delay;
-enum MPU_RESULT {
+typedef enum {
     MPU_OK = 0,
     MPU_CALIBRATION_ERROR = 1,
     MPU_SELF_TEST_ERROR = 3,
     AK8963_ERROR = 7,
     MPU_COMM_ERROR = 15
-};
+} MPU_STATUS;
 
-struct MPU9250 {
+typedef struct {
+    SPI_HandleTypeDef *hspi;
+    GPIO_TypeDef *CS_Port;
+    uint16_t CS_Pin;
+    uint16_t INT_Pin;
     uint8_t gyro_id;
     uint8_t accel_id;
     uint8_t mgnt_id;
@@ -80,14 +74,13 @@ struct MPU9250 {
     float mgnt_scaled_x;
     float mgnt_scaled_y;
     float mgnt_scaled_z;
-    uint16_t fifo_counter;
-    uint8_t *fifo_data;
-    uint8_t FIFO_HANDLED_FLAG;
+    /* uint16_t fifo_counter; */
+    /* uint8_t *fifo_data; */
+    /* uint8_t FIFO_HANDLED_FLAG; */
     int32_t accel_bias_x;
     int32_t accel_bias_y;
     int32_t accel_bias_z;
-    float sample_time;
-    float pitch, roll, yaw;
+    /* float sample_time; */
     uint8_t xASens;
     uint8_t yASens;
     uint8_t zASens;
@@ -97,58 +90,35 @@ struct MPU9250 {
     int16_t mgnt_bias_x;
     int16_t mgnt_bias_y;
     int16_t mgnt_bias_z;
-    GPIO_TypeDef *CS_Port;
-    uint16_t CS_Pin;
-    SPI_HandleTypeDef *hspi;
-    uint16_t INT_Pin;
-    enum MPU_RESULT result;
+    MPU_STATUS result;
     uint8_t rcv[23];
     int16_t old_data[9];
-};
+} MPU9250;
 
-enum MPU_RESULT SS_MPU_write_byte(struct MPU9250 *mpu9250, uint8_t RegAdr, uint8_t RegDat);
-enum MPU_RESULT SS_MPU_read_byte(struct MPU9250 *mpu9250, uint8_t RegAdr, uint8_t *RegDat);
-enum MPU_RESULT SS_MPU_write_check_byte(struct MPU9250 *mpu9250, uint8_t RegAdr, uint8_t RegDat);
-enum MPU_RESULT SS_MPU_read_multiple(struct MPU9250 *mpu9250, uint8_t RegAdr, uint8_t *RegDat, uint8_t nbr);
-uint8_t SS_MPU_who_am_i(struct MPU9250 *mpu9250);
-void SS_MPU_CS_DISABLE(struct MPU9250 *mpu9250);
-void SS_MPU_CS_ENABLE(struct MPU9250 *mpu9250);
-enum MPU_RESULT SS_MPU_set_gyro_bandwidth(struct MPU9250 *mpu9250, uint8_t bandwidth);
-enum MPU_RESULT SS_MPU_set_gyro_dlpf_bypass(struct MPU9250 *mpu9250, uint8_t bandwidth);
-enum MPU_RESULT SS_MPU_set_accel_bandwidth(struct MPU9250 *mpu9250, uint8_t bandwidth);
-enum MPU_RESULT SS_MPU_set_gyro_scale(struct MPU9250 *mpu9250, uint8_t scale);
-enum MPU_RESULT SS_MPU_set_accel_scale(struct MPU9250 *mpu9250, uint8_t scale);
-enum MPU_RESULT SS_MPU_math_scaled_gyro(struct MPU9250 *mpu9250);
-enum MPU_RESULT SS_MPU_get_accel_data(struct MPU9250 *mpu9250);
-enum MPU_RESULT SS_MPU_get_gyro_data(struct MPU9250 *mpu9250);
-enum MPU_RESULT SS_MPU_init_all();
-enum MPU_RESULT SS_MPU_init(struct MPU9250 *mpu9250);
-enum MPU_RESULT SS_MPU_get_fifo_counter(struct MPU9250 *mpu9250);
-enum MPU_RESULT SS_MPU_get_fifo_data(struct MPU9250 *mpu9250);
-enum MPU_RESULT SS_MPU_set_fifo_data(struct MPU9250 *mpu9250);
-enum MPU_RESULT SS_MPU_fifo_enable(struct MPU9250 *mpu9250);
-enum MPU_RESULT SS_MPU_fifo_disable(struct MPU9250 *mpu9250);
-enum MPU_RESULT SS_MPU_sleep(struct MPU9250 *mpu9250, uint8_t state);
-enum MPU_RESULT SS_MPU_reset(struct MPU9250 *mpu9250);
-enum MPU_RESULT SS_MPU_fifo_reset(struct MPU9250 *mpu9250);
-enum MPU_RESULT SS_MPU_INT_enable(struct MPU9250 *mpu9250);
-enum MPU_RESULT SS_MPU_calibrate(struct MPU9250 *mpu9250);
-enum MPU_RESULT SS_MPU_gyro_write_calibration(struct MPU9250 *mpu9250, int32_t *gyro_bias);
-enum MPU_RESULT SS_MPU_accel_write_calibration(struct MPU9250 *mpu9250, int32_t *bias);
-enum MPU_RESULT SS_MPU_set_smplrt(struct MPU9250 *mpu9250, uint8_t smplrt);
-void SS_MPU_fifo_handle(struct MPU9250 *mpu9250, uint8_t sensor);
-uint16_t SS_MPU_fifo_get_raw_gyro(struct MPU9250 *mpu9250, uint16_t inc);
-uint16_t SS_MPU_fifo_get_raw_accel(struct MPU9250 *mpu9250, uint16_t inc);
-enum MPU_RESULT SS_MPU_math_scaled_accel(struct MPU9250 *mpu9250);
-enum MPU_RESULT SS_MPU_gyro_self_test(struct MPU9250 *mpu9250);
-enum MPU_RESULT SS_MPU_get_accel_data_DMA(struct MPU9250 *mpu9250);
-enum MPU_RESULT SS_MPU_get_gyro_data_DMA(struct MPU9250 *mpu9250);
-enum MPU_RESULT SS_MPU_SPI_TxRxCpltCallback(struct MPU9250 *mpu9250);
-enum MPU_RESULT SS_MPU_read_multiple_DMA(struct MPU9250 *mpu9250, uint8_t RegAdr, uint8_t *RegDat, uint8_t nbr, uint8_t sensor);
-enum MPU_RESULT SS_MPU_get_data_DMA(struct MPU9250 *mpu9250);
-enum MPU_RESULT SS_MPU_set_calibration(struct MPU9250 *mpu9250, int32_t bias[6]);
-void SS_MPU_send_calibration_values(struct MPU9250 *mpu9250);
-void SS_MPU_exti_isr(uint16_t GPIO_Pin);
+extern MPU9250 mpu1;
+extern MPU9250 *mpu_pointer;
+
+MPU_STATUS SS_MPU_init(MPU9250 *mpu9250);
+MPU_STATUS SS_MPU_reset(MPU9250 *mpu9250);
+MPU_STATUS SS_MPU_get_accel_data(MPU9250 *mpu9250);
+MPU_STATUS SS_MPU_get_gyro_data(MPU9250 *mpu9250);
+uint8_t SS_MPU_who_am_i(MPU9250 *mpu9250);
+MPU_STATUS SS_MPU_math_scaled_gyro(MPU9250 *mpu9250);
+MPU_STATUS SS_MPU_math_scaled_accel(MPU9250 *mpu9250);
+MPU_STATUS SS_MPU_calibrate(MPU9250 *mpu9250);  //Device needs to be flat during calibration!!!
+
+MPU_STATUS SS_MPU_write_byte(MPU9250 *mpu9250, uint8_t RegAdr, uint8_t RegDat);
+MPU_STATUS SS_MPU_read_byte(MPU9250 *mpu9250, uint8_t RegAdr, uint8_t *RegDat);
+MPU_STATUS SS_MPU_write_check_byte(MPU9250 *mpu9250, uint8_t RegAdr, uint8_t RegDat);
+MPU_STATUS SS_MPU_read_multiple(MPU9250 *mpu9250, uint8_t RegAdr, uint8_t *RegDat, uint8_t nbr);
+
+void SS_MPU_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi);
+void SS_MPU_GPIO_EXTI_Callback(uint16_t GPIO_Pin);
+
+/* ==================================================================== */
+/* ============================ Registers ============================= */
+/* ==================================================================== */
+
 #define MPU_ACCEL_FIFO_ON 0x01
 #define MPU_GYRO_FIFO_ON 0x02
 #define MPU_MAGNETO_FIFO_ON 0x04
@@ -286,4 +256,4 @@ void SS_MPU_exti_isr(uint16_t GPIO_Pin);
 #define MPU_ZA_OFFSET_H 0x7D
 #define MPU_ZA_OFFSET_L 0x7E
 
-#endif /* SS_MPU9250_H_ */
+#endif /* SS_MPU9250_H */

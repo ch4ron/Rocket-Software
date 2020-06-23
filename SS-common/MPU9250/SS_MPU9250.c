@@ -4,33 +4,228 @@
  *  Created on: 27.12.2017
  *      Author: Tomasz
  */
-#include "SS_MPU9250.h"
 
+/* ==================================================================== */
+/* ============================= Includes ============================= */
+/* ==================================================================== */
+
+#include "SS_MPU9250.h"
 #include "SS_AK8963.h"
 #include "SS_misc.h"
 #include "main.h"
-/* TODO Remove math */
 #include "SS_log.h"
+/* TODO Remove math */
 #include "math.h"
 #include "spi.h"
 
-struct MPU9250 mpu1;
-struct MPU9250 *mpu_pointer;
+/* ==================================================================== */
+/* =================== Private function prototypes ==================== */
+/* ==================================================================== */
+
+/* SPI Communication */
+static void SS_MPU_CS_ENABLE(MPU9250 *mpu9250);
+static void SS_MPU_CS_DISABLE(MPU9250 *mpu9250);
+static MPU_STATUS SS_MPU_read_multiple_DMA(MPU9250 *mpu9250, uint8_t RegAdr, uint8_t *RegDat, uint8_t nbr, uint8_t sensor);
+static MPU_STATUS SS_MPU_get_data_DMA(MPU9250 *mpu9250);
+
+/* Config functions */
+static MPU_STATUS SS_MPU_set_gyro_bandwidth(MPU9250 *mpu9250, uint8_t bandwidth);
+static MPU_STATUS SS_MPU_set_gyro_dlpf_bypass(MPU9250 *mpu9250, uint8_t bandwidth);
+static MPU_STATUS SS_MPU_set_accel_bandwidth(MPU9250 *mpu9250, uint8_t bandwidth);
+static MPU_STATUS SS_MPU_set_gyro_scale(MPU9250 *mpu9250, uint8_t scale);
+static MPU_STATUS SS_MPU_set_accel_scale(MPU9250 *mpu9250, uint8_t scale);
+static MPU_STATUS SS_MPU_set_clk(MPU9250 *mpu9250, uint8_t clksel);
+static MPU_STATUS SS_MPU_set_smplrt(MPU9250 *mpu9250, uint8_t smplrt);
+static MPU_STATUS SS_MPU_INT_enable(MPU9250 *mpu9250);
+static MPU_STATUS SS_MPU_sleep(MPU9250 *mpu9250, uint8_t state);
+
+/* Calibration */
+static MPU_STATUS SS_MPU_set_calibration(MPU9250 *mpu9250, int32_t bias[6]);
+static MPU_STATUS SS_MPU_accel_write_calibration(MPU9250 *mpu9250, int32_t *bias);
+static MPU_STATUS SS_MPU_gyro_write_calibration(MPU9250 *mpu9250, int32_t *gyro_bias);
+
+/* Self Test */
+static MPU_STATUS SS_MPU_self_test(MPU9250 *mpu9250);
+
+/* ==================================================================== */
+/* ========================= Global variables ========================= */
+/* ==================================================================== */
+MPU9250 mpu1;
+MPU9250 *mpu_pointer;
+
 int16_t old_data[9];
 uint32_t mpu_cnt, mpu_delay;
 uint32_t accel_counter = 0;
 uint32_t gyro_counter = 0;
 uint32_t mgnt_counter = 0;
 
-void SS_MPU_CS_ENABLE(struct MPU9250 *mpu9250) {
-    HAL_GPIO_WritePin(mpu9250->CS_Port, mpu9250->CS_Pin, GPIO_PIN_RESET);
+/* ==================================================================== */
+/* ========================= Public functions ========================= */
+/* ==================================================================== */
+
+MPU_STATUS SS_MPU_init(MPU9250 *mpu9250) {
+    MPU_STATUS result = MPU_OK;
+    result |= SS_AK8963_reset(mpu9250);
+    HAL_Delay(50);
+    result |= SS_MPU_reset(mpu9250);
+    HAL_Delay(50);
+    result |= SS_MPU_sleep(mpu9250, DISABLE);
+    result |= SS_MPU_set_clk(mpu9250, 0x01);
+    result |= SS_MPU_set_smplrt(mpu9250, 0);
+    result |= SS_AK8963_init(mpu9250);
+    result |= SS_MPU_INT_enable(mpu9250);
+    HAL_Delay(100);
+    result |= SS_MPU_set_accel_bandwidth(mpu9250, MPU_ACCEL_BAND_184);
+    result |= SS_MPU_set_gyro_bandwidth(mpu9250, MPU_GYRO_BAND_184);
+    result |= SS_MPU_set_accel_scale(mpu9250, mpu9250->accel_scale);
+    result |= SS_MPU_set_gyro_scale(mpu9250, mpu9250->gyro_scale);
+    result |= SS_MPU_self_test(mpu9250);
+    //	result |= SS_MPU_calibrate(mpu9250);
+    mpu9250->result = result;
+    switch(result) {
+        case MPU_OK:
+            SS_led_set_meas(false, true, false);  //Green
+            break;
+        default:
+            SS_led_set_meas(true, false, false);  //Red
+            break;
+    }
+    return result;
 }
 
-void SS_MPU_CS_DISABLE(struct MPU9250 *mpu9250) {
-    HAL_GPIO_WritePin(mpu9250->CS_Port, mpu9250->CS_Pin, GPIO_PIN_SET);
+MPU_STATUS SS_MPU_reset(MPU9250 *mpu9250) {
+    if(SS_MPU_write_byte(mpu9250, MPU_PWR_MGMT_1, 0x80))
+        return MPU_COMM_ERROR;
+    return MPU_OK;
 }
 
-enum MPU_RESULT SS_MPU_write_byte(struct MPU9250 *mpu9250, uint8_t RegAdr, uint8_t RegDat) {
+MPU_STATUS SS_MPU_get_accel_data(MPU9250 *mpu9250) {
+    uint8_t rcv[6];
+    if(SS_MPU_read_multiple(mpu9250, MPU_ACCEL_XOUT_H, rcv, 6))
+        return MPU_COMM_ERROR;
+    mpu9250->accel_raw_x = (int16_t)((int16_t) rcv[0] << 8) | rcv[1];
+    mpu9250->accel_raw_y = (int16_t)((int16_t) rcv[2] << 8) | rcv[3];
+    mpu9250->accel_raw_z = (int16_t)((int16_t) rcv[4] << 8) | rcv[5];
+    return MPU_OK;
+}
+
+MPU_STATUS SS_MPU_get_gyro_data(MPU9250 *mpu9250) {
+    uint8_t rcv[6];
+    if(SS_MPU_read_multiple(mpu9250, MPU_GYRO_XOUT_H, rcv, 6))
+        return MPU_COMM_ERROR;
+    mpu9250->gyro_raw_x = (int16_t)((int16_t) rcv[0] << 8) | rcv[1];
+    mpu9250->gyro_raw_y = (int16_t)((int16_t) rcv[2] << 8) | rcv[3];
+    mpu9250->gyro_raw_z = (int16_t)((int16_t) rcv[4] << 8) | rcv[5];
+    return MPU_OK;
+}
+
+uint8_t SS_MPU_who_am_i(MPU9250 *mpu9250) {
+    uint8_t Iam = 1;
+    SS_MPU_read_byte(mpu9250, MPU_WHO_AM_I_MPU9250, &Iam);
+    HAL_Delay(1);
+    return Iam;
+}
+
+MPU_STATUS SS_MPU_math_scaled_gyro(MPU9250 *mpu9250) {
+    mpu9250->gyro_scaled_x = (float) mpu9250->gyro_raw_x * mpu9250->gyro_resolution * 3.14 / 180;
+    mpu9250->gyro_scaled_y = (float) mpu9250->gyro_raw_y * mpu9250->gyro_resolution * 3.14 / 180;
+    mpu9250->gyro_scaled_z = (float) mpu9250->gyro_raw_z * mpu9250->gyro_resolution * 3.14 / 180;
+    return MPU_OK;
+}
+
+MPU_STATUS SS_MPU_math_scaled_accel(MPU9250 *mpu9250) {
+    mpu9250->accel_scaled_x = (float) mpu9250->accel_raw_x * mpu9250->accel_resolution;
+    mpu9250->accel_scaled_y = (float) mpu9250->accel_raw_y * mpu9250->accel_resolution;
+    mpu9250->accel_scaled_z = (float) mpu9250->accel_raw_z * mpu9250->accel_resolution;
+    return MPU_OK;
+}
+
+MPU_STATUS SS_MPU_calibrate(MPU9250 *mpu9250) {  //Device needs to be flat during calibration!!!
+    int16_t calibration_time = 2000;
+    uint16_t max_gyro_deviation = 15;
+    uint16_t max_accel_deviation = 200;
+    HAL_Delay(100);
+    MPU_STATUS result = MPU_OK;
+    uint8_t gyro_scale = mpu9250->gyro_scale;
+    uint8_t accel_scale = mpu9250->accel_scale;
+    uint8_t bandwidth = mpu9250->gyro_bandwidth;
+    int32_t sum[] = {0, 0, 0, 0, 0, 0};  //gx, gy, gz, ax, ay, az
+    int32_t bias[6];
+    result |= SS_MPU_set_gyro_scale(mpu9250, MPU_GYRO_SCALE_250);
+    result |= SS_MPU_set_accel_scale(mpu9250, MPU_ACCEL_SCALE_2);
+    result |= SS_MPU_set_gyro_bandwidth(mpu9250, MPU_GYRO_BAND_5);
+    HAL_Delay(50);
+
+    int16_t data[6][calibration_time];
+    for(int16_t i = 0; i < calibration_time; i++) {
+        result |= SS_MPU_get_gyro_data(mpu9250);
+        result |= SS_MPU_get_accel_data(mpu9250);
+        data[0][i] = mpu9250->gyro_raw_x;
+        data[1][i] = mpu9250->gyro_raw_y;
+        data[2][i] = mpu9250->gyro_raw_z;
+        data[3][i] = mpu9250->accel_raw_x;
+        data[4][i] = mpu9250->accel_raw_y;
+        data[5][i] = mpu9250->accel_raw_z;
+        HAL_Delay(1);
+    }
+    for(uint16_t i = 0; i < calibration_time; i++) {
+        for(uint8_t j = 0; j < 6; j++) {
+            sum[j] += data[j][i];
+        }
+    }
+    for(uint8_t j = 0; j < 6; j++) {
+        bias[j] = ((int32_t) sum[j]) / ((int32_t) calibration_time);
+    }
+    double deviation[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    for(int16_t i = 0; i < calibration_time; i++) {
+        for(uint8_t j = 0; j < 6; j++) {
+            deviation[j] += pow(data[j][i] - bias[j], 2);
+        }
+    }
+    for(uint8_t j = 0; j < 6; j++) {
+        deviation[j] = pow((double) deviation[j] / (double) calibration_time, 0.5);
+    }
+    uint16_t accelsensitivity = 16384;  // = 16384 LSB/g
+    if(bias[5] > 0L) {
+        bias[5] -= (int32_t) accelsensitivity;
+    }  // Remove gravity from the z-axis accelerometer bias calculation
+    else {
+        bias[5] += (int32_t) accelsensitivity;
+    }
+#ifdef MPU_DEBUG
+    SS_print("--------------------------------\r\n");
+    SS_print("MPU CALIBRATION\r\n");
+    SS_print("Gyroscope bias x: %ld, y: %ld, z: %ld\r\n", bias[0], bias[1], bias[2]);
+    SS_print("Accelerometer bias x: %ld, y: %ld, z: %ld\r\n", bias[3], bias[4], bias[5]);
+    SS_print("Gyroscope deviation (should not exceed %d) x: %f, y: %f, z: %f\r\n", max_gyro_deviation, deviation[0], deviation[1], deviation[2]);
+    SS_print("Accelerometer deviation (should not exceed %d) x: %f, y: %f, z: %f\r\n", max_accel_deviation, deviation[3], deviation[4], deviation[5]);
+    SS_print("--------------------------------\r\n");
+#endif
+    result |= SS_MPU_set_gyro_scale(mpu9250, gyro_scale);
+    result |= SS_MPU_set_accel_scale(mpu9250, accel_scale);
+    result |= SS_MPU_set_gyro_bandwidth(mpu9250, bandwidth);
+    if(deviation[0] > (double) max_gyro_deviation || deviation[1] > (double) max_gyro_deviation || deviation[2] > (double) max_gyro_deviation || deviation[3] > (double) max_accel_deviation || deviation[4] > (double) max_accel_deviation || deviation[5] > (double) max_accel_deviation) {
+        SS_print("MPU CALIBRATION ERROR\r\n");
+        return MPU_CALIBRATION_ERROR;
+    }
+#ifdef PRINT_CALIBRATION
+    SS_print("--------------------------------\r\n");
+    SS_print("Calibration values:\r\n{ ");
+    for(uint8_t i = 0; i < 6; i++) {
+        if(i < 5)
+            SS_print("%d, ", bias[i]);
+        else
+            SS_print("%d }\r\n", bias[i]);
+    }
+    SS_print("--------------------------------\r\n");
+#endif
+    result |= SS_MPU_gyro_write_calibration(mpu9250, bias);
+    result |= SS_MPU_accel_write_calibration(mpu9250, bias);
+    return result;
+}
+
+/* SPI Communication */
+MPU_STATUS SS_MPU_write_byte(MPU9250 *mpu9250, uint8_t RegAdr, uint8_t RegDat) {
     SS_MPU_CS_ENABLE(mpu9250);
     uint8_t temp = (RegAdr & 0b01111111);
 
@@ -50,7 +245,7 @@ enum MPU_RESULT SS_MPU_write_byte(struct MPU9250 *mpu9250, uint8_t RegAdr, uint8
     return MPU_OK;
 }
 
-enum MPU_RESULT SS_MPU_read_byte(struct MPU9250 *mpu9250, uint8_t RegAdr, uint8_t *RegDat) {
+MPU_STATUS SS_MPU_read_byte(MPU9250 *mpu9250, uint8_t RegAdr, uint8_t *RegDat) {
     SS_MPU_CS_ENABLE(mpu9250);
     uint8_t temp = 0x80 | RegAdr;
 
@@ -71,7 +266,7 @@ enum MPU_RESULT SS_MPU_read_byte(struct MPU9250 *mpu9250, uint8_t RegAdr, uint8_
     return MPU_OK;
 }
 
-enum MPU_RESULT SS_MPU_write_check_byte(struct MPU9250 *mpu9250, uint8_t RegAdr, uint8_t RegDat) {
+MPU_STATUS SS_MPU_write_check_byte(MPU9250 *mpu9250, uint8_t RegAdr, uint8_t RegDat) {
     if(SS_MPU_write_byte(mpu9250, RegAdr, RegDat))
         return MPU_COMM_ERROR;
     HAL_Delay(10);
@@ -82,7 +277,7 @@ enum MPU_RESULT SS_MPU_write_check_byte(struct MPU9250 *mpu9250, uint8_t RegAdr,
     return MPU_OK;
 }
 
-enum MPU_RESULT SS_MPU_read_multiple(struct MPU9250 *mpu9250, uint8_t RegAdr, uint8_t *RegDat, uint8_t nbr) {
+MPU_STATUS SS_MPU_read_multiple(MPU9250 *mpu9250, uint8_t RegAdr, uint8_t *RegDat, uint8_t nbr) {
     SS_MPU_CS_ENABLE(mpu9250);
     uint8_t temp = 0x80 | RegAdr;
 
@@ -104,8 +299,22 @@ enum MPU_RESULT SS_MPU_read_multiple(struct MPU9250 *mpu9250, uint8_t RegAdr, ui
     SS_MPU_CS_DISABLE(mpu9250);
     return MPU_OK;
 }
+/* ==================================================================== */
+/* ======================== Private functions ========================= */
+/* ==================================================================== */
 
-enum MPU_RESULT SS_MPU_read_multiple_DMA(struct MPU9250 *mpu9250, uint8_t RegAdr, uint8_t *RegDat, uint8_t nbr, uint8_t sensor) {
+
+static void SS_MPU_CS_ENABLE(MPU9250 *mpu9250) {
+    HAL_GPIO_WritePin(mpu9250->CS_Port, mpu9250->CS_Pin, GPIO_PIN_RESET);
+}
+
+static void SS_MPU_CS_DISABLE(MPU9250 *mpu9250) {
+    HAL_GPIO_WritePin(mpu9250->CS_Port, mpu9250->CS_Pin, GPIO_PIN_SET);
+}
+
+/* DMA Communication */
+
+static MPU_STATUS SS_MPU_read_multiple_DMA(MPU9250 *mpu9250, uint8_t RegAdr, uint8_t *RegDat, uint8_t nbr, uint8_t sensor) {
     uint8_t temp = 0x80 | RegAdr;
     SS_MPU_CS_ENABLE(mpu9250);
     if(HAL_SPI_TransmitReceive_DMA(mpu9250->hspi, &temp, RegDat, 1 + nbr)) {
@@ -115,14 +324,25 @@ enum MPU_RESULT SS_MPU_read_multiple_DMA(struct MPU9250 *mpu9250, uint8_t RegAdr
     return MPU_OK;
 }
 
-uint8_t SS_MPU_who_am_i(struct MPU9250 *mpu9250) {
-    uint8_t Iam = 1;
-    SS_MPU_read_byte(mpu9250, MPU_WHO_AM_I_MPU9250, &Iam);
-    HAL_Delay(1);
-    return Iam;
+static MPU_STATUS SS_MPU_get_data_DMA(MPU9250 *mpu9250) {
+    //    if(HAL_SPI_GetState(mpu9250->hspi) == HAL_SPI_STATE_READY &&
+    //       HAL_DMA_GetState(&MPU_HDMA_SPI_TX) == HAL_DMA_STATE_READY &&
+    //       HAL_DMA_GetState(&MPU_HDMA_SPI_RX) == HAL_DMA_STATE_READY) {
+    mpu_pointer = mpu9250;
+    return SS_MPU_read_multiple_DMA(mpu9250, MPU_ACCEL_XOUT_H, mpu9250->rcv, 22, ACCELEROMETER);
+//    }
+//   
+#ifdef MULTIPLE_MPU
+//    if(mpu9250 == &mpu1)
+//        osSemaphoreRelease(mpu1_semaphore);
+//    else
+//        osSemaphoreRelease(mpu2_semaphore);
+#endif
 }
 
-enum MPU_RESULT SS_MPU_set_gyro_bandwidth(struct MPU9250 *mpu9250, uint8_t bandwidth) {
+/* Config functions */
+
+static MPU_STATUS SS_MPU_set_gyro_bandwidth(MPU9250 *mpu9250, uint8_t bandwidth) {
     uint8_t reg = 0x00;
     if(bandwidth <= MPU_GYRO_BAND_3600) {
         SS_MPU_read_byte(mpu9250, MPU_CONFIG, &reg);
@@ -141,7 +361,7 @@ enum MPU_RESULT SS_MPU_set_gyro_bandwidth(struct MPU9250 *mpu9250, uint8_t bandw
     return MPU_OK;
 }
 
-enum MPU_RESULT SS_MPU_set_gyro_dlpf_bypass(struct MPU9250 *mpu9250, uint8_t bandwidth) {
+static MPU_STATUS SS_MPU_set_gyro_dlpf_bypass(MPU9250 *mpu9250, uint8_t bandwidth) {
     uint8_t reg;
     if(SS_MPU_read_byte(mpu9250, MPU_GYRO_CONFIG, &reg))
         return MPU_COMM_ERROR;
@@ -160,7 +380,7 @@ enum MPU_RESULT SS_MPU_set_gyro_dlpf_bypass(struct MPU9250 *mpu9250, uint8_t ban
     return MPU_OK;
 }
 
-enum MPU_RESULT SS_MPU_set_accel_bandwidth(struct MPU9250 *mpu9250, uint8_t bandwidth) {
+static MPU_STATUS SS_MPU_set_accel_bandwidth(MPU9250 *mpu9250, uint8_t bandwidth) {
     uint8_t reg = 0x00;
     SS_MPU_read_byte(mpu9250, MPU_ACCEL_CONFIG2, &reg);
     reg &= 0xF0;
@@ -177,7 +397,7 @@ enum MPU_RESULT SS_MPU_set_accel_bandwidth(struct MPU9250 *mpu9250, uint8_t band
     return MPU_OK;
 }
 
-enum MPU_RESULT SS_MPU_set_gyro_scale(struct MPU9250 *mpu9250, uint8_t scale) {
+static MPU_STATUS SS_MPU_set_gyro_scale(MPU9250 *mpu9250, uint8_t scale) {
     uint8_t reg;
     if(SS_MPU_read_byte(mpu9250, MPU_GYRO_CONFIG, &reg))
         return MPU_COMM_ERROR;
@@ -205,7 +425,7 @@ enum MPU_RESULT SS_MPU_set_gyro_scale(struct MPU9250 *mpu9250, uint8_t scale) {
     return MPU_OK;
 }
 
-enum MPU_RESULT SS_MPU_set_accel_scale(struct MPU9250 *mpu9250, uint8_t scale) {
+static MPU_STATUS SS_MPU_set_accel_scale(MPU9250 *mpu9250, uint8_t scale) {
     uint8_t reg;
     if(SS_MPU_read_byte(mpu9250, MPU_ACCEL_CONFIG, &reg))
         return MPU_COMM_ERROR;
@@ -232,79 +452,7 @@ enum MPU_RESULT SS_MPU_set_accel_scale(struct MPU9250 *mpu9250, uint8_t scale) {
     return MPU_OK;
 }
 
-enum MPU_RESULT SS_MPU_get_accel_data(struct MPU9250 *mpu9250) {
-    uint8_t rcv[6];
-    if(SS_MPU_read_multiple(mpu9250, MPU_ACCEL_XOUT_H, rcv, 6))
-        return MPU_COMM_ERROR;
-    mpu9250->accel_raw_x = (int16_t)((int16_t) rcv[0] << 8) | rcv[1];
-    mpu9250->accel_raw_y = (int16_t)((int16_t) rcv[2] << 8) | rcv[3];
-    mpu9250->accel_raw_z = (int16_t)((int16_t) rcv[4] << 8) | rcv[5];
-    return MPU_OK;
-}
-
-enum MPU_RESULT SS_MPU_get_gyro_data(struct MPU9250 *mpu9250) {
-    uint8_t rcv[6];
-    if(SS_MPU_read_multiple(mpu9250, MPU_GYRO_XOUT_H, rcv, 6))
-        return MPU_COMM_ERROR;
-    mpu9250->gyro_raw_x = (int16_t)((int16_t) rcv[0] << 8) | rcv[1];
-    mpu9250->gyro_raw_y = (int16_t)((int16_t) rcv[2] << 8) | rcv[3];
-    mpu9250->gyro_raw_z = (int16_t)((int16_t) rcv[4] << 8) | rcv[5];
-    return MPU_OK;
-}
-
-enum MPU_RESULT SS_MPU_get_data_DMA(struct MPU9250 *mpu9250) {
-    //    if(HAL_SPI_GetState(mpu9250->hspi) == HAL_SPI_STATE_READY &&
-    //       HAL_DMA_GetState(&MPU_HDMA_SPI_TX) == HAL_DMA_STATE_READY &&
-    //       HAL_DMA_GetState(&MPU_HDMA_SPI_RX) == HAL_DMA_STATE_READY) {
-    mpu_pointer = mpu9250;
-    return SS_MPU_read_multiple_DMA(mpu9250, MPU_ACCEL_XOUT_H, mpu9250->rcv, 22, ACCELEROMETER);
-//    }
-#ifdef MULTIPLE_MPU
-//    if(mpu9250 == &mpu1)
-//        osSemaphoreRelease(mpu1_semaphore);
-//    else
-//        osSemaphoreRelease(mpu2_semaphore);
-#endif
-    return MPU_OK;
-}
-
-enum MPU_RESULT SS_MPU_SPI_TxRxCpltCallback(struct MPU9250 *mpu9250) {
-    SS_MPU_CS_DISABLE(mpu9250);
-    mpu9250->accel_raw_x = (int16_t)((int16_t) mpu9250->rcv[1] << 8) | mpu9250->rcv[2];
-    mpu9250->accel_raw_y = (int16_t)((int16_t) mpu9250->rcv[3] << 8) | mpu9250->rcv[4];
-    mpu9250->accel_raw_z = (int16_t)((int16_t) mpu9250->rcv[5] << 8) | mpu9250->rcv[6];
-
-    mpu9250->gyro_raw_x = (int16_t)((int16_t) mpu9250->rcv[9] << 8) | mpu9250->rcv[10];
-    mpu9250->gyro_raw_y = (int16_t)((int16_t) mpu9250->rcv[11] << 8) | mpu9250->rcv[12];
-    mpu9250->gyro_raw_z = (int16_t)((int16_t) mpu9250->rcv[13] << 8) | mpu9250->rcv[14];
-
-    if((mpu9250->rcv[21] & 0x10)) {  //Check if the data is overflown
-        mpu9250->mgnt_raw_x = (int16_t)((int16_t) mpu9250->rcv[16] << 8) | mpu9250->rcv[15];
-        mpu9250->mgnt_raw_y = (int16_t)((int16_t) mpu9250->rcv[18] << 8) | mpu9250->rcv[17];
-        mpu9250->mgnt_raw_z = (int16_t)((int16_t) mpu9250->rcv[20] << 8) | mpu9250->rcv[19];
-    }
-    if(mpu9250->old_data[0] != mpu9250->accel_raw_x || mpu9250->old_data[1] != mpu9250->accel_raw_y || mpu9250->old_data[2] != mpu9250->accel_raw_z) {
-        mpu9250->old_data[0] = mpu9250->accel_raw_x;
-        mpu9250->old_data[1] = mpu9250->accel_raw_y;
-        mpu9250->old_data[2] = mpu9250->accel_raw_z;
-        //        SS_S25FL_save_3x_int16_t(mpu9250->accel_id, mpu9250->accel_raw_x, mpu9250->accel_raw_y, mpu9250->accel_raw_z);
-    }
-    if(mpu9250->old_data[3] != mpu9250->gyro_raw_x || mpu9250->old_data[4] != mpu9250->gyro_raw_y || mpu9250->old_data[5] != mpu9250->gyro_raw_z) {
-        mpu9250->old_data[3] = mpu9250->gyro_raw_x;
-        mpu9250->old_data[4] = mpu9250->gyro_raw_y;
-        mpu9250->old_data[5] = mpu9250->gyro_raw_z;
-        //        SS_S25FL_save_3x_int16_t(mpu9250->gyro_id, mpu9250->gyro_raw_x, mpu9250->gyro_raw_y, mpu9250->gyro_raw_z);
-    }
-    if(mpu9250->old_data[6] != mpu9250->mgnt_raw_x || mpu9250->old_data[7] != mpu9250->mgnt_raw_y || mpu9250->old_data[8] != mpu9250->mgnt_raw_z) {
-        mpu9250->old_data[6] = mpu9250->mgnt_raw_x;
-        mpu9250->old_data[7] = mpu9250->mgnt_raw_y;
-        mpu9250->old_data[8] = mpu9250->mgnt_raw_z;
-        //        SS_S25FL_save_3x_int16_t(mpu9250->mgnt_id, mpu9250->mgnt_raw_x, mpu9250->mgnt_raw_y, mpu9250->mgnt_raw_z);
-    }
-    return MPU_OK;
-}
-
-enum MPU_RESULT SS_MPU_set_clk(struct MPU9250 *mpu9250, uint8_t clksel) {
+static MPU_STATUS SS_MPU_set_clk(MPU9250 *mpu9250, uint8_t clksel) {
     uint8_t reg;
     if(SS_MPU_read_byte(mpu9250, MPU_PWR_MGMT_1, &reg))
         return MPU_COMM_ERROR;
@@ -316,9 +464,103 @@ enum MPU_RESULT SS_MPU_set_clk(struct MPU9250 *mpu9250, uint8_t clksel) {
     return MPU_OK;
 }
 
-enum MPU_RESULT SS_MPU_self_test(struct MPU9250 *mpu9250) {  //Not tested
+static MPU_STATUS SS_MPU_set_smplrt(MPU9250 *mpu9250, uint8_t smplrt) {
+    if(SS_MPU_write_check_byte(mpu9250, MPU_SMPLRT_DIV, smplrt))
+        return MPU_COMM_ERROR;
+    return MPU_OK;
+}
+
+static MPU_STATUS SS_MPU_INT_enable(MPU9250 *mpu9250) {
+    if(SS_MPU_write_check_byte(mpu9250, MPU_INT_PIN_CFG, 0x10))
+        return MPU_COMM_ERROR;
+    if(SS_MPU_write_check_byte(mpu9250, MPU_INT_ENABLE, 0x01))
+        return MPU_COMM_ERROR;
+    return MPU_OK;
+}
+
+static MPU_STATUS SS_MPU_sleep(MPU9250 *mpu9250, uint8_t state) {
+    uint8_t reg = 0;
+    if(SS_MPU_read_byte(mpu9250, MPU_PWR_MGMT_1, &reg))
+        return MPU_COMM_ERROR;
+    if(state == DISABLE)
+        reg &= 0b10111111;
+    else if(state == ENABLE)
+        reg |= 0b01000000;
+    if(SS_MPU_write_check_byte(mpu9250, MPU_PWR_MGMT_1, reg))
+        return MPU_COMM_ERROR;
+    return MPU_OK;
+}
+
+
+/* Calibration */
+
+static MPU_STATUS SS_MPU_set_calibration(MPU9250 *mpu9250, int32_t bias[6]) {
+    MPU_STATUS result = MPU_OK;
+    result |= SS_MPU_gyro_write_calibration(mpu9250, bias);
+    result |= SS_MPU_accel_write_calibration(mpu9250, bias);
+    return result;
+}
+
+static MPU_STATUS SS_MPU_accel_write_calibration(MPU9250 *mpu9250, int32_t *bias) {
+    MPU_STATUS result = MPU_OK;
+    uint8_t data[6];
+    int32_t accel_bias_reg[3] = {0, 0, 0};                        // A place to hold the factory accelerometer trim biases
+    SS_MPU_read_multiple(mpu9250, MPU_XA_OFFSET_H, &data[0], 2);  // Read factory accelerometer trim values
+    accel_bias_reg[0] = (int32_t)(((int16_t) data[0] << 8) | data[1]);
+    SS_MPU_read_multiple(mpu9250, MPU_YA_OFFSET_H, &data[0], 2);
+    accel_bias_reg[1] = (int32_t)(((int16_t) data[0] << 8) | data[1]);
+    SS_MPU_read_multiple(mpu9250, MPU_ZA_OFFSET_H, &data[0], 2);
+    accel_bias_reg[2] = (int32_t)(((int16_t) data[0] << 8) | data[1]);
+
+    accel_bias_reg[0] -= ((bias[3] / 8) & 0xFFFE);
+    accel_bias_reg[1] -= ((bias[4] / 8) & 0xFFFE);
+    accel_bias_reg[2] -= ((bias[5] / 8) & 0xFFFE);
+
+    data[0] = (accel_bias_reg[0] >> 8) & 0xFF;
+    data[1] = (accel_bias_reg[0]) & 0xFF;
+    data[2] = (accel_bias_reg[1] >> 8) & 0xFF;
+    data[3] = (accel_bias_reg[1]) & 0xFF;
+    data[4] = (accel_bias_reg[2] >> 8) & 0xFF;
+    data[5] = (accel_bias_reg[2]) & 0xFF;
+
+    result |= SS_MPU_write_check_byte(mpu9250, MPU_XA_OFFSET_H, data[0]);
+    result |= SS_MPU_write_check_byte(mpu9250, MPU_XA_OFFSET_L, data[1]);
+    result |= SS_MPU_write_check_byte(mpu9250, MPU_YA_OFFSET_H, data[2]);
+    result |= SS_MPU_write_check_byte(mpu9250, MPU_YA_OFFSET_L, data[3]);
+    result |= SS_MPU_write_check_byte(mpu9250, MPU_ZA_OFFSET_H, data[4]);
+    result |= SS_MPU_write_check_byte(mpu9250, MPU_ZA_OFFSET_L, data[5]);
+    return result;
+}
+
+static MPU_STATUS SS_MPU_gyro_write_calibration(MPU9250 *mpu9250, int32_t *gyro_bias) {
+    uint8_t data[6];
+    data[0] = (-gyro_bias[0] / 4 >> 8) & 0xFF;  // Divide by 4 to get 32.9 LSB per deg/s to conform to expected bias input format
+    data[1] = (-gyro_bias[0] / 4) & 0xFF;       // Biases are additive, so change sign on calculated average gyro biases
+    data[2] = (-gyro_bias[1] / 4 >> 8) & 0xFF;
+    data[3] = (-gyro_bias[1] / 4) & 0xFF;
+    data[4] = (-gyro_bias[2] / 4 >> 8) & 0xFF;
+    data[5] = (-gyro_bias[2] / 4) & 0xFF;
+
+    if(SS_MPU_write_check_byte(mpu9250, MPU_XG_OFFSET_H, data[0]))
+        return MPU_COMM_ERROR;
+    if(SS_MPU_write_check_byte(mpu9250, MPU_XG_OFFSET_L, data[1]))
+        return MPU_COMM_ERROR;
+    if(SS_MPU_write_check_byte(mpu9250, MPU_YG_OFFSET_H, data[2]))
+        return MPU_COMM_ERROR;
+    if(SS_MPU_write_check_byte(mpu9250, MPU_YG_OFFSET_L, data[3]))
+        return MPU_COMM_ERROR;
+    if(SS_MPU_write_check_byte(mpu9250, MPU_ZG_OFFSET_H, data[4]))
+        return MPU_COMM_ERROR;
+    if(SS_MPU_write_check_byte(mpu9250, MPU_ZG_OFFSET_L, data[5]))
+        return MPU_COMM_ERROR;
+    return MPU_OK;
+}
+
+/* Self Test */
+
+static MPU_STATUS SS_MPU_self_test(MPU9250 *mpu9250) {  //Not tested
     HAL_Delay(100);
-    enum MPU_RESULT result = MPU_OK;
+    MPU_STATUS result = MPU_OK;
     uint8_t gyro_config, accel_config;
     float accel_resolution = mpu9250->accel_resolution;
     float gyro_resolution = mpu9250->gyro_resolution;
@@ -418,58 +660,9 @@ enum MPU_RESULT SS_MPU_self_test(struct MPU9250 *mpu9250) {  //Not tested
     return result;
 }
 
-union iu {
-    int16_t i;
-    uint16_t u;
-};
 
-void int16_t_split(int16_t val, uint8_t *buff) {
-    union iu iu = {.i = val};
-    buff[0] = iu.u >> 8;
-    buff[1] = iu.u;
-}
-
-union fu {
-    float f;
-    uint32_t u;
-};
-
-void float_split(float val, uint8_t *buff) {
-    union fu fu = {.f = val};
-    buff[0] = fu.u >> 24;
-    buff[1] = fu.u >> 16;
-    buff[2] = fu.u >> 8;
-    buff[3] = fu.u;
-}
-
-void SS_MPU_send_calibration_values(struct MPU9250 *mpu9250) {
-    /* uint8_t buff[4]; */
-    /* HAL_UART_Transmit(&huart1, &(mpu9250->gyro_id), 1, 1000); */
-    /* HAL_UART_Transmit(&huart1, &(mpu9250->accel_id), 1, 1000); */
-    /* HAL_UART_Transmit(&huart1, &(mpu9250->mgnt_id), 1, 1000); */
-    /* float_split(mpu9250->accel_resolution, buff); */
-    /* HAL_UART_Transmit(&huart1, buff, 4, 1000); */
-    /* float_split(mpu9250->gyro_resolution, buff); */
-    /* HAL_UART_Transmit(&huart1, buff, 4, 1000); */
-    /* float_split(mpu9250->mgnt_scale_x, buff); */
-    /* HAL_UART_Transmit(&huart1, buff, 4, 1000); */
-    /* float_split(mpu9250->mgnt_scale_y, buff); */
-    /* HAL_UART_Transmit(&huart1, buff, 4, 1000); */
-    /* float_split(mpu9250->mgnt_scale_z, buff); */
-    /* HAL_UART_Transmit(&huart1, buff, 4, 1000); */
-    /* int16_t_split(mpu9250->mgnt_bias_x, buff); */
-    /* HAL_UART_Transmit(&huart1, buff, 2, 1000); */
-    /* int16_t_split(mpu9250->mgnt_bias_y, buff); */
-    /* HAL_UART_Transmit(&huart1, buff, 2, 1000); */
-    /* int16_t_split(mpu9250->mgnt_bias_z, buff); */
-    /* HAL_UART_Transmit(&huart1, buff, 2, 1000); */
-    /* HAL_UART_Transmit(&huart1, &(mpu9250->xASens), 1, 1000); */
-    /* HAL_UART_Transmit(&huart1, &(mpu9250->yASens), 1, 1000); */
-    /* HAL_UART_Transmit(&huart1, &(mpu9250->zASens), 1, 1000); */
-}
-
-enum MPU_RESULT SS_MPU_init_all() {
-    enum MPU_RESULT result = MPU_OK;
+MPU_STATUS SS_MPU_init_all() {
+    MPU_STATUS result = MPU_OK;
     HAL_NVIC_DisableIRQ(MPU_INT_EXTI_IRQn);
     /* HAL_NVIC_DisableIRQ(MPU2_INT_EXTI_IRQn); */
     result |= SS_AK8963_set_calibration_values(&mpu1, 38, 217, 92, 1.040606, 1.018278, 0.946424);
@@ -503,271 +696,95 @@ enum MPU_RESULT SS_MPU_init_all() {
     return result;
 }
 
-enum MPU_RESULT SS_MPU_init(struct MPU9250 *mpu9250) {
-    enum MPU_RESULT result = MPU_OK;
-    result |= SS_AK8963_reset(mpu9250);
-    HAL_Delay(50);
-    result |= SS_MPU_reset(mpu9250);
-    HAL_Delay(50);
-    result |= SS_MPU_sleep(mpu9250, DISABLE);
-    result |= SS_MPU_set_clk(mpu9250, 0x01);
-    result |= SS_MPU_set_smplrt(mpu9250, 0);
-    result |= SS_AK8963_init(mpu9250);
-    result |= SS_MPU_INT_enable(mpu9250);
-    HAL_Delay(100);
-    result |= SS_MPU_set_accel_bandwidth(mpu9250, MPU_ACCEL_BAND_184);
-    result |= SS_MPU_set_gyro_bandwidth(mpu9250, MPU_GYRO_BAND_184);
-    result |= SS_MPU_set_accel_scale(mpu9250, mpu9250->accel_scale);
-    result |= SS_MPU_set_gyro_scale(mpu9250, mpu9250->gyro_scale);
-    result |= SS_MPU_self_test(mpu9250);
-    //	result |= SS_MPU_calibrate(mpu9250);
-    mpu9250->result = result;
-#ifdef MPU_RGB_LED
-    switch(result) {
-        case MPU_OK:
-            SS_led_set_meas(0, 50, 0);  //Green
-            break;
-        default:
-            SS_led_set_meas(50, 0, 0);  //Red
-            break;
+/* ==================================================================== */
+/* ============================ Callbacks ============================= */
+/* ==================================================================== */
+
+static void SS_MPU_spi_tx_isr(MPU9250 *mpu9250) {
+    SS_MPU_CS_DISABLE(mpu9250);
+    mpu9250->accel_raw_x = (int16_t)((int16_t) mpu9250->rcv[1] << 8) | mpu9250->rcv[2];
+    mpu9250->accel_raw_y = (int16_t)((int16_t) mpu9250->rcv[3] << 8) | mpu9250->rcv[4];
+    mpu9250->accel_raw_z = (int16_t)((int16_t) mpu9250->rcv[5] << 8) | mpu9250->rcv[6];
+
+    mpu9250->gyro_raw_x = (int16_t)((int16_t) mpu9250->rcv[9] << 8) | mpu9250->rcv[10];
+    mpu9250->gyro_raw_y = (int16_t)((int16_t) mpu9250->rcv[11] << 8) | mpu9250->rcv[12];
+    mpu9250->gyro_raw_z = (int16_t)((int16_t) mpu9250->rcv[13] << 8) | mpu9250->rcv[14];
+
+    if((mpu9250->rcv[21] & 0x10)) {  //Check if the data is overflown
+        mpu9250->mgnt_raw_x = (int16_t)((int16_t) mpu9250->rcv[16] << 8) | mpu9250->rcv[15];
+        mpu9250->mgnt_raw_y = (int16_t)((int16_t) mpu9250->rcv[18] << 8) | mpu9250->rcv[17];
+        mpu9250->mgnt_raw_z = (int16_t)((int16_t) mpu9250->rcv[20] << 8) | mpu9250->rcv[19];
     }
-#endif
-    return result;
-}
-
-enum MPU_RESULT SS_MPU_math_scaled_gyro(struct MPU9250 *mpu9250) {
-    mpu9250->gyro_scaled_x = (float) mpu9250->gyro_raw_x * mpu9250->gyro_resolution * 3.14 / 180;
-    mpu9250->gyro_scaled_y = (float) mpu9250->gyro_raw_y * mpu9250->gyro_resolution * 3.14 / 180;
-    mpu9250->gyro_scaled_z = (float) mpu9250->gyro_raw_z * mpu9250->gyro_resolution * 3.14 / 180;
-    return MPU_OK;
-}
-
-enum MPU_RESULT SS_MPU_math_scaled_accel(struct MPU9250 *mpu9250) {
-    mpu9250->accel_scaled_x = (float) mpu9250->accel_raw_x * mpu9250->accel_resolution;
-    mpu9250->accel_scaled_y = (float) mpu9250->accel_raw_y * mpu9250->accel_resolution;
-    mpu9250->accel_scaled_z = (float) mpu9250->accel_raw_z * mpu9250->accel_resolution;
-    return MPU_OK;
-}
-
-enum MPU_RESULT SS_MPU_get_fifo_counter(struct MPU9250 *mpu9250) {
-    uint8_t reg[2];
-    if(SS_MPU_read_multiple(mpu9250, MPU_FIFO_COUNTH, reg, 2))
-        return MPU_COMM_ERROR;
-    reg[0] &= 0x1F;
-    mpu9250->fifo_counter = (uint16_t)((uint16_t) reg[0] << 8) | reg[1];
-    return MPU_OK;
-}
-
-enum MPU_RESULT SS_MPU_get_fifo_data(struct MPU9250 *mpu9250) {
-    if(SS_MPU_get_fifo_counter(mpu9250))
-        return MPU_COMM_ERROR;
-    if(mpu9250->fifo_counter > 0) {
-        if(mpu9250->fifo_counter > 255) {
-            if(SS_MPU_read_multiple(mpu9250, MPU_FIFO_R_W, mpu9250->fifo_data, 255))
-                return MPU_COMM_ERROR;
-            if(SS_MPU_read_multiple(mpu9250, MPU_FIFO_R_W, &mpu9250->fifo_data[254], mpu9250->fifo_counter - 255))
-                return MPU_COMM_ERROR;
-        } else if(SS_MPU_read_multiple(mpu9250, MPU_FIFO_R_W, mpu9250->fifo_data, mpu9250->fifo_counter))
-            return MPU_COMM_ERROR;
-        mpu9250->FIFO_HANDLED_FLAG = 0;
+    /* TODO ಠ_ಠ why? */
+    if(mpu9250->old_data[0] != mpu9250->accel_raw_x || mpu9250->old_data[1] != mpu9250->accel_raw_y || mpu9250->old_data[2] != mpu9250->accel_raw_z) {
+        mpu9250->old_data[0] = mpu9250->accel_raw_x;
+        mpu9250->old_data[1] = mpu9250->accel_raw_y;
+        mpu9250->old_data[2] = mpu9250->accel_raw_z;
+        //        SS_S25FL_save_3x_int16_t(mpu9250->accel_id, mpu9250->accel_raw_x, mpu9250->accel_raw_y, mpu9250->accel_raw_z);
     }
-    return MPU_OK;
-}
-
-enum MPU_RESULT SS_MPU_set_fifo_data(struct MPU9250 *mpu9250) {
-    if(SS_MPU_write_check_byte(mpu9250, MPU_FIFO_EN, 0x78))
-        return MPU_COMM_ERROR;
-    return MPU_OK;
-}
-
-enum MPU_RESULT SS_MPU_INT_enable(struct MPU9250 *mpu9250) {
-    if(SS_MPU_write_check_byte(mpu9250, MPU_INT_PIN_CFG, 0x10))
-        return MPU_COMM_ERROR;
-    if(SS_MPU_write_check_byte(mpu9250, MPU_INT_ENABLE, 0x01))
-        return MPU_COMM_ERROR;
-    return MPU_OK;
-}
-
-enum MPU_RESULT SS_MPU_reset(struct MPU9250 *mpu9250) {
-    if(SS_MPU_write_byte(mpu9250, MPU_PWR_MGMT_1, 0x80))
-        return MPU_COMM_ERROR;
-    return MPU_OK;
-}
-
-enum MPU_RESULT SS_MPU_sleep(struct MPU9250 *mpu9250, uint8_t state) {
-    uint8_t reg = 0;
-    if(SS_MPU_read_byte(mpu9250, MPU_PWR_MGMT_1, &reg))
-        return MPU_COMM_ERROR;
-    if(state == DISABLE)
-        reg &= 0b10111111;
-    else if(state == ENABLE)
-        reg |= 0b01000000;
-    if(SS_MPU_write_check_byte(mpu9250, MPU_PWR_MGMT_1, reg))
-        return MPU_COMM_ERROR;
-    return MPU_OK;
-}
-
-enum MPU_RESULT SS_MPU_calibrate(struct MPU9250 *mpu9250) {  //Device needs to be flat during calibration!!!
-    int16_t calibration_time = 2000;
-    uint16_t max_gyro_deviation = 15;
-    uint16_t max_accel_deviation = 200;
-    HAL_Delay(100);
-    enum MPU_RESULT result = MPU_OK;
-    uint8_t gyro_scale = mpu9250->gyro_scale;
-    uint8_t accel_scale = mpu9250->accel_scale;
-    uint8_t bandwidth = mpu9250->gyro_bandwidth;
-    int32_t sum[] = {0, 0, 0, 0, 0, 0};  //gx, gy, gz, ax, ay, az
-    int32_t bias[6];
-    result |= SS_MPU_set_gyro_scale(mpu9250, MPU_GYRO_SCALE_250);
-    result |= SS_MPU_set_accel_scale(mpu9250, MPU_ACCEL_SCALE_2);
-    result |= SS_MPU_set_gyro_bandwidth(mpu9250, MPU_GYRO_BAND_5);
-    HAL_Delay(50);
-
-    int16_t data[6][calibration_time];
-    for(int16_t i = 0; i < calibration_time; i++) {
-        result |= SS_MPU_get_gyro_data(mpu9250);
-        result |= SS_MPU_get_accel_data(mpu9250);
-        data[0][i] = mpu9250->gyro_raw_x;
-        data[1][i] = mpu9250->gyro_raw_y;
-        data[2][i] = mpu9250->gyro_raw_z;
-        data[3][i] = mpu9250->accel_raw_x;
-        data[4][i] = mpu9250->accel_raw_y;
-        data[5][i] = mpu9250->accel_raw_z;
-        HAL_Delay(1);
+    if(mpu9250->old_data[3] != mpu9250->gyro_raw_x || mpu9250->old_data[4] != mpu9250->gyro_raw_y || mpu9250->old_data[5] != mpu9250->gyro_raw_z) {
+        mpu9250->old_data[3] = mpu9250->gyro_raw_x;
+        mpu9250->old_data[4] = mpu9250->gyro_raw_y;
+        mpu9250->old_data[5] = mpu9250->gyro_raw_z;
+        //        SS_S25FL_save_3x_int16_t(mpu9250->gyro_id, mpu9250->gyro_raw_x, mpu9250->gyro_raw_y, mpu9250->gyro_raw_z);
     }
-    for(uint16_t i = 0; i < calibration_time; i++) {
-        for(uint8_t j = 0; j < 6; j++) {
-            sum[j] += data[j][i];
-        }
+    if(mpu9250->old_data[6] != mpu9250->mgnt_raw_x || mpu9250->old_data[7] != mpu9250->mgnt_raw_y || mpu9250->old_data[8] != mpu9250->mgnt_raw_z) {
+        mpu9250->old_data[6] = mpu9250->mgnt_raw_x;
+        mpu9250->old_data[7] = mpu9250->mgnt_raw_y;
+        mpu9250->old_data[8] = mpu9250->mgnt_raw_z;
+        //        SS_S25FL_save_3x_int16_t(mpu9250->mgnt_id, mpu9250->mgnt_raw_x, mpu9250->mgnt_raw_y, mpu9250->mgnt_raw_z);
     }
-    for(uint8_t j = 0; j < 6; j++) {
-        bias[j] = ((int32_t) sum[j]) / ((int32_t) calibration_time);
-    }
-    double deviation[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    for(int16_t i = 0; i < calibration_time; i++) {
-        for(uint8_t j = 0; j < 6; j++) {
-            deviation[j] += pow(data[j][i] - bias[j], 2);
-        }
-    }
-    for(uint8_t j = 0; j < 6; j++) {
-        deviation[j] = pow((double) deviation[j] / (double) calibration_time, 0.5);
-    }
-    uint16_t accelsensitivity = 16384;  // = 16384 LSB/g
-    if(bias[5] > 0L) {
-        bias[5] -= (int32_t) accelsensitivity;
-    }  // Remove gravity from the z-axis accelerometer bias calculation
-    else {
-        bias[5] += (int32_t) accelsensitivity;
-    }
-#ifdef MPU_DEBUG
-    SS_print("--------------------------------\r\n");
-    SS_print("MPU CALIBRATION\r\n");
-    SS_print("Gyroscope bias x: %ld, y: %ld, z: %ld\r\n", bias[0], bias[1], bias[2]);
-    SS_print("Accelerometer bias x: %ld, y: %ld, z: %ld\r\n", bias[3], bias[4], bias[5]);
-    SS_print("Gyroscope deviation (should not exceed %d) x: %f, y: %f, z: %f\r\n", max_gyro_deviation, deviation[0], deviation[1], deviation[2]);
-    SS_print("Accelerometer deviation (should not exceed %d) x: %f, y: %f, z: %f\r\n", max_accel_deviation, deviation[3], deviation[4], deviation[5]);
-    SS_print("--------------------------------\r\n");
-#endif
-    result |= SS_MPU_set_gyro_scale(mpu9250, gyro_scale);
-    result |= SS_MPU_set_accel_scale(mpu9250, accel_scale);
-    result |= SS_MPU_set_gyro_bandwidth(mpu9250, bandwidth);
-    if(deviation[0] > (double) max_gyro_deviation || deviation[1] > (double) max_gyro_deviation || deviation[2] > (double) max_gyro_deviation || deviation[3] > (double) max_accel_deviation || deviation[4] > (double) max_accel_deviation || deviation[5] > (double) max_accel_deviation) {
-        SS_print("MPU CALIBRATION ERROR\r\n");
-        return MPU_CALIBRATION_ERROR;
-    }
-#ifdef PRINT_CALIBRATION
-    SS_print("--------------------------------\r\n");
-    SS_print("Calibration values:\r\n{ ");
-    for(uint8_t i = 0; i < 6; i++) {
-        if(i < 5)
-            SS_print("%d, ", bias[i]);
-        else
-            SS_print("%d }\r\n", bias[i]);
-    }
-    SS_print("--------------------------------\r\n");
-#endif
-    result |= SS_MPU_gyro_write_calibration(mpu9250, bias);
-    result |= SS_MPU_accel_write_calibration(mpu9250, bias);
-    return result;
 }
 
-enum MPU_RESULT SS_MPU_set_calibration(struct MPU9250 *mpu9250, int32_t bias[6]) {
-    enum MPU_RESULT result = MPU_OK;
-    result |= SS_MPU_gyro_write_calibration(mpu9250, bias);
-    result |= SS_MPU_accel_write_calibration(mpu9250, bias);
-    return result;
-}
-
-enum MPU_RESULT SS_MPU_accel_write_calibration(struct MPU9250 *mpu9250, int32_t *bias) {
-    enum MPU_RESULT result = MPU_OK;
-    uint8_t data[6];
-    int32_t accel_bias_reg[3] = {0, 0, 0};                        // A place to hold the factory accelerometer trim biases
-    SS_MPU_read_multiple(mpu9250, MPU_XA_OFFSET_H, &data[0], 2);  // Read factory accelerometer trim values
-    accel_bias_reg[0] = (int32_t)(((int16_t) data[0] << 8) | data[1]);
-    SS_MPU_read_multiple(mpu9250, MPU_YA_OFFSET_H, &data[0], 2);
-    accel_bias_reg[1] = (int32_t)(((int16_t) data[0] << 8) | data[1]);
-    SS_MPU_read_multiple(mpu9250, MPU_ZA_OFFSET_H, &data[0], 2);
-    accel_bias_reg[2] = (int32_t)(((int16_t) data[0] << 8) | data[1]);
-
-    accel_bias_reg[0] -= ((bias[3] / 8) & 0xFFFE);
-    accel_bias_reg[1] -= ((bias[4] / 8) & 0xFFFE);
-    accel_bias_reg[2] -= ((bias[5] / 8) & 0xFFFE);
-
-    data[0] = (accel_bias_reg[0] >> 8) & 0xFF;
-    data[1] = (accel_bias_reg[0]) & 0xFF;
-    data[2] = (accel_bias_reg[1] >> 8) & 0xFF;
-    data[3] = (accel_bias_reg[1]) & 0xFF;
-    data[4] = (accel_bias_reg[2] >> 8) & 0xFF;
-    data[5] = (accel_bias_reg[2]) & 0xFF;
-
-    result |= SS_MPU_write_check_byte(mpu9250, MPU_XA_OFFSET_H, data[0]);
-    result |= SS_MPU_write_check_byte(mpu9250, MPU_XA_OFFSET_L, data[1]);
-    result |= SS_MPU_write_check_byte(mpu9250, MPU_YA_OFFSET_H, data[2]);
-    result |= SS_MPU_write_check_byte(mpu9250, MPU_YA_OFFSET_L, data[3]);
-    result |= SS_MPU_write_check_byte(mpu9250, MPU_ZA_OFFSET_H, data[4]);
-    result |= SS_MPU_write_check_byte(mpu9250, MPU_ZA_OFFSET_L, data[5]);
-    return result;
-}
-
-enum MPU_RESULT SS_MPU_gyro_write_calibration(struct MPU9250 *mpu9250, int32_t *gyro_bias) {
-    uint8_t data[6];
-    data[0] = (-gyro_bias[0] / 4 >> 8) & 0xFF;  // Divide by 4 to get 32.9 LSB per deg/s to conform to expected bias input format
-    data[1] = (-gyro_bias[0] / 4) & 0xFF;       // Biases are additive, so change sign on calculated average gyro biases
-    data[2] = (-gyro_bias[1] / 4 >> 8) & 0xFF;
-    data[3] = (-gyro_bias[1] / 4) & 0xFF;
-    data[4] = (-gyro_bias[2] / 4 >> 8) & 0xFF;
-    data[5] = (-gyro_bias[2] / 4) & 0xFF;
-
-    if(SS_MPU_write_check_byte(mpu9250, MPU_XG_OFFSET_H, data[0]))
-        return MPU_COMM_ERROR;
-    if(SS_MPU_write_check_byte(mpu9250, MPU_XG_OFFSET_L, data[1]))
-        return MPU_COMM_ERROR;
-    if(SS_MPU_write_check_byte(mpu9250, MPU_YG_OFFSET_H, data[2]))
-        return MPU_COMM_ERROR;
-    if(SS_MPU_write_check_byte(mpu9250, MPU_YG_OFFSET_L, data[3]))
-        return MPU_COMM_ERROR;
-    if(SS_MPU_write_check_byte(mpu9250, MPU_ZG_OFFSET_H, data[4]))
-        return MPU_COMM_ERROR;
-    if(SS_MPU_write_check_byte(mpu9250, MPU_ZG_OFFSET_L, data[5]))
-        return MPU_COMM_ERROR;
-    return MPU_OK;
-}
-enum MPU_RESULT SS_MPU_set_smplrt(struct MPU9250 *mpu9250, uint8_t smplrt) {
-    if(SS_MPU_write_check_byte(mpu9250, MPU_SMPLRT_DIV, smplrt))
-        return MPU_COMM_ERROR;
-    return MPU_OK;
+void SS_MPU_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
+    if(hspi == mpu1.hspi) {
+        SS_MPU_spi_tx_isr(mpu_pointer);
+    }
 }
 
 /* TODO Handle multiple mpu-s */
-void SS_MPU_exti_isr_single(struct MPU9250 *mpu9250, uint16_t GPIO_Pin) {
+static void SS_MPU_exti_isr(MPU9250 *mpu9250, uint16_t GPIO_Pin) {
     if(GPIO_Pin == mpu9250->INT_Pin) {
         SS_MPU_get_data_DMA(mpu9250);
     }
 }
 
-void SS_MPU_exti_isr(uint16_t GPIO_Pin) {
-    SS_MPU_exti_isr_single(&mpu1, GPIO_Pin);
+void SS_MPU_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+    SS_MPU_exti_isr(&mpu1, GPIO_Pin);
 }
+
+
+/* MPU_STATUS SS_MPU_get_fifo_counter(struct MPU9250 *mpu9250) { */
+/*     uint8_t reg[2]; */
+/*     if(SS_MPU_read_multiple(mpu9250, MPU_FIFO_COUNTH, reg, 2)) */
+/*         return MPU_COMM_ERROR; */
+/*     reg[0] &= 0x1F; */
+/*     mpu9250->fifo_counter = (uint16_t)((uint16_t) reg[0] << 8) | reg[1]; */
+/*     return MPU_OK; */
+/* } */
+
+
+/* enum MPU_STATUS SS_MPU_get_fifo_data(struct MPU9250 *mpu9250) { */
+/*     if(SS_MPU_get_fifo_counter(mpu9250)) */
+/*         return MPU_COMM_ERROR; */
+/*     if(mpu9250->fifo_counter > 0) { */
+/*         if(mpu9250->fifo_counter > 255) { */
+/*             if(SS_MPU_read_multiple(mpu9250, MPU_FIFO_R_W, mpu9250->fifo_data, 255)) */
+/*                 return MPU_COMM_ERROR; */
+/*             if(SS_MPU_read_multiple(mpu9250, MPU_FIFO_R_W, &mpu9250->fifo_data[254], mpu9250->fifo_counter - 255)) */
+/*                 return MPU_COMM_ERROR; */
+/*         } else if(SS_MPU_read_multiple(mpu9250, MPU_FIFO_R_W, mpu9250->fifo_data, mpu9250->fifo_counter)) */
+/*             return MPU_COMM_ERROR; */
+/*         mpu9250->FIFO_HANDLED_FLAG = 0; */
+/*     } */
+/*     return MPU_OK; */
+/* } */
+
+/* enum MPU_STATUS SS_MPU_set_fifo_data(struct MPU9250 *mpu9250) { */
+/*     if(SS_MPU_write_check_byte(mpu9250, MPU_FIFO_EN, 0x78)) */
+/*         return MPU_COMM_ERROR; */
+/*     return MPU_OK; */
+/* } */
 
 //enum MPU_RESULT SS_MPU_fifo_enable(struct MPU9250 *mpu9250) {
 //	mpu9250->fifo_data = calloc(512, sizeof(uint8_t));

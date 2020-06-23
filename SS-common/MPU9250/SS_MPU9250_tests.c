@@ -5,13 +5,7 @@
  *      Author: dawid
  */
 
-#include <stddef.h>
-#include <stdlib.h>
-
-#include "SS_MPU9250.h"
-#include "main.h"
-#include "math.h"
-#include "stm32f4xx_hal.h"
+#include "SS_MPU9250.c"
 #include "unity_fixture.h"
 
 static int gpio_pin_state;
@@ -21,9 +15,9 @@ static uint8_t gyro_prior_range;
 static int32_t bias[6] = {0};
 static int32_t prior_offset[6] = {1000, 1000, 1000};
 
-struct MPU9250 *mpu9250;
+MPU9250 *mpu9250;
 
-enum MPU_RESULT function_response;
+MPU_STATUS function_response;
 
 TEST_GROUP(MPU);
 
@@ -44,14 +38,13 @@ TEST_GROUP_RUNNER(MPU) {
     RUN_TEST_CASE(MPU, set_gyro_dlpf_bypass);
     RUN_TEST_CASE(MPU, set_accel_bandwidth);
     RUN_TEST_CASE(MPU, set_gyro_scale);
-    RUN_TEST_CASE(MPU, SPI_TxRxCpltCallback);
     RUN_TEST_CASE(MPU, MPU_set_clk);
     RUN_TEST_CASE(MPU, MPU_self_test);
     RUN_TEST_CASE(MPU, math_scaled_gyro);
     RUN_TEST_CASE(MPU, math_scaled_accel);
-    RUN_TEST_CASE(MPU, get_fifo_counter);
-    RUN_TEST_CASE(MPU, get_fifo_data);
-    RUN_TEST_CASE(MPU, set_fifo_data);
+    /* RUN_TEST_CASE(MPU, get_fifo_counter); */
+    /* RUN_TEST_CASE(MPU, get_fifo_data); */
+    /* RUN_TEST_CASE(MPU, set_fifo_data); */
     RUN_TEST_CASE(MPU, INT_enable);
     RUN_TEST_CASE(MPU, sleep);
     /* RUN_TEST_CASE(MPU, calibrate); */
@@ -360,10 +353,7 @@ TEST(MPU, get_data_DMA) {
     /* HAL_NVIC_DisableIRQ(MPU1_INT_EXTI_IRQn); */
     /* HAL_NVIC_DisableIRQ(MPU2_INT_EXTI_IRQn); */
 }
-TEST(MPU, SPI_TxRxCpltCallback) {
-    function_response = SS_MPU_SPI_TxRxCpltCallback(mpu9250);
-    TEST_ASSERT_EQUAL(MPU_OK, function_response);
-}
+
 TEST(MPU, MPU_set_clk) {
     function_response = SS_MPU_set_clk(mpu9250, 0x01);
     TEST_ASSERT_EQUAL(MPU_OK, function_response);
@@ -412,18 +402,19 @@ TEST(MPU, math_scaled_accel) {
     function_response = SS_MPU_math_scaled_accel(mpu9250);
     TEST_ASSERT_EQUAL(MPU_OK, function_response);
 }
-TEST(MPU, get_fifo_counter) {
-    function_response = SS_MPU_get_fifo_counter(mpu9250);
-    TEST_ASSERT_EQUAL(MPU_OK, function_response);
-}
-TEST(MPU, get_fifo_data) {
-    function_response = SS_MPU_get_fifo_data(mpu9250);
-    TEST_ASSERT_EQUAL(MPU_OK, function_response);
-}
-TEST(MPU, set_fifo_data) {
-    function_response = SS_MPU_set_fifo_data(mpu9250);
-    TEST_ASSERT_EQUAL(MPU_OK, function_response);
-}
+/* TEST(MPU, get_fifo_counter) { */
+/*     function_response = SS_MPU_get_fifo_counter(mpu9250); */
+/*     TEST_ASSERT_EQUAL(MPU_OK, function_response); */
+/* } */
+/* TEST(MPU, get_fifo_data) { */
+/*     function_response = SS_MPU_get_fifo_data(mpu9250); */
+/*     TEST_ASSERT_EQUAL(MPU_OK, function_response); */
+/* } */
+/* TEST(MPU, set_fifo_data) { */
+/*     function_response = SS_MPU_set_fifo_data(mpu9250); */
+/*     TEST_ASSERT_EQUAL(MPU_OK, function_response); */
+/* } */
+
 TEST(MPU, INT_enable) {
     function_response = SS_MPU_INT_enable(mpu9250);
     TEST_ASSERT_EQUAL(MPU_OK, function_response);

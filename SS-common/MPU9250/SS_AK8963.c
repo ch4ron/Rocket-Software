@@ -13,7 +13,7 @@
 #include "task.h"
 #include "stm32f4xx_hal.h"
 
-enum MPU_RESULT SS_MPU_get_mgnt_data(struct MPU9250 *mpu9250) {
+MPU_STATUS SS_MPU_get_mgnt_data(MPU9250 *mpu9250) {
     uint8_t rcv[7];
     if(SS_MPU_read_multiple(mpu9250, MPU_EXT_SENS_DATA_00, rcv, 7))  //Read 7 bytes from MPU registers
         return MPU_COMM_ERROR;
@@ -25,15 +25,15 @@ enum MPU_RESULT SS_MPU_get_mgnt_data(struct MPU9250 *mpu9250) {
     return MPU_OK;
 }
 
-enum MPU_RESULT SS_MPU_math_scaled_mgnt(struct MPU9250 *mpu9250) {
+MPU_STATUS SS_MPU_math_scaled_mgnt(MPU9250 *mpu9250) {
     mpu9250->mgnt_scaled_x = (float) mpu9250->mgnt_scale_x * (mpu9250->mgnt_raw_x - mpu9250->mgnt_bias_x) * 0.15f * ((mpu9250->xASens - 128) * 0.5f / 128 + 1);
     mpu9250->mgnt_scaled_y = (float) mpu9250->mgnt_scale_y * (mpu9250->mgnt_raw_y - mpu9250->mgnt_bias_y) * 0.15f * ((mpu9250->yASens - 128) * 0.5f / 128 + 1);
     mpu9250->mgnt_scaled_z = (float) mpu9250->mgnt_scale_z * (mpu9250->mgnt_raw_z - mpu9250->mgnt_bias_z) * 0.15f * ((mpu9250->zASens - 128) * 0.5f / 128 + 1);
     return MPU_OK;
 }
 
-enum MPU_RESULT SS_AK8963_write_register(struct MPU9250 *mpu9250, uint8_t address, uint8_t data) {
-    enum MPU_RESULT result = MPU_OK;
+MPU_STATUS SS_AK8963_write_register(MPU9250 *mpu9250, uint8_t address, uint8_t data) {
+    MPU_STATUS result = MPU_OK;
     result |= SS_MPU_write_byte(mpu9250, MPU_I2C_SLV0_ADDR, AK8963_ADDRESS);  //Set operation as write
     result |= SS_MPU_write_byte(mpu9250, MPU_I2C_SLV0_REG, address);          //Choose where to write data
     result |= SS_MPU_write_byte(mpu9250, MPU_I2C_SLV0_DO, data);              //Set data to write
@@ -41,8 +41,8 @@ enum MPU_RESULT SS_AK8963_write_register(struct MPU9250 *mpu9250, uint8_t addres
     return MPU_OK;
 }
 
-enum MPU_RESULT SS_AK8963_write_check_register(struct MPU9250 *mpu9250, uint8_t address, uint8_t data) {
-    enum MPU_RESULT result = MPU_OK;
+MPU_STATUS SS_AK8963_write_check_register(MPU9250 *mpu9250, uint8_t address, uint8_t data) {
+    MPU_STATUS result = MPU_OK;
     result |= SS_MPU_write_check_byte(mpu9250, MPU_I2C_SLV0_ADDR, AK8963_ADDRESS);  //Set operation as write
     result |= SS_MPU_write_check_byte(mpu9250, MPU_I2C_SLV0_REG, address);          //Choose where to write data
     result |= SS_MPU_write_check_byte(mpu9250, MPU_I2C_SLV0_DO, data);              //Set data to write
@@ -56,8 +56,8 @@ enum MPU_RESULT SS_AK8963_write_check_register(struct MPU9250 *mpu9250, uint8_t 
     return MPU_OK;
 }
 
-enum MPU_RESULT SS_AK8963_read_multiple(struct MPU9250 *mpu9250, uint8_t address, uint8_t *data, uint8_t count) {
-    enum MPU_RESULT result = MPU_OK;
+MPU_STATUS SS_AK8963_read_multiple(MPU9250 *mpu9250, uint8_t address, uint8_t *data, uint8_t count) {
+    MPU_STATUS result = MPU_OK;
     result |= SS_MPU_write_byte(mpu9250, MPU_I2C_SLV0_ADDR, AK8963_ADDRESS | 0x80);  //Set operation as read
     HAL_Delay(1);
     result |= SS_MPU_write_byte(mpu9250, MPU_I2C_SLV0_REG, address);  //Choose from where to read data
@@ -68,14 +68,14 @@ enum MPU_RESULT SS_AK8963_read_multiple(struct MPU9250 *mpu9250, uint8_t address
     return MPU_OK;
 }
 
-uint8_t SS_AK8963_who_am_i(struct MPU9250 *mpu9250) {
+uint8_t SS_AK8963_who_am_i(MPU9250 *mpu9250) {
     uint8_t i_am;
     SS_AK8963_read_multiple(mpu9250, AK8963_WHO_AM_I, &i_am, 1);
     return i_am;
 }
 
-enum MPU_RESULT SS_AK8963_start_reading_data(struct MPU9250 *mpu9250) {
-    enum MPU_RESULT result = MPU_OK;
+MPU_STATUS SS_AK8963_start_reading_data(MPU9250 *mpu9250) {
+    MPU_STATUS result = MPU_OK;
     result |= SS_AK8963_write_check_register(mpu9250, AK8963_CNTL1, 0x16);  //Enter 16-bit 100Hz continuous measurement mode
     HAL_Delay(1);
     result |= SS_MPU_write_byte(mpu9250, MPU_I2C_SLV0_ADDR, AK8963_ADDRESS | 0x80);  //Set operation as read
@@ -87,14 +87,14 @@ enum MPU_RESULT SS_AK8963_start_reading_data(struct MPU9250 *mpu9250) {
     return MPU_OK;
 }
 
-uint8_t SS_AK8963_check_data_ready(struct MPU9250 *mpu9250) {
+uint8_t SS_AK8963_check_data_ready(MPU9250 *mpu9250) {
     uint8_t rec;
     SS_AK8963_read_multiple(mpu9250, AK8963_ST1, &rec, 1);
     return rec & 0x01;
 }
 
-enum MPU_RESULT SS_AK8963_self_test(struct MPU9250 *mpu9250) {
-    enum MPU_RESULT result = MPU_OK;
+MPU_STATUS SS_AK8963_self_test(MPU9250 *mpu9250) {
+    MPU_STATUS result = MPU_OK;
     result |= SS_AK8963_write_check_register(mpu9250, AK8963_CNTL1, 0x00);  //Set Power-down mode
     result |= SS_AK8963_write_check_register(mpu9250, AK8963_ASTC, 0x40);   //Write "1" to SELF bit of ASTC register(Generate magnetic field for self-test)
     result |= SS_AK8963_write_check_register(mpu9250, AK8963_CNTL1, 0x18);  //Set Self-test mode
@@ -118,8 +118,8 @@ enum MPU_RESULT SS_AK8963_self_test(struct MPU9250 *mpu9250) {
     return result;
 }
 
-enum MPU_RESULT SS_AK8963_read_fuse_data(struct MPU9250 *mpu9250) {
-    enum MPU_RESULT result = MPU_OK;
+MPU_STATUS SS_AK8963_read_fuse_data(MPU9250 *mpu9250) {
+    MPU_STATUS result = MPU_OK;
     result |= SS_AK8963_write_check_register(mpu9250, AK8963_CNTL1, 0x1F);  //Set Fuse ROM access mode
     uint8_t adj[3];
     result |= SS_AK8963_read_multiple(mpu9250, AK8963_ASAX, adj, 3);        //Read sensitivity adjustment values
@@ -130,11 +130,11 @@ enum MPU_RESULT SS_AK8963_read_fuse_data(struct MPU9250 *mpu9250) {
     return result;
 }
 
-enum MPU_RESULT SS_AK8963_reset(struct MPU9250 *mpu9250) {
+MPU_STATUS SS_AK8963_reset(MPU9250 *mpu9250) {
     return SS_AK8963_write_register(mpu9250, AK8963_CNTL2, 0x01);
 }
 
-enum MPU_RESULT SS_AK8963_calibration_cycle(struct MPU9250 *mpu9250, int16_t *mag_bias, float *mag_scale) {
+MPU_STATUS SS_AK8963_calibration_cycle(MPU9250 *mpu9250, int16_t *mag_bias, float *mag_scale) {
     int16_t mag_max[3] = {-32767, -32767, -32767}, mag_min[3] = {32767, 32767, 32767}, mag_tmp[3];
     for(uint16_t i = 0; i < 1000; i++) {
         if(mpu9250->mgnt_raw_x > mag_max[0]) mag_max[0] = mpu9250->mgnt_raw_x;
@@ -162,7 +162,7 @@ enum MPU_RESULT SS_AK8963_calibration_cycle(struct MPU9250 *mpu9250, int16_t *ma
     return MPU_OK;
 }
 
-enum MPU_RESULT SS_AK8963_calibrate(struct MPU9250 *mpu9250) {  //Reads data using interrupts, enable them first
+MPU_STATUS SS_AK8963_calibrate(MPU9250 *mpu9250) {  //Reads data using interrupts, enable them first
     SS_print("Magnetometer calibration: Wave the device in a figure eight until done!\r\n");
     HAL_Delay(1000);
     int16_t mag_bias[3] = {0, 0, 0};
@@ -182,7 +182,7 @@ enum MPU_RESULT SS_AK8963_calibrate(struct MPU9250 *mpu9250) {  //Reads data usi
     return MPU_OK;
 }
 
-enum MPU_RESULT SS_AK8963_calibration_cycle2(struct MPU9250 *mpu1, struct MPU9250 *mpu2, int16_t *mag1_bias, float *mag1_scale, int16_t *mag2_bias, float *mag2_scale) {
+MPU_STATUS SS_AK8963_calibration_cycle2(MPU9250 *mpu1, MPU9250 *mpu2, int16_t *mag1_bias, float *mag1_scale, int16_t *mag2_bias, float *mag2_scale) {
     int16_t mag1_max[3] = {-32767, -32767, -32767}, mag1_min[3] = {32767, 32767, 32767}, mag1_tmp[3];
     int16_t mag2_max[3] = {-32767, -32767, -32767}, mag2_min[3] = {32767, 32767, 32767}, mag2_tmp[3];
     for(uint16_t i = 0; i < 1000; i++) {
@@ -239,7 +239,7 @@ enum MPU_RESULT SS_AK8963_calibration_cycle2(struct MPU9250 *mpu1, struct MPU925
     return MPU_OK;
 }
 
-enum MPU_RESULT SS_AK8963_calibrate2(struct MPU9250 *mpu1, struct MPU9250 *mpu2) {
+MPU_STATUS SS_AK8963_calibrate2(MPU9250 *mpu1, MPU9250 *mpu2) {
     vTaskDelay(1000);
     int16_t mag1_bias[3] = {0, 0, 0};
     float mag1_scale[3] = {0.0f, 0.0f, 0.0f};
@@ -263,7 +263,7 @@ enum MPU_RESULT SS_AK8963_calibrate2(struct MPU9250 *mpu1, struct MPU9250 *mpu2)
     return MPU_OK;
 }
 
-enum MPU_RESULT SS_AK8963_set_calibration_values(struct MPU9250 *mpu9250, int16_t bias_x, int16_t bias_y, int16_t bias_z, float scale_x, float scale_y, float scale_z) {
+MPU_STATUS SS_AK8963_set_calibration_values(MPU9250 *mpu9250, int16_t bias_x, int16_t bias_y, int16_t bias_z, float scale_x, float scale_y, float scale_z) {
     mpu9250->mgnt_bias_x = bias_x;
     mpu9250->mgnt_bias_y = bias_y;
     mpu9250->mgnt_bias_z = bias_z;
@@ -272,8 +272,8 @@ enum MPU_RESULT SS_AK8963_set_calibration_values(struct MPU9250 *mpu9250, int16_
     mpu9250->mgnt_scale_z = scale_z;
     return MPU_OK;
 }
-enum MPU_RESULT SS_AK8963_init(struct MPU9250 *mpu9250) {
-    enum MPU_RESULT result = MPU_OK;
+MPU_STATUS SS_AK8963_init(MPU9250 *mpu9250) {
+    MPU_STATUS result = MPU_OK;
     result |= SS_MPU_write_check_byte(mpu9250, MPU_USER_CTRL, 0x30);  //Enable I2C master, disable I2C slave
     HAL_Delay(1);
     result |= SS_MPU_write_check_byte(mpu9250, MPU_I2C_MST_CTRL, 0x0D);  //Set I2C frequency to 400kHz

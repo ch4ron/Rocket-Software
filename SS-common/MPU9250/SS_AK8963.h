@@ -5,29 +5,29 @@
  *      Author: Maciek
  */
 
-#ifndef SS_AK8963_H_
-#define SS_AK8963_H_
+#ifndef SS_AK8963_H
+#define SS_AK8963_H
 
 #include "SS_MPU9250.h"
 #include "stdint.h"
 
-struct MPU9250;
-uint8_t SS_AK8963_who_am_i(struct MPU9250 *mpu9250);
-uint8_t SS_AK8963_check_data_ready(struct MPU9250 *mpu9250);
-enum MPU_RESULT SS_AK8963_init(struct MPU9250* mpu9250);
-enum MPU_RESULT SS_MPU_math_scaled_mgnt(struct MPU9250* mpu9250);
-enum MPU_RESULT SS_MPU_get_mgnt_data(struct MPU9250* mpu9250);
-enum MPU_RESULT SS_AK8963_write_register(struct MPU9250 *mpu9250, uint8_t address, uint8_t data);
-enum MPU_RESULT SS_AK8963_write_check_register(struct MPU9250 *mpu9250, uint8_t address, uint8_t data);
-enum MPU_RESULT SS_AK8963_read_multiple(struct MPU9250 *mpu9250, uint8_t address, uint8_t *data, uint8_t count);
-enum MPU_RESULT SS_AK8963_start_reading_data(struct MPU9250 *mpu9250);
-enum MPU_RESULT SS_AK8963_self_test(struct MPU9250 *mpu9250);
-enum MPU_RESULT SS_AK8963_reset(struct MPU9250 *mpu9250);
-enum MPU_RESULT SS_AK8963_read_fuse_data(struct MPU9250 *mpu9250);
-enum MPU_RESULT SS_AK8963_calibrate(struct MPU9250 *mpu9250);
-enum MPU_RESULT SS_AK8963_calibration_cycle(struct MPU9250 *mpu9250, int16_t *mag_bias, float *mag_scale);
-enum MPU_RESULT SS_AK8963_set_calibration_values(struct MPU9250* mpu9250, int16_t bias_x, int16_t bias_y, int16_t bias_z,float scale_x, float scale_y, float scale_z);
-enum MPU_RESULT SS_AK8963_calibrate2(struct MPU9250 *mpu1, struct MPU9250 *mpu2);
+uint8_t SS_AK8963_who_am_i(MPU9250 *mpu9250);
+uint8_t SS_AK8963_check_data_ready(MPU9250 *mpu9250);
+MPU_STATUS SS_AK8963_init(MPU9250 *mpu9250);
+MPU_STATUS SS_MPU_math_scaled_mgnt(MPU9250 *mpu9250);
+MPU_STATUS SS_MPU_get_mgnt_data(MPU9250 *mpu9250);
+MPU_STATUS SS_AK8963_write_register(MPU9250 *mpu9250, uint8_t address, uint8_t data);
+MPU_STATUS SS_AK8963_write_check_register(MPU9250 *mpu9250, uint8_t address, uint8_t data);
+MPU_STATUS SS_AK8963_read_multiple(MPU9250 *mpu9250, uint8_t address, uint8_t *data, uint8_t count);
+MPU_STATUS SS_AK8963_start_reading_data(MPU9250 *mpu9250);
+MPU_STATUS SS_AK8963_self_test(MPU9250 *mpu9250);
+MPU_STATUS SS_AK8963_reset(MPU9250 *mpu9250);
+MPU_STATUS SS_AK8963_read_fuse_data(MPU9250 *mpu9250);
+MPU_STATUS SS_AK8963_calibrate(MPU9250 *mpu9250);
+MPU_STATUS SS_AK8963_calibration_cycle(MPU9250 *mpu9250, int16_t *mag_bias, float *mag_scale);
+MPU_STATUS SS_AK8963_set_calibration_values(MPU9250 *mpu9250, int16_t bias_x, int16_t bias_y, int16_t bias_z, float scale_x, float scale_y, float scale_z);
+MPU_STATUS SS_AK8963_calibrate2(MPU9250 *mpu1, MPU9250 *mpu2);
+
 #define AK8963_ADDRESS   0x0C
 #define AK8963_WHO_AM_I  0x00 // should return 0x48
 #define AK8963_INFO      0x01
@@ -46,4 +46,5 @@ enum MPU_RESULT SS_AK8963_calibrate2(struct MPU9250 *mpu1, struct MPU9250 *mpu2)
 #define AK8963_ASAX      0x10  // Fuse ROM x-axis sensitivity adjustment value
 #define AK8963_ASAY      0x11  // Fuse ROM y-axis sensitivity adjustment value
 #define AK8963_ASAZ      0x12  // Fuse ROM z-axis sensitivity adjustment value
-#endif /* SS_AK8963_H_ */
+
+#endif /* SS_AK8963_H */
