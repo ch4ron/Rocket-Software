@@ -8,25 +8,31 @@
 #ifndef SS_AK8963_H
 #define SS_AK8963_H
 
+/* ==================================================================== */
+/* ============================= Includes ============================= */
+/* ==================================================================== */
+
 #include "SS_MPU9250.h"
 #include "stdint.h"
 
-uint8_t SS_AK8963_who_am_i(MPU9250 *mpu9250);
-uint8_t SS_AK8963_check_data_ready(MPU9250 *mpu9250);
+/* ==================================================================== */
+/* ==================== Public function prototypes ==================== */
+/* ==================================================================== */
+
 MPU_STATUS SS_AK8963_init(MPU9250 *mpu9250);
-MPU_STATUS SS_MPU_math_scaled_mgnt(MPU9250 *mpu9250);
-MPU_STATUS SS_MPU_get_mgnt_data(MPU9250 *mpu9250);
-MPU_STATUS SS_AK8963_write_register(MPU9250 *mpu9250, uint8_t address, uint8_t data);
-MPU_STATUS SS_AK8963_write_check_register(MPU9250 *mpu9250, uint8_t address, uint8_t data);
-MPU_STATUS SS_AK8963_read_multiple(MPU9250 *mpu9250, uint8_t address, uint8_t *data, uint8_t count);
-MPU_STATUS SS_AK8963_start_reading_data(MPU9250 *mpu9250);
-MPU_STATUS SS_AK8963_self_test(MPU9250 *mpu9250);
 MPU_STATUS SS_AK8963_reset(MPU9250 *mpu9250);
-MPU_STATUS SS_AK8963_read_fuse_data(MPU9250 *mpu9250);
-MPU_STATUS SS_AK8963_calibrate(MPU9250 *mpu9250);
-MPU_STATUS SS_AK8963_calibration_cycle(MPU9250 *mpu9250, int16_t *mag_bias, float *mag_scale);
-MPU_STATUS SS_AK8963_set_calibration_values(MPU9250 *mpu9250, int16_t bias_x, int16_t bias_y, int16_t bias_z, float scale_x, float scale_y, float scale_z);
+uint8_t SS_AK8963_who_am_i(MPU9250 *mpu9250);
+MPU_STATUS SS_MPU_get_mgnt_data(MPU9250 *mpu9250);
+MPU_STATUS SS_MPU_math_scaled_mgnt(MPU9250 *mpu9250);
+uint8_t SS_AK8963_check_data_ready(MPU9250 *mpu9250);
+MPU_STATUS SS_AK8963_self_test(MPU9250 *mpu9250);
+MPU_STATUS SS_AK8963_calibrate(MPU9250 *mpu9250);  //Reads data using interrupts, enable them first
 MPU_STATUS SS_AK8963_calibrate2(MPU9250 *mpu1, MPU9250 *mpu2);
+MPU_STATUS SS_AK8963_set_calibration_values(MPU9250 *mpu9250, int16_t bias_x, int16_t bias_y, int16_t bias_z, float scale_x, float scale_y, float scale_z);
+
+/* ==================================================================== */
+/* ============================ Registers ============================= */
+/* ==================================================================== */
 
 #define AK8963_ADDRESS   0x0C
 #define AK8963_WHO_AM_I  0x00 // should return 0x48
