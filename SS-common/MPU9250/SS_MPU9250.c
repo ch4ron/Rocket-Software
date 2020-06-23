@@ -10,10 +10,9 @@
 #include "SS_misc.h"
 #include "main.h"
 /* TODO Remove math */
-#include "math.h"
 #include "SS_log.h"
+#include "math.h"
 #include "spi.h"
-
 
 struct MPU9250 mpu1;
 struct MPU9250 *mpu_pointer;
@@ -75,11 +74,11 @@ enum MPU_RESULT SS_MPU_read_byte(struct MPU9250 *mpu9250, uint8_t RegAdr, uint8_
 enum MPU_RESULT SS_MPU_write_check_byte(struct MPU9250 *mpu9250, uint8_t RegAdr, uint8_t RegDat) {
     if(SS_MPU_write_byte(mpu9250, RegAdr, RegDat))
         return MPU_COMM_ERROR;
-    HAL_Delay(1);
+    HAL_Delay(10);
     uint8_t res;
     if(SS_MPU_read_byte(mpu9250, RegAdr, &res) || res != RegDat)
         return MPU_COMM_ERROR;
-    HAL_Delay(1);
+    HAL_Delay(10);
     return MPU_OK;
 }
 
@@ -254,11 +253,11 @@ enum MPU_RESULT SS_MPU_get_gyro_data(struct MPU9250 *mpu9250) {
 }
 
 enum MPU_RESULT SS_MPU_get_data_DMA(struct MPU9250 *mpu9250) {
-//    if(HAL_SPI_GetState(mpu9250->hspi) == HAL_SPI_STATE_READY &&
-//       HAL_DMA_GetState(&MPU_HDMA_SPI_TX) == HAL_DMA_STATE_READY &&
-//       HAL_DMA_GetState(&MPU_HDMA_SPI_RX) == HAL_DMA_STATE_READY) {
-        mpu_pointer = mpu9250;
-        return SS_MPU_read_multiple_DMA(mpu9250, MPU_ACCEL_XOUT_H, mpu9250->rcv, 22, ACCELEROMETER);
+    //    if(HAL_SPI_GetState(mpu9250->hspi) == HAL_SPI_STATE_READY &&
+    //       HAL_DMA_GetState(&MPU_HDMA_SPI_TX) == HAL_DMA_STATE_READY &&
+    //       HAL_DMA_GetState(&MPU_HDMA_SPI_RX) == HAL_DMA_STATE_READY) {
+    mpu_pointer = mpu9250;
+    return SS_MPU_read_multiple_DMA(mpu9250, MPU_ACCEL_XOUT_H, mpu9250->rcv, 22, ACCELEROMETER);
 //    }
 #ifdef MULTIPLE_MPU
 //    if(mpu9250 == &mpu1)
@@ -288,19 +287,19 @@ enum MPU_RESULT SS_MPU_SPI_TxRxCpltCallback(struct MPU9250 *mpu9250) {
         mpu9250->old_data[0] = mpu9250->accel_raw_x;
         mpu9250->old_data[1] = mpu9250->accel_raw_y;
         mpu9250->old_data[2] = mpu9250->accel_raw_z;
-//        SS_S25FL_save_3x_int16_t(mpu9250->accel_id, mpu9250->accel_raw_x, mpu9250->accel_raw_y, mpu9250->accel_raw_z);
+        //        SS_S25FL_save_3x_int16_t(mpu9250->accel_id, mpu9250->accel_raw_x, mpu9250->accel_raw_y, mpu9250->accel_raw_z);
     }
     if(mpu9250->old_data[3] != mpu9250->gyro_raw_x || mpu9250->old_data[4] != mpu9250->gyro_raw_y || mpu9250->old_data[5] != mpu9250->gyro_raw_z) {
         mpu9250->old_data[3] = mpu9250->gyro_raw_x;
         mpu9250->old_data[4] = mpu9250->gyro_raw_y;
         mpu9250->old_data[5] = mpu9250->gyro_raw_z;
-//        SS_S25FL_save_3x_int16_t(mpu9250->gyro_id, mpu9250->gyro_raw_x, mpu9250->gyro_raw_y, mpu9250->gyro_raw_z);
+        //        SS_S25FL_save_3x_int16_t(mpu9250->gyro_id, mpu9250->gyro_raw_x, mpu9250->gyro_raw_y, mpu9250->gyro_raw_z);
     }
     if(mpu9250->old_data[6] != mpu9250->mgnt_raw_x || mpu9250->old_data[7] != mpu9250->mgnt_raw_y || mpu9250->old_data[8] != mpu9250->mgnt_raw_z) {
         mpu9250->old_data[6] = mpu9250->mgnt_raw_x;
         mpu9250->old_data[7] = mpu9250->mgnt_raw_y;
         mpu9250->old_data[8] = mpu9250->mgnt_raw_z;
-//        SS_S25FL_save_3x_int16_t(mpu9250->mgnt_id, mpu9250->mgnt_raw_x, mpu9250->mgnt_raw_y, mpu9250->mgnt_raw_z);
+        //        SS_S25FL_save_3x_int16_t(mpu9250->mgnt_id, mpu9250->mgnt_raw_x, mpu9250->mgnt_raw_y, mpu9250->mgnt_raw_z);
     }
     return MPU_OK;
 }
@@ -385,9 +384,9 @@ enum MPU_RESULT SS_MPU_self_test(struct MPU9250 *mpu9250) {  //Not tested
     SS_print("--------------------------------\r\n");
     SS_print("MPU9250 SELF TEST\r\n");
     SS_print("Gyroscope self test values / factory values:\r\nx: %f, y: %f z: %f\r\n",
-           (float) ST[0] / ST_OTP[0], (float) ST[1] / ST_OTP[1], (float) ST[2] / ST_OTP[2]);
+             (float) ST[0] / ST_OTP[0], (float) ST[1] / ST_OTP[1], (float) ST[2] / ST_OTP[2]);
     SS_print("Accelerometer self test values / factory values:\r\nx: %f, y: %f z: %f\r\n",
-           (float) ST[3] / ST_OTP[3], (float) ST[4] / ST_OTP[4], (float) ST[5] / ST_OTP[5]);
+             (float) ST[3] / ST_OTP[3], (float) ST[4] / ST_OTP[4], (float) ST[5] / ST_OTP[5]);
     SS_print("--------------------------------\r\n");
 #endif
     for(uint8_t i = 0; i < 6; i++) {
@@ -769,7 +768,6 @@ void SS_MPU_exti_isr_single(struct MPU9250 *mpu9250, uint16_t GPIO_Pin) {
 void SS_MPU_exti_isr(uint16_t GPIO_Pin) {
     SS_MPU_exti_isr_single(&mpu1, GPIO_Pin);
 }
-
 
 //enum MPU_RESULT SS_MPU_fifo_enable(struct MPU9250 *mpu9250) {
 //	mpu9250->fifo_data = calloc(512, sizeof(uint8_t));

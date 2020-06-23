@@ -48,6 +48,9 @@ static void tests() {
 #ifdef SS_USE_SUPPLY
     RUN_TEST_GROUP(supply_control);
 #endif
+#ifdef SS_USE_MPU9250
+    SS_IMU_Tests();
+#endif
 }
 
 /* Enable verbose output */
