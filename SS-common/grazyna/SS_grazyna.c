@@ -66,6 +66,7 @@ void SS_grazyna_init(UART_HandleTypeDef *huart) {
     grazyna.grazyna_state = GRAZYNA_LOOKING_FOR_HEADER;
     grazyna.tx_queue = xQueueCreate(SS_COM_TX_QUEUE_SIZE, sizeof(ComFrame));
     grazyna.mutex = xSemaphoreCreateBinary();
+    xSemaphoreGive(grazyna.mutex);
     SS_grazyna_receive_hal((uint8_t *) &grazyna.rx_buff, sizeof(grazyna.rx_buff.header));
     SS_grazyna_enable();
 }
@@ -98,8 +99,9 @@ void SS_grazyna_tx_handler_task(void *pvParameters) {
     ComFrame frame;
     while(1) {
         if(xQueueReceive(grazyna.tx_queue, &frame, portMAX_DELAY) == pdTRUE) {
-            xSemaphoreTake(grazyna.mutex, 1000);
-            SS_grazyna_tx(&frame);
+            if(xSemaphoreTake(grazyna.mutex, 1000) == pdTRUE) {
+                SS_grazyna_tx(&frame);
+            }
         }
     }
 }

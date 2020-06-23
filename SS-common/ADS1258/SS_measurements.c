@@ -7,6 +7,8 @@
 
 #include "SS_measurements.h"
 
+#include "SS_com.h"
+#include "SS_com_ids.h"
 #include "string.h"
 
 #define ADS1258_PREVIEW_VALUES_PERIOD 100
@@ -142,6 +144,7 @@ static void SS_ADS1258_measurement_feed(Measurement *meas, ComFrame *frame) {
     frame->priority = COM_LOW_PRIORITY;
     frame->action = COM_FEED;
     frame->destination = COM_GRAZYNA_ID;
+    frame->source = SS_com_get_board_id();
     frame->device = COM_MEASUREMENT_ID;
     frame->operation = 0;
     frame->id = meas->channel_id;

@@ -30,8 +30,8 @@ static UART_HandleTypeDef *grazyna_huart;
 /* ==================================================================== */
 
 /* huart is of type UART_HandleTypedef */
-void SS_grazyna_init_hal(void *huart) {
-    grazyna_huart = (UART_HandleTypeDef *) huart;
+void SS_grazyna_init_hal(UART_HandleTypeDef *huart) {
+    grazyna_huart = huart;
 }
 
 void SS_grazyna_receive_hal(uint8_t *data, uint16_t length) {
@@ -39,7 +39,6 @@ void SS_grazyna_receive_hal(uint8_t *data, uint16_t length) {
 }
 
 void SS_grazyna_transmit_hal(uint8_t *data, uint16_t length) {
-    /* TODO Add mutex for transmission */
     HAL_UART_Transmit_DMA(grazyna_huart, data, length);
 }
 

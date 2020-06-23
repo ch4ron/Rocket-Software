@@ -90,6 +90,9 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
     SS_dynamixel_UART_TxCpltCallback(huart);
 #endif
     SS_log_tx_isr(huart);
+#ifdef SS_USE_GRAZYNA
+    SS_grazyna_UART_TxCpltCallback(huart);
+#endif
 }
 
 #ifdef SS_USE_S25FL
@@ -111,7 +114,7 @@ void HAL_SYSTICK_Callback() {
     SS_supply_SYSTICK();
 #endif
 #ifdef SS_USE_SEQUENCE
-    SS_sequence_SYSTICK();
+    /* SS_sequence_SYSTICK(); */
 #endif
 #ifdef SS_USE_MS5X
     SS_MS56_SYSTICK_Callback();

@@ -83,19 +83,19 @@ static void SS_FreeRTOS_create_tasks(void) {
 #ifdef SS_USE_COM
     res = xTaskCreate(SS_com_rx_handler_task, "Com Rx Task", 256, NULL, 5, NULL);
     assert(res == pdTRUE);
-#ifdef SS_USE_GRAZYNA
-    res = xTaskCreate(SS_grazyna_tx_handler_task, "Grazyna Tx Task", 64, NULL, 5, NULL);
-    assert(res == pdTRUE);
-    /* res = xTaskCreate(SS_com_feed_task, "Feed task", 64, NULL, 5, (TaskHandle_t *) &com_feed_task); */
-    /* assert(res == pdTRUE); */
-#endif
 #ifdef SS_USE_CAN
     res = xTaskCreate(SS_can_tx_handler_task, "Can Tx Task", 64, NULL, 5, NULL);
     assert(res == pdTRUE);
+#endif
 #ifdef SS_USE_EXT_CAN
     res = xTaskCreate(SS_can_tx_handler_task, "Ext Can Tx Task", 64, NULL, 5, NULL);
     assert(res == pdTRUE);
 #endif
+#ifdef SS_USE_GRAZYNA
+    res = xTaskCreate(SS_grazyna_tx_handler_task, "Grazyna Tx Task", 64, NULL, 5, NULL);
+    assert(res == pdTRUE);
+    res = xTaskCreate(SS_com_feed_task, "Feed task", 256, NULL, 5, (TaskHandle_t *) &com_feed_task);
+    assert(res == pdTRUE);
 #endif
 #endif
     res = xTaskCreate(SS_console_task, "Console Task", 256, NULL, 5, (TaskHandle_t *) NULL);
@@ -106,8 +106,7 @@ static void SS_FreeRTOS_create_tasks(void) {
 /* ============================== Hooks =============================== */
 /* ==================================================================== */
 
-void vApplicationStackOverflowHook(xTaskHandle xTask,
-                                          signed char *pcTaskName) {
+void vApplicationStackOverflowHook(xTaskHandle xTask, signed char *pcTaskName) {
     assert(false);
     /* Run time stack overflow checking is performed if
     configCHECK_FOR_STACK_OVERFLOW is defined to 1 or 2. This hook function is

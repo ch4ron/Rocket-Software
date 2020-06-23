@@ -83,6 +83,12 @@ void SS_log_buf_flush(void) {
     }
 }
 
+void SS_log_buf_flush_fromISR(BaseType_t *higherPriorityTaskWoken) {
+    if(xSemaphoreTakeFromISR(log_mutex, higherPriorityTaskWoken) == pdTRUE) {
+        SS_log_buf_flush_internal(&log_buf);
+    }
+}
+
 void _SS_print(const char *format, ...) {
     if(log_huart == NULL) {
         return;
@@ -96,6 +102,23 @@ void _SS_print(const char *format, ...) {
         xSemaphoreGive(log_buf_mutex);
     }
     va_end(arg);
+}
+
+void _SS_print_fromISR(const char *format, ...) {
+    if(log_huart == NULL) {
+        return;
+    }
+    va_list arg;
+    BaseType_t higherPriorityTaskWoken = pdFALSE;
+    va_start(arg, format);
+
+    if(xSemaphoreTakeFromISR(log_buf_mutex, &higherPriorityTaskWoken) == pdTRUE) {
+        vfctprintf(SS_log_buf_put_wrapper, &log_buf, format, arg);
+        SS_log_buf_flush_fromISR(&higherPriorityTaskWoken);
+        xSemaphoreGiveFromISR(log_buf_mutex, &higherPriorityTaskWoken);
+    }
+    va_end(arg);
+    portYIELD_FROM_ISR(higherPriorityTaskWoken);
 }
 
 bool SS_print_no_flush_start(void) {

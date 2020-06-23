@@ -9,6 +9,7 @@
 /* ============================= Includes ============================= */
 /* ==================================================================== */
 
+#include "SS_com_ids.h"
 #ifdef SS_USE_GRAZYNA
 
 #include "SS_grazyna.h"
@@ -120,6 +121,10 @@ void SS_com_rx_handler_task(void *pvParameters) {
             SS_com_handle_frame(&frame_buff);
         }
     }
+}
+
+ComBoardID SS_com_get_board_id(void) {
+    return board_id;
 }
 
 /* ==================================================================== */
