@@ -32,7 +32,6 @@ add_compile_options(-Wall)
 
 project(RocketSoftware)
 
-#find_program(GDBSERVER ST-LINK_gdbserver)
 find_program(GDB arm-none-eabi-gdb)
 find_program(OPENOCD openocd)
 find_program(WINPTY winpty)
@@ -90,18 +89,6 @@ macro(create_target)
         -ex 'load')
     add_dependencies(${PROJECT_NAME}_gdb ${PROJECT_NAME}.elf)
   endif()
-
-	# You must create a link 'cubeprogrammer-bin' to STM32CubeProgrammer bin directory to use STM32CubeProgrammer.
-  # Under MSYS2 (Windows) you can do it using `cmd //c mklink`.
-	#if(GDB AND GDBSERVER)
-	#add_custom_target(${PROJECT_NAME}_debug
-	#COMMAND ST-LINK_gdbserver -d -v -cp ${ROOT_DIR}/cubeprogrammer-bin &
-	#COMMAND arm-none-eabi-gdb ${PROJECT_NAME}.elf
-	#-ex 'target extended-remote localhost:61234'
-	#-ex 'monitor reset halt'
-	#-ex 'load')
-	#add_dependencies(${PROJECT_NAME}_debug ${PROJECT_NAME}.elf)
-	#endif()
 
   # Generate JLink config file and add flash target
   set(JLINK_COMMANDS "si SWD"
