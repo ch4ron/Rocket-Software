@@ -53,9 +53,9 @@ S25flStatus SS_s25fl_read_page_dma_wait(uint32_t page, uint8_t *data);
 S25flStatus SS_s25fl_wait_until_ready(void);
 S25flStatus SS_s25fl_get_status(void);
 
-S25flStatus SS_s25fl_qspi_cmdcplt_handler(QSPI_HandleTypeDef *hqspi_);
-S25flStatus SS_s25fl_qspi_txcplt_handler(QSPI_HandleTypeDef *hqspi_);
-S25flStatus SS_s25fl_qspi_rxcplt_handler(QSPI_HandleTypeDef *hqspi_);
+S25flStatus SS_s25fl_qspi_cmdcplt_handler(QSPI_HandleTypeDef *hqspi_, bool *hptw);
+S25flStatus SS_s25fl_qspi_txcplt_handler(QSPI_HandleTypeDef *hqspi_, bool *hptw);
+S25flStatus SS_s25fl_qspi_rxcplt_handler(QSPI_HandleTypeDef *hqspi_, bool *hptw);
 
 #ifdef DEBUG
 S25flStatus SS_s25fl_debug_read_regs(uint8_t *status_reg1, uint8_t *status_reg2, uint8_t *config_reg);

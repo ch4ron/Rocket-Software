@@ -1,9 +1,9 @@
-/*
- * SS_s25fl.c
- *
- *  Created on: Jan 19, 2020
- *      Author: Mikolaj Wielgus
- */
+/**
+  * SS_s25fl.c
+  *
+  *  Created on: Jan 19, 2020
+  *      Author: Mikolaj Wielgus
+ **/
 
 #include "SS_s25fl.h"
 #include "FreeRTOS.h"
@@ -360,7 +360,7 @@ S25flStatus SS_s25fl_get_status(void)
     return translate_status_regs(status_reg1, status_reg2);
 }
 
-S25flStatus SS_s25fl_qspi_cmdcplt_handler(QSPI_HandleTypeDef *hqspi_)
+S25flStatus SS_s25fl_qspi_cmdcplt_handler(QSPI_HandleTypeDef *hqspi_, bool *hptw)
 {
     /*if (hqspi_ == &hqspi) {
         if (!xSemaphoreGiveFromISR(semaphore, NULL)) {
@@ -368,29 +368,47 @@ S25flStatus SS_s25fl_qspi_cmdcplt_handler(QSPI_HandleTypeDef *hqspi_)
         }
     }*/
 
-    return S25FL_STATUS_OK;
-}
-
-S25flStatus SS_s25fl_qspi_txcplt_handler(QSPI_HandleTypeDef *hqspi_)
-{
-    if (hqspi_ == &hqspi) {
-        if (!xSemaphoreGiveFromISR(semaphore, NULL)) {
-            return S25FL_STATUS_ERR;
-        }
-    }
+    //*hptw = false;
 
     return S25FL_STATUS_OK;
 }
 
-S25flStatus SS_s25fl_qspi_rxcplt_handler(QSPI_HandleTypeDef *hqspi_)
+S25flStatus SS_s25fl_qspi_txcplt_handler(QSPI_HandleTypeDef *hqspi_, bool *hptw)
 {
+    S25flStatus status = S25FL_STATUS_OK;
+
     if (hqspi_ == &hqspi) {
-        if (!xSemaphoreGiveFromISR(semaphore, NULL)) {
-            return S25FL_STATUS_ERR;
+        BaseType_t higher_priority_task_woken = pdFALSE;
+
+        if (!xSemaphoreGiveFromISR(semaphore, &higher_priority_task_woken)) {
+            status = S25FL_STATUS_ERR;
+        }
+
+        if (higher_priority_task_woken) {
+            *hptw = true;
         }
     }
 
-    return S25FL_STATUS_OK;
+    return status;
+}
+
+S25flStatus SS_s25fl_qspi_rxcplt_handler(QSPI_HandleTypeDef *hqspi_, bool *hptw)
+{
+    S25flStatus status = S25FL_STATUS_OK;
+
+    if (hqspi_ == &hqspi) {
+        BaseType_t higher_priority_task_woken = pdFALSE;
+
+        if (!xSemaphoreGiveFromISR(semaphore, NULL)) {
+            status = S25FL_STATUS_ERR;
+        }
+
+        if (higher_priority_task_woken) {
+            *hptw = true;
+        }
+    }
+
+    return status;
 }
 
 static S25flStatus send_command(QSPI_CommandTypeDef cmd)

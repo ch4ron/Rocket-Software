@@ -18,7 +18,7 @@ FlashStatus SS_flash_caching_start(void);
 FlashStatus SS_flash_caching_stop(void);
 FlashStatus SS_flash_caching_write_pages(uint32_t first_page, uint32_t len, uint8_t *data);
 FlashStatus SS_flash_caching_read_pages(uint32_t first_page, uint32_t len, uint8_t *data);
-FlashStatus SS_flash_caching_qspi_rxcplt_handler(QSPI_HandleTypeDef *hqspi_);
+FlashStatus SS_flash_caching_qspi_rxcplt_handler(QSPI_HandleTypeDef *hqspi_, bool *hptw);
 
 #ifdef DEBUG
 bool SS_flash_caching_debug_get_is_cache_ready(void);

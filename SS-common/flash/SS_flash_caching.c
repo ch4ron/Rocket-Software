@@ -76,12 +76,13 @@ FlashStatus SS_flash_caching_read_pages(uint32_t first_page, uint32_t len, uint8
     return FLASH_STATUS_OK;
 }
 
-FlashStatus SS_flash_caching_qspi_rxcplt_handler(QSPI_HandleTypeDef *hqspi_)
+FlashStatus SS_flash_caching_qspi_rxcplt_handler(QSPI_HandleTypeDef *hqspi_, bool *hptw)
 {
     if (is_cached) {
         is_cache_ready = true;
     }
 
+    *hptw = false;
     return FLASH_STATUS_OK;
 }
 
