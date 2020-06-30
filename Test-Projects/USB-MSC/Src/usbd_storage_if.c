@@ -23,7 +23,7 @@
 #include "usbd_storage_if.h"
 
 /* USER CODE BEGIN INCLUDE */
-
+#include "SS_flash.h"
 /* USER CODE END INCLUDE */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -68,7 +68,7 @@
 #define STORAGE_BLK_SIZ                  0x200
 
 /* USER CODE BEGIN PRIVATE_DEFINES */
-
+#define PAGES_PER_BLOCK 1
 /* USER CODE END PRIVATE_DEFINES */
 
 /**
@@ -178,7 +178,8 @@ USBD_StorageTypeDef USBD_Storage_Interface_fops_FS =
 int8_t STORAGE_Init_FS(uint8_t lun)
 {
   /* USER CODE BEGIN 2 */
-  return (USBD_OK);
+	UNUSED(lun);
+	return USBD_OK;
   /* USER CODE END 2 */
 }
 
@@ -192,9 +193,10 @@ int8_t STORAGE_Init_FS(uint8_t lun)
 int8_t STORAGE_GetCapacity_FS(uint8_t lun, uint32_t *block_num, uint16_t *block_size)
 {
   /* USER CODE BEGIN 3 */
-  *block_num  = STORAGE_BLK_NBR;
-  *block_size = STORAGE_BLK_SIZ;
-  return (USBD_OK);
+	UNUSED(lun);
+	*block_num  = STORAGE_BLK_NBR;
+	*block_size = STORAGE_BLK_SIZ;
+	return USBD_OK;
   /* USER CODE END 3 */
 }
 
@@ -206,7 +208,8 @@ int8_t STORAGE_GetCapacity_FS(uint8_t lun, uint32_t *block_num, uint16_t *block_
 int8_t STORAGE_IsReady_FS(uint8_t lun)
 {
   /* USER CODE BEGIN 4 */
-  return (USBD_OK);
+	UNUSED(lun);
+	return USBD_OK;
   /* USER CODE END 4 */
 }
 
@@ -218,7 +221,8 @@ int8_t STORAGE_IsReady_FS(uint8_t lun)
 int8_t STORAGE_IsWriteProtected_FS(uint8_t lun)
 {
   /* USER CODE BEGIN 5 */
-  return (USBD_OK);
+	UNUSED(lun);
+	return USBD_OK;
   /* USER CODE END 5 */
 }
 
@@ -230,7 +234,16 @@ int8_t STORAGE_IsWriteProtected_FS(uint8_t lun)
 int8_t STORAGE_Read_FS(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len)
 {
   /* USER CODE BEGIN 6 */
-  return (USBD_OK);
+	UNUSED(lun);
+//#ifdef DEBUG
+	//fprintf(stderr, "R %d %d\r\n", blk_addr, blk_len);
+//#endif
+	if (SS_flash_caching_read_pages(blk_addr/PAGES_PER_BLOCK, blk_len*PAGES_PER_BLOCK, buf) != FLASH_STATUS_OK) {
+		fprintf(stderr, "Reading %ld pages from 0x%lX failed.\r\n", blk_len, blk_addr);
+		return USBD_FAIL;
+	}
+
+	return USBD_OK;
   /* USER CODE END 6 */
 }
 
@@ -242,7 +255,16 @@ int8_t STORAGE_Read_FS(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t bl
 int8_t STORAGE_Write_FS(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len)
 {
   /* USER CODE BEGIN 7 */
-  return (USBD_OK);
+	UNUSED(lun);
+//#ifdef DEBUG
+	//fprintf(stderr, "W %d %d\r\n", blk_addr, blk_len);
+//#endif
+	/*FlashCtrlStatus status = SS_flash_caching_read_pages(blk_addr/PAGES_PER_BLOCK, blk_len*PAGES_PER_BLOCK, buf);
+	if (status != FLASH_CTRL_STATUS_OK && status != FLASH_CTRL_STATUS_WRITE_PROTECTED) {
+		fprintf(stderr, "Writing %ld pages from 0x%lX failed.\r\n", blk_len, blk_addr);
+		// Intentionally do not return failure here.
+	}*/
+	return USBD_OK;
   /* USER CODE END 7 */
 }
 
@@ -254,7 +276,7 @@ int8_t STORAGE_Write_FS(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t b
 int8_t STORAGE_GetMaxLun_FS(void)
 {
   /* USER CODE BEGIN 8 */
-  return (STORAGE_LUN_NBR - 1);
+	return STORAGE_LUN_NBR-1;
   /* USER CODE END 8 */
 }
 
