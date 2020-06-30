@@ -1,9 +1,9 @@
-/*
- * SS_log_ctrl.c
- *
- *  Created on: Feb 11, 2020
- *      Author: Mikolaj Wielgus
- */
+/**
+  * SS_log_ctrl.c
+  *
+  *  Created on: Feb 11, 2020
+  *      Author: Mikolaj Wielgus
+ **/
 
 #include "SS_flash.h"
 #include "SS_s25fl.h"
@@ -245,7 +245,6 @@ static FlashStatus select_next_page(FlashStream stream);
 static FlashStatus log_byte(FlashStream stream, uint8_t byte);
 //static FlashStatus flush_stream(FlashStream stream);
 
-static FlashStatus translate_FLASH_STATUS(FlashStatus FLASH_STATUS);
 static FlashStatus translate_hal_status(HAL_StatusTypeDef hal_status);
 
 //static uint8_t *get_flushed_buf(FlashStream stream);
@@ -310,10 +309,10 @@ FlashStatus SS_flash_ctrl_start_logging(void)
     }
     is_logging = true;
 
-    FlashStatus FLASH_STATUS = SS_flash_caching_stop();
-    if (FLASH_STATUS != FLASH_STATUS_OK
-    && FLASH_STATUS != FLASH_STATUS_DISABLED) {
-        return translate_FLASH_STATUS(FLASH_STATUS);
+    FlashStatus status = SS_flash_caching_stop();
+    if (status != FLASH_STATUS_OK
+    && status != FLASH_STATUS_DISABLED) {
+        return status;
     }
 
     for (FlashStream stream = 0; stream < FLASH_STREAM_COUNT; ++stream) {
@@ -354,13 +353,13 @@ FlashStatus SS_flash_ctrl_stop_logging(void)
         }
     }
 
-    FlashStatus FLASH_STATUS = SS_flash_caching_start();
-    if (FLASH_STATUS != FLASH_STATUS_OK
-    && FLASH_STATUS != FLASH_STATUS_DISABLED) {
-        return translate_FLASH_STATUS(FLASH_STATUS);
+    FlashStatus status = SS_flash_caching_start();
+    if (status != FLASH_STATUS_OK
+    && status != FLASH_STATUS_DISABLED) {
+        return status;
     }
 
-    // Emulate device disconnection to force the OS to read the files again.
+    // Emulate device disconnection to force the host OS to read the files again.
     // XXX: Perhaps move this somewhere else, this does not seem to fit here.
     // XXX: Does this even work at all?
     HAL_StatusTypeDef hal_status = USB_DevDisconnect(USB_OTG_FS);
@@ -770,19 +769,6 @@ static FlashStatus log_byte(FlashStream stream, uint8_t byte)
     }
 
     return FLASH_STATUS_OK;
-}
-
-static FlashStatus translate_FLASH_STATUS(FlashStatus FLASH_STATUS)
-{
-    switch (FLASH_STATUS) {
-    case FLASH_STATUS_OK:
-        return FLASH_STATUS_OK;
-    case FLASH_STATUS_DISABLED:
-        return FLASH_STATUS_DISABLED;
-    case FLASH_STATUS_ERR:
-    default:
-        return FLASH_STATUS_ERR;
-    }
 }
 
 static FlashStatus translate_hal_status(HAL_StatusTypeDef hal_status)
