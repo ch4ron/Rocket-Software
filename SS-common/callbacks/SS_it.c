@@ -5,6 +5,10 @@
  *      Author: maciek
  */
 
+#include "FreeRTOS.h"
+#include "stm32f4xx_hal.h"
+#include "SS_log.h"
+#include "SS_console.h"
 
 #ifdef SS_USE_MS5X
 #include "SS_MS5X.h"
@@ -15,7 +19,6 @@
 #include "SS_flash_caching.h"
 #endif
 #ifdef SS_USE_ADS1258
-#include "FreeRTOS.h"
 #include "SS_ADS1258.h"
 #endif
 #ifdef SS_USE_SERVOS
@@ -31,9 +34,6 @@
 #ifdef SS_USE_SEQUENCE
 #include "SS_sequence.h"
 #endif
-#include "stm32f4xx_hal.h"
-#include "SS_log.h"
-#include "SS_console.h"
 
 #ifdef SS_RUN_TESTS
 //#include "SS_ADS1258_unit_tests.h"
@@ -95,20 +95,29 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 #ifdef HAL_QSPI_MODULE_ENABLED
 void HAL_QSPI_CmdCpltCallback(QSPI_HandleTypeDef *hqspi) {
 #ifdef SS_USE_FLASH
-    SS_s25fl_qspi_cmdcplt_handler(hqspi);
+    bool higher_priority_task_woken = false;
+
+    SS_s25fl_qspi_cmdcplt_handler(hqspi, &higher_priority_task_woken);
+    portYIELD_FROM_ISR(higher_priority_task_woken);
 #endif
 }
 
 void HAL_QSPI_TxCpltCallback(QSPI_HandleTypeDef *hqspi) {
 #ifdef SS_USE_FLASH
-    SS_s25fl_qspi_txcplt_handler(hqspi);
+    bool higher_priority_task_woken = false;
+
+    SS_s25fl_qspi_txcplt_handler(hqspi, &higher_priority_task_woken);
+    portYIELD_FROM_ISR(higher_priority_task_woken);
 #endif
 }
 
 void HAL_QSPI_RxCpltCallback(QSPI_HandleTypeDef *hqspi) {
 #ifdef SS_USE_FLASH
-    SS_s25fl_qspi_rxcplt_handler(hqspi);
-    SS_flash_caching_qspi_rxcplt_handler(hqspi);
+    bool higher_priority_task_woken = false;
+
+    SS_s25fl_qspi_rxcplt_handler(hqspi, &higher_priority_task_woken);
+    SS_flash_caching_qspi_rxcplt_handler(hqspi, &higher_priority_task_woken);
+    portYIELD_FROM_ISR(higher_priority_task_woken);
 #endif
 }
 #endif
