@@ -59,8 +59,6 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define MEMS_SCK_Pin GPIO_PIN_2
-#define MEMS_SCK_GPIO_Port GPIOE
 #define MPU_INT_Pin GPIO_PIN_3
 #define MPU_INT_GPIO_Port GPIOE
 #define MPU_INT_EXTI_IRQn EXTI3_IRQn
@@ -107,6 +105,8 @@ void Error_Handler(void);
 #define ADS_DRDY_EXTI_IRQn EXTI15_10_IRQn
 #define ADS_RESET_Pin GPIO_PIN_11
 #define ADS_RESET_GPIO_Port GPIOE
+#define MEMS_SCK_Pin GPIO_PIN_12
+#define MEMS_SCK_GPIO_Port GPIOE
 #define MS56_CS_Pin GPIO_PIN_13
 #define MS56_CS_GPIO_Port GPIOE
 #define FLASH_CS_Pin GPIO_PIN_15

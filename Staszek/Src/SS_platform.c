@@ -16,6 +16,9 @@
 #ifdef SS_USE_SERVOS
 #include "SS_servos.h"
 #endif
+#ifdef SS_USE_MPU9250
+#include "SS_MPU9250.h"
+#endif
 #include "tim.h"
 #include "SS_console.h"
 #include "usart.h"
@@ -42,7 +45,7 @@ void SS_platform_set_adc_led(bool red, bool green, bool blue) {
     HAL_GPIO_WritePin(MEAS_BLUE_GPIO_Port, MEAS_BLUE_Pin, !blue);
 }
 
-void SS_platform_toggle_loop_led() {
+void SS_platform_toggle_loop_led(void) {
     HAL_GPIO_TogglePin(LOOP_LED_GPIO_Port, LOOP_LED_Pin);
 }
 
@@ -70,7 +73,7 @@ void SS_platform_servos_init() {
 /********** ADC *********/
 
 #if defined(SS_USE_ADC)
-static void SS_platform_adc_init() {
+static void SS_platform_adc_init(void) {
     ADC_HandleTypeDef *adc[] = {
         &hadc1, &hadc2, &hadc3};
     SS_adc_init(adc, sizeof(adc) / sizeof(adc[0]));
@@ -86,11 +89,46 @@ Measurement measurements[] = {
                 .b_coefficient = 0.75f },
 };
 
-static void SS_platform_ADS1258_init() {
+static void SS_platform_ADS1258_init(void) {
     SS_ADS1258_measurements_init(measurements, sizeof(measurements) / sizeof(measurements[0]));
     SS_ADS1258_init(&hspi1);
 }
 #endif
+
+
+/********** MPU9250 *********/
+
+static MPU9250 mpu = {
+    .gyro_id = 10,
+    .accel_id = 11,
+    .mgnt_id = 12,
+    .CS_Port = MPU_CS_GPIO_Port,
+    .CS_Pin = MPU_CS_Pin,
+    .INT_Pin = MPU_INT_Pin,
+    .hspi = &hspi4,
+    .accel_scale = MPU_ACCEL_SCALE_2,
+    .gyro_scale = MPU_GYRO_SCALE_250,
+
+    .mgnt_bias_x = 38,
+    .mgnt_bias_y = 217,
+    .mgnt_bias_z = 92,
+    .mgnt_scale_x = 1.040606,
+    .mgnt_scale_y = 1.015,
+    .mgnt_scale_z = 0.95,
+    .bias = {-15, -11, 72, 230, 300, 537}
+};
+
+static void SS_platform_init_MPU(void) {
+    MPU_STATUS result = MPU_OK;
+    /* HAL_NVIC_DisableIRQ(MPU_INT_EXTI_IRQn); */
+    /* HAL_Delay(50); */
+    /* result |= SS_AK8963_set_calibration_values(&mpu, 38, 217, 92, 1.040606, 1.018278, 0.946424); */
+    result |= SS_MPU_init(&mpu);
+    /* result |= SS_MPU_init(&mpu2); */
+    /* int32_t bias1[] = {-15, -11, 72, 230, 300, 537}; */
+    /* result |= SS_MPU_set_calibration(&mpu1, bias1); */
+    /* HAL_NVIC_EnableIRQ(MPU_INT_EXTI_IRQn); */
+}
 
 /********** MAIN INIT *********/
 
@@ -107,4 +145,7 @@ void SS_platform_init() {
 #endif
     /* SS_MS56_init(&ms5607, MS56_PRESS_4096, MS56_TEMP_4096); */
     SS_can_init(&hcan2, COM_STASZEK_ID);
+    HAL_Delay(100);
+    SS_platform_init_MPU();
+    HAL_Delay(100);
 }

@@ -34,6 +34,9 @@
 #ifdef SS_USE_SEQUENCE
 #include "SS_sequence.h"
 #endif
+#ifdef SS_USE_MPU9250
+#include "SS_MPU9250.h"
+#endif
 #include "stm32f4xx_hal.h"
 #include "SS_log.h"
 #include "SS_console.h"
@@ -55,11 +58,17 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 #ifdef SS_USE_ADS1258
     SS_ADS1258_EXTI_Callback(GPIO_Pin);
 #endif
+#ifdef SS_USE_MPU9250
+    SS_MPU_GPIO_EXTI_Callback(GPIO_Pin);
+#endif
 }
 
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
 #ifdef SS_USE_ADS1258
     SS_ADS1258_SPI_TxRxCpltCallback(hspi);
+#endif
+#ifdef SS_USE_MPU9250
+    SS_MPU_SPI_TxRxCpltCallback(hspi);
 #endif
 }
 

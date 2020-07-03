@@ -16,11 +16,11 @@
 #include "SS_com.h"
 #include "SS_com_debug.h"
 #include "SS_grazyna_hal.h"
+#include "SS_log.h"
 #include "queue.h"
 #include "semphr.h"
 #include "stdbool.h"
 #include "string.h"
-#include "SS_log.h"
 
 /* ==================================================================== */
 /* ======================== Private datatypes ========================= */
