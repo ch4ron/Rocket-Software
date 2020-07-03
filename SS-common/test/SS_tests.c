@@ -33,9 +33,6 @@ static void tests() {
 #ifdef SS_USE_JSON_SETTINGS
     RUN_TEST_GROUP(parser);
 #endif
-#ifdef SS_USE_FIFO
-    RUN_TEST_GROUP(fifo);
-#endif
 #ifdef SS_USE_RELAYS
     RUN_TEST_GROUP(relays);
 #endif
