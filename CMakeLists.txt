@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.11)
 
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_VERSION 1)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_C_COMPILER_WORKS 1)
 set(CMAKE_C_COMPILER arm-none-eabi-gcc)
@@ -27,7 +28,7 @@ set(COMMON_FLAGS
 set(CMAKE_CXX_FLAGS_INIT "${COMMON_FLAGS} -std=c++11")
 set(CMAKE_C_FLAGS_INIT "${COMMON_FLAGS} -std=gnu99")
 
-add_definitions(-D__weak=__attribute__\(\(weak\)\) -D__packed=__attribute__\(\(__packed__\)\) -DUSE_HAL_DRIVER -DSTM32F446xx)
+add_definitions(-D__weak=__attribute__\(\(weak\)\) -D__packed=__attribute__\(\(__packed__\)\) -DUSE_HAL_DRIVER -DSTM32F446xx -DCMAKE_EXPORT_COMPILE_COMMANDS=1)
 add_compile_options(-Wall)
 
 project(RocketSoftware)

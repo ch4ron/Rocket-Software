@@ -5,7 +5,15 @@
  *      Author: maciek
  */
 
+/* ==================================================================== */
+/* ============================= Includes ============================= */
+/* ==================================================================== */
+
 #include "SS_misc.h"
+
+/* ==================================================================== */
+/* ======================== Private datatypes ========================= */
+/* ==================================================================== */
 
 typedef struct {
     bool r;
@@ -13,9 +21,13 @@ typedef struct {
     bool b;
 } Led;
 
+/* ==================================================================== */
+/* ========================== Private macros ========================== */
+/* ==================================================================== */
+
 #define SS_led_generate_source(name)                                                           \
     static Led name;                                                                           \
-    void __attribute__((weak)) SS_platform_set_##name##_led(bool red, bool green, bool blue) {  \
+    void __attribute__((weak)) SS_platform_set_##name##_led(bool red, bool green, bool blue) { \
         (void) red;                                                                            \
         (void) green;                                                                          \
         (void) blue;                                                                           \
@@ -33,20 +45,27 @@ typedef struct {
         SS_platform_set_##name##_led(name.r, name.g, name.b);                                  \
     }                                                                                          \
 
+/* ==================================================================== */
+/* ========================= Public functions ========================= */
+/* ==================================================================== */
+
 SS_led_generate_source(mem)
 SS_led_generate_source(adc)
 SS_led_generate_source(com)
+SS_led_generate_source(meas)
 
 void SS_led_toggle_all(bool red, bool green, bool blue) {
     SS_led_toggle_adc(red, green, blue);
     SS_led_toggle_mem(red, green, blue);
     SS_led_toggle_com(red, green, blue);
+    SS_led_toggle_meas(red, green, blue);
 }
 
 void SS_led_set_all(bool red, bool green, bool blue) {
     SS_led_set_adc(red, green, blue);
     SS_led_set_mem(red, green, blue);
     SS_led_set_com(red, green, blue);
+    SS_led_set_meas(red, green, blue);
 }
 
 void __attribute__((weak)) SS_platform_toggle_loop_led() {}

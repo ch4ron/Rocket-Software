@@ -358,7 +358,6 @@ void ADS1258_test_read_dataDMA(uint8_t mode) {
 
     SS_ADS1258_startConversions();
     HAL_Delay(50);
-//    dupa = 1;
     // Read all data monitor channels
     for (i = 0; i < 5; i++) {
         // Wait and check that /DRDY interrupt occurred

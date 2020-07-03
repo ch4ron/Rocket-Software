@@ -16,7 +16,9 @@
 #include "SS_com.h"
 #include "SS_com_debug.h"
 #include "SS_grazyna_hal.h"
+#include "SS_log.h"
 #include "queue.h"
+#include "semphr.h"
 #include "stdbool.h"
 #include "string.h"
 
@@ -36,6 +38,7 @@ typedef struct {
     bool enabled;
     void *huart; /* UART_HandleTypedef */
     QueueHandle_t tx_queue;
+    SemaphoreHandle_t mutex;
 } Grazyna;
 
 /* ==================================================================== */
@@ -61,7 +64,9 @@ static Grazyna grazyna;
 void SS_grazyna_init(UART_HandleTypeDef *huart) {
     SS_grazyna_init_hal(huart);
     grazyna.grazyna_state = GRAZYNA_LOOKING_FOR_HEADER;
-    grazyna.tx_queue = SS_com_add_sender();
+    grazyna.tx_queue = xQueueCreate(SS_COM_TX_QUEUE_SIZE, sizeof(ComFrame));
+    grazyna.mutex = xSemaphoreCreateBinary();
+    xSemaphoreGive(grazyna.mutex);
     SS_grazyna_receive_hal((uint8_t *) &grazyna.rx_buff, sizeof(grazyna.rx_buff.header));
     SS_grazyna_enable();
 }
@@ -85,9 +90,21 @@ bool SS_grazyna_is_enabled(void) {
 }
 
 void SS_grazyna_transmit(ComFrame *frame) {
-    SS_com_add_to_tx_queue(frame, SS_grazyna_tx, grazyna.tx_queue);
+    if(xQueueSend(grazyna.tx_queue, frame, pdMS_TO_TICKS(25)) != pdTRUE) {
+        SS_error("Grazyna TX queue full");
+    }
 }
 
+void SS_grazyna_tx_handler_task(void *pvParameters) {
+    ComFrame frame;
+    while(1) {
+        if(xQueueReceive(grazyna.tx_queue, &frame, portMAX_DELAY) == pdTRUE) {
+            if(xSemaphoreTake(grazyna.mutex, 1000) == pdTRUE) {
+                SS_grazyna_tx(&frame);
+            }
+        }
+    }
+}
 /* ==================================================================== */
 /* ======================== Private functions ========================= */
 /* ==================================================================== */
@@ -144,4 +161,10 @@ void SS_grazyna_rx_isr(void) {
             SS_grazyna_handle_frame();
             break;
     }
+}
+
+void SS_grazyna_tx_isr(void) {
+    BaseType_t higherPriorityTaskWoken = pdFALSE;
+    xSemaphoreGiveFromISR(grazyna.mutex, &higherPriorityTaskWoken);
+    portYIELD_FROM_ISR(higherPriorityTaskWoken);
 }

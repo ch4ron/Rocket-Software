@@ -13,7 +13,7 @@
 #include "FreeRTOS.h"
 #include "SS_com_debug.h"
 #include "SS_log.h"
-#include "SS_log.h"
+#include "portmacro.h"
 #include "queue.h"
 #include "string.h"
 
@@ -57,7 +57,6 @@ static void SS_can_unpack_frame(ComFrame *frame, CAN_RxHeaderTypeDef *header, ui
 static void SS_can_tx_common(ComFrame *frame, Can *can);
 static void SS_can_tx(ComFrame *frame);
 static void SS_can_handle_received(CAN_HandleTypeDef *hcan, uint8_t priority);
-static void SS_can_error(char *error);
 #ifdef SS_USE_EXT_CAN
 static void SS_can_ext_tx(ComFrame *frame);
 #endif
@@ -87,26 +86,50 @@ void SS_can_init(CAN_HandleTypeDef *hcan, ComBoardID board) {
     com_can.hcan = hcan;
     board_id = board;
     SS_can_filters_init(hcan, board);
-    com_can.tx_queue = SS_com_add_sender();
+    com_can.tx_queue = xQueueCreate(SS_COM_TX_QUEUE_SIZE, sizeof(ComFrame));
     HAL_CAN_Start(hcan);
     SS_can_interrupts_enable(hcan);
 }
 
 void SS_can_transmit(ComFrame *frame) {
-    SS_com_add_to_tx_queue(frame, SS_can_tx, com_can.tx_queue);
+    if(xQueueSend(com_can.tx_queue, frame, pdMS_TO_TICKS(25)) != pdTRUE) {
+        SS_error("Can TX queue full");
+    }
+}
+
+void SS_can_tx_handler_task(void *pvParameters) {
+    ComFrame frame;
+    while(1) {
+        if(xQueueReceive(com_can.tx_queue, &frame, portMAX_DELAY) == pdTRUE) {
+            /* TODO handle internal fifo overrun */
+            SS_can_tx(&frame);
+        }
+    }
 }
 
 #ifdef SS_USE_EXT_CAN
 void SS_can_ext_init(CAN_HandleTypeDef *hcan) {
     ext_can.hcan = hcan;
     SS_can_filters_init_with_mask(hcan, 0, 0);
-    ext_can.tx_queue = SS_com_add_sender();
+    ext_can.tx_queue = xQueueCreate(SS_COM_TX_QUEUE_SIZE, sizeof(ComFrame));
     HAL_CAN_Start(hcan);
     SS_can_interrupts_enable(hcan);
 }
 
 void SS_can_ext_transmit(ComFrame *frame) {
-    SS_com_add_to_tx_queue(frame, SS_can_tx, ext_can.tx_queue);
+    if(xQueueSend(ext_can.tx_queue, frame, pdMS_TO_TICKS(25)) != pdTRUE) {
+        SS_error("Ext Can TX queue full");
+    }
+}
+
+void SS_ext_can_tx_handler_task(void *pvParameters) {
+    ComFrame frame;
+    while(1) {
+        if(xQueueReceive(ext_can.tx_queue, &frame, portMAX_DELAY) == pdTRUE) {
+            /* TODO handle internal fifo overrun */
+            SS_can_ext_tx(&frame);
+        }
+    }
 }
 #endif
 
@@ -143,7 +166,7 @@ static void SS_can_filter_init(CAN_HandleTypeDef *hcan, uint32_t filter_id, uint
 }
 
 static uint32_t SS_can_get_header(ComFrame *frame) {
-    return *((uint32_t*) frame) & 0x7fffffff;
+    return *((uint32_t *) frame) & 0x7fffffff;
 }
 
 static void SS_can_filters_init_with_mask(CAN_HandleTypeDef *hcan, ComBoardID board, uint8_t board_mask) {
@@ -196,7 +219,7 @@ static void SS_can_tx_common(ComFrame *frame, Can *can) {
     uint32_t mailbox;
     SS_can_pack_frame(frame, &header, data);
     if(HAL_CAN_AddTxMessage(can->hcan, &header, data, &mailbox) != HAL_OK) {
-        SS_can_error("HAL_CAN_AddTxMessage failed");
+        SS_error("HAL_CAN_AddTxMessage failed");
         return;
     }
 }
@@ -222,11 +245,6 @@ static void SS_can_ext_tx(ComFrame *frame) {
 
 #endif
 
-static void SS_can_error(char *error) {
-#ifdef CAN_DEBUG_ERRORS
-    SS_error(error);
-#endif
-}
 
 /* ==================================================================== */
 /* ============================ Callbacks ============================= */
@@ -242,28 +260,28 @@ void HAL_CAN_TxMailbox2CompleteCallback(CAN_HandleTypeDef *hcan) {
 }
 
 void HAL_CAN_TxMailbox0AbortCallback(CAN_HandleTypeDef *hcan) {
-    SS_can_error("Mailbox Abort");
+    SS_error("Mailbox Abort");
 }
 
 void HAL_CAN_TxMailbox1AbortCallback(CAN_HandleTypeDef *hcan) {
-    SS_can_error("Mailbox Abort");
+    SS_error("Mailbox Abort");
 }
 
 void HAL_CAN_TxMailbox2AbortCallback(CAN_HandleTypeDef *hcan) {
-    SS_can_error("Mailbox Abort");
+    SS_error("Mailbox Abort");
 }
 
 void HAL_CAN_RxFifo0FullCallback(CAN_HandleTypeDef *hcan) {
-    SS_can_error("Internal can fifo 0 full");
+    SS_error("Internal can fifo 0 full");
 }
 
 void HAL_CAN_RxFifo1FullCallback(CAN_HandleTypeDef *hcan) {
-    SS_can_error("Internal can fifo 1 full");
+    SS_error("Internal can fifo 1 full");
 }
 
 void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan) {
     error = HAL_CAN_GetError(hcan);
-    SS_can_error("Can error");
+    SS_error("Can error");
     HAL_CAN_ResetError(hcan);
 }
 

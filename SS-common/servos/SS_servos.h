@@ -1,4 +1,4 @@
-	/*
+/*
  * SS_servos.h
  *
  *  Created on: 25.02.2018
@@ -8,31 +8,43 @@
 #ifndef SS_SERVOS_H_
 #define SS_SERVOS_H_
 
+/* ==================================================================== */
+/* ============================= Includes ============================= */
+/* ==================================================================== */
+
 #include "SS_com.h"
+#include "SS_json_parser.h"
 #include "stm32f4xx_hal.h"
 #include "tim.h"
-#include "SS_json_parser.h"
 
 #ifdef SS_USE_SUPPLY
 #include "SS_supply.h"
 #endif
 
+/* ==================================================================== */
+/* ============================= Macros =============================== */
+/* ==================================================================== */
+
 #define SERVO_TIMEOUT 1500
 #define MAX_SERVO_COUNT 8
 
+/* ==================================================================== */
+/* ============================ Datatypes ============================= */
+/* ==================================================================== */
+
 typedef struct {
     uint8_t id;
-	uint16_t position;
-	uint16_t closed_position;
-	uint16_t opened_position;
-	__IO uint32_t *pointer;
-	TIM_HandleTypeDef *tim;
-	uint32_t channel;
+    uint16_t position;
+    uint16_t closed_position;
+    uint16_t opened_position;
+    __IO uint32_t *pointer;
+    TIM_HandleTypeDef *tim;
+    uint32_t channel;
 #ifdef SS_USE_SUPPLY
-	Supply *supply;
+    Supply *supply;
 #endif
-	uint32_t timeout;
-	jsmntok_t *tok;
+    uint32_t timeout;
+    jsmntok_t *tok;
 } Servo;
 
 typedef enum {
@@ -46,15 +58,21 @@ typedef enum {
 } ComServoID;
 
 typedef struct {
-    uint32_t MIN_PULSE_WIDTH; //us
-    uint32_t MAX_PULSE_WIDTH; //us
-    uint32_t SERVO_FREQUENCY; //Hz
+    uint32_t MIN_PULSE_WIDTH;  //us
+    uint32_t MAX_PULSE_WIDTH;  //us
+    uint32_t SERVO_FREQUENCY;  //Hz
     uint16_t SERVO_RANGE;
     uint8_t servo_count;
 } ServosConfig;
 
 
-extern void SS_platform_servos_init();
+/* ==================================================================== */
+/* ==================== Public function prototypes ==================== */
+/* ==================================================================== */
+
+/* Defined by the application */
+void SS_platform_servos_init();
+
 void SS_servos_init(Servo *servos_array, uint8_t count);
 void SS_servo_init(Servo *servo);
 void SS_servos_deinit();

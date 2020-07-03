@@ -35,9 +35,6 @@ static void tests(void) {
 #ifdef SS_USE_JSON_SETTINGS
     RUN_TEST_GROUP(parser);
 #endif
-#ifdef SS_USE_FIFO
-    RUN_TEST_GROUP(fifo);
-#endif
 #ifdef SS_USE_RELAYS
     RUN_TEST_GROUP(relays);
 #endif
@@ -58,6 +55,9 @@ static void tests(void) {
 #endif
 #ifdef SS_USE_USB
     //RUN_TEST_GROUP(usb)
+#endif
+#ifdef SS_USE_MPU9250
+    RUN_TEST_GROUP(MPU);
 #endif
 }
 

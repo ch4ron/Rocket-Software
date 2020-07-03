@@ -10,6 +10,10 @@
 #include "SS_log.h"
 #include "SS_console.h"
 
+/* ==================================================================== */
+/* ============================= Includes ============================= */
+/* ==================================================================== */
+
 #ifdef SS_USE_MS5X
 #include "SS_MS5X.h"
 #endif
@@ -34,15 +38,32 @@
 #ifdef SS_USE_SEQUENCE
 #include "SS_sequence.h"
 #endif
+#ifdef SS_USE_MPU9250
+#include "SS_MPU9250.h"
+#endif
+#include "stm32f4xx_hal.h"
+#include "SS_log.h"
+#include "SS_console.h"
 
-#ifdef SS_RUN_TESTS
-//#include "SS_ADS1258_unit_tests.h"
+/* ==================================================================== */
+/* ========================= Global variables ========================= */
+/* ==================================================================== */
+
+#if defined(SS_RUN_TESTS) && defined(SS_USE_ADS1258)
+#include "SS_ADS1258_unit_tests.h"
 extern void SS_dynamixel_test_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
 #endif
+
+/* ==================================================================== */
+/* ============================ Callbacks ============================= */
+/* ==================================================================== */
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 #ifdef SS_USE_ADS1258
     SS_ADS1258_EXTI_Callback(GPIO_Pin);
+#endif
+#ifdef SS_USE_MPU9250
+    SS_MPU_GPIO_EXTI_Callback(GPIO_Pin);
 #endif
 }
 
@@ -50,6 +71,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
 #ifdef SS_USE_ADS1258
     SS_ADS1258_SPI_TxRxCpltCallback(hspi);
+#endif
+#ifdef SS_USE_MPU9250
+    SS_MPU_SPI_TxRxCpltCallback(hspi);
 #endif
 }
 
@@ -64,8 +88,6 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
     SS_MS56_RxCpltCallback(hspi);
 #endif
 }
-// void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) { printf("spi
-// error\r\n"); }
 #endif
 
 #ifdef HAL_UART_MODULE_ENABLED
@@ -84,6 +106,9 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
     SS_dynamixel_UART_TxCpltCallback(huart);
 #endif
     SS_log_tx_isr(huart);
+#ifdef SS_USE_GRAZYNA
+    SS_grazyna_UART_TxCpltCallback(huart);
+#endif
 }
 #endif
 
@@ -123,6 +148,7 @@ void HAL_QSPI_RxCpltCallback(QSPI_HandleTypeDef *hqspi) {
 #endif
 
 void HAL_SYSTICK_Callback() {
+/* TODO Remove Systick Callback and change it to a task */
 #ifdef SS_USE_SERVOS
     SS_servos_SYSTICK();
 #endif
@@ -130,7 +156,7 @@ void HAL_SYSTICK_Callback() {
     SS_supply_SYSTICK();
 #endif
 #ifdef SS_USE_SEQUENCE
-    SS_sequence_SYSTICK();
+    /* SS_sequence_SYSTICK(); */
 #endif
 #ifdef SS_USE_MS5X
     SS_MS56_SYSTICK_Callback();

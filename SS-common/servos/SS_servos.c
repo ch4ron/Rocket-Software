@@ -5,11 +5,23 @@
  *      Author: Tomasz
  */
 
+/* ==================================================================== */
+/* ============================= Includes ============================= */
+/* ==================================================================== */
+
 #include "SS_servos.h"
 #include "string.h"
 #include "SS_log.h"
 
+/* ==================================================================== */
+/* ========================= Private macros =========================== */
+/* ==================================================================== */
+
 #define SERVO_RESOLUTION 1000
+
+/* ==================================================================== */
+/* ======================== Private datatypes ========================= */
+/* ==================================================================== */
 
 ServosConfig servos_config = {
         .MIN_PULSE_WIDTH = 1000,
@@ -20,29 +32,17 @@ ServosConfig servos_config = {
 
 Servo *servo_pointers[MAX_SERVO_COUNT];
 
-static int8_t SS_servos_check_id(uint8_t id) {
-    if(id >= MAX_SERVO_COUNT) {
-#ifndef SS_RUN_TESTS
-        SS_error("Servo id: %d too high, max supported id: %d", id, MAX_SERVO_COUNT);
-#endif
-        return -1;
-    }
-    if(servo_pointers[id] == NULL) {
-#ifndef SS_RUN_TESTS
-        SS_error("Servo id: %d not initialized", id);
-#endif
-        return -1;
-    }
-    return 0;
-}
+/* ==================================================================== */
+/* =================== Private function prototypes ==================== */
+/* ==================================================================== */
 
-static int8_t SS_servo_check_initialized(Servo *servo) {
-    if(servo == NULL) {
-        SS_error("Servo not initialized");
-        return -1;
-    }
-    return 0;
-}
+static int8_t SS_servos_check_id(uint8_t id);
+static int8_t SS_servo_check_initialized(Servo *servo);
+static void SS_servo_deinit(Servo *servo);
+
+/* ==================================================================== */
+/* ========================= Public functions ========================= */
+/* ==================================================================== */
 
 void SS_servo_init(Servo *servo) {
     if(servo_pointers[servo->id] != servo && servo_pointers[servo->id] != NULL) {
@@ -149,13 +149,6 @@ void SS_servos_init(Servo *servos_array, uint8_t count) {
     for(uint8_t i = 0; i < count; i++) {
         SS_servo_init(&servos_array[i]);
     }
-}
-
-static void SS_servo_deinit(Servo *servo) {
-    if(servo == NULL) return;
-    HAL_TIM_PWM_Stop(servo->tim, servo->channel);
-    HAL_TIM_Base_Stop(servo->tim);
-    HAL_TIM_Base_DeInit(servo->tim);
 }
 
 void SS_servos_deinit() {
@@ -297,4 +290,39 @@ void SS_servos_read_json(char *json, jsmntok_t **tok) {
         servo_pointers[id]->closed_position = closed_pos;
         servo_pointers[id]->tok = tok[i];
     }
+}
+
+/* ==================================================================== */
+/* ======================== Private functions ========================= */
+/* ==================================================================== */
+
+static int8_t SS_servos_check_id(uint8_t id) {
+    if(id >= MAX_SERVO_COUNT) {
+#ifndef SS_RUN_TESTS
+        SS_error("Servo id: %d too high, max supported id: %d", id, MAX_SERVO_COUNT);
+#endif
+        return -1;
+    }
+    if(servo_pointers[id] == NULL) {
+#ifndef SS_RUN_TESTS
+        SS_error("Servo id: %d not initialized", id);
+#endif
+        return -1;
+    }
+    return 0;
+}
+
+static int8_t SS_servo_check_initialized(Servo *servo) {
+    if(servo == NULL) {
+        SS_error("Servo not initialized");
+        return -1;
+    }
+    return 0;
+}
+
+static void SS_servo_deinit(Servo *servo) {
+    if(servo == NULL) return;
+    HAL_TIM_PWM_Stop(servo->tim, servo->channel);
+    HAL_TIM_Base_Stop(servo->tim);
+    HAL_TIM_Base_DeInit(servo->tim);
 }
