@@ -49,7 +49,7 @@ static void tests() {
     RUN_TEST_GROUP(supply_control);
 #endif
 #ifdef SS_USE_MPU9250
-    SS_IMU_Tests();
+    RUN_TEST_GROUP(MPU);
 #endif
 }
 

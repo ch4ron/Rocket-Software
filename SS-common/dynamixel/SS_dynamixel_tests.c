@@ -6,7 +6,6 @@
  */
 
 #include "SS_dynamixel.h"
-#include "SS_fifo.h"
 #include "SS_platform.h"
 #include "SS_supply.h"
 #include "unity_fixture.h"

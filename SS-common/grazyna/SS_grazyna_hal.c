@@ -35,11 +35,19 @@ void SS_grazyna_init_hal(UART_HandleTypeDef *huart) {
 }
 
 void SS_grazyna_receive_hal(uint8_t *data, uint16_t length) {
+#ifdef SS_GRAZYNA_USE_DMA
     HAL_UART_Receive_DMA(grazyna_huart, data, length);
+#else
+    HAL_UART_Receive_IT(grazyna_huart, data, length);
+#endif
 }
 
 void SS_grazyna_transmit_hal(uint8_t *data, uint16_t length) {
+#ifdef SS_GRAZYNA_USE_DMA
     HAL_UART_Transmit_DMA(grazyna_huart, data, length);
+#else
+    HAL_UART_Transmit_IT(grazyna_huart, data, length);
+#endif
 }
 
 void SS_grazyna_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
