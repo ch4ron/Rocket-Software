@@ -15,6 +15,8 @@ static uint8_t gyro_prior_range;
 static int32_t bias[6] = {0};
 static int32_t prior_offset[6] = {1000, 1000, 1000};
 
+static void SS_MPU_calibration_read();
+
 MPU9250 *mpu9250;
 
 MPU_STATUS function_response;
@@ -22,38 +24,46 @@ MPU_STATUS function_response;
 TEST_GROUP(MPU);
 
 TEST_GROUP_RUNNER(MPU) {
-    RUN_TEST_CASE(MPU, init);
-    RUN_TEST_CASE(MPU, set_accel_scale);
-    RUN_TEST_CASE(MPU, get_accel_data);
-    RUN_TEST_CASE(MPU, get_gyro_data);
-    RUN_TEST_CASE(MPU, get_data_DMA);
-    RUN_TEST_CASE(MPU, CS_ENABLE);
-    RUN_TEST_CASE(MPU, CS_DISABLE);
-    RUN_TEST_CASE(MPU, write_byte);
-    RUN_TEST_CASE(MPU, read_byte);
-    RUN_TEST_CASE(MPU, write_check_byte);
-    RUN_TEST_CASE(MPU, read_multiple);
-    RUN_TEST_CASE(MPU, who_am_i);
-    RUN_TEST_CASE(MPU, set_gyro_bandwidth);
-    RUN_TEST_CASE(MPU, set_gyro_dlpf_bypass);
-    RUN_TEST_CASE(MPU, set_accel_bandwidth);
-    RUN_TEST_CASE(MPU, set_gyro_scale);
-    RUN_TEST_CASE(MPU, MPU_set_clk);
-    RUN_TEST_CASE(MPU, MPU_self_test);
-    RUN_TEST_CASE(MPU, math_scaled_gyro);
-    RUN_TEST_CASE(MPU, math_scaled_accel);
-    /* RUN_TEST_CASE(MPU, get_fifo_counter); */
-    /* RUN_TEST_CASE(MPU, get_fifo_data); */
-    /* RUN_TEST_CASE(MPU, set_fifo_data); */
-    RUN_TEST_CASE(MPU, INT_enable);
-    RUN_TEST_CASE(MPU, sleep);
-    /* RUN_TEST_CASE(MPU, calibrate); */
-    RUN_TEST_CASE(MPU, set_calibration);
-    RUN_TEST_CASE(MPU, accel_write_calibration);
-    RUN_TEST_CASE(MPU, gyro_write_calibration);
-    RUN_TEST_CASE(MPU, set_smplrt);
-    RUN_TEST_CASE(MPU, MPU_reset);
-    RUN_TEST_CASE(MPU, Reinit);  // MPU is Reinitialized to prior settings
+    for(uint8_t i = 0; i < MAX_MPU_COUNT; i++) {
+        mpu9250 = mpu_pointers[i];
+        if(mpu9250 == NULL) {
+            continue;
+        }
+        SS_MPU_calibration_read();
+        RUN_TEST_CASE(MPU, init);
+        /* RUN_TEST_CASE(MPU, bias); */
+        RUN_TEST_CASE(MPU, set_accel_scale);
+        RUN_TEST_CASE(MPU, get_accel_data);
+        RUN_TEST_CASE(MPU, get_gyro_data);
+        RUN_TEST_CASE(MPU, get_data_DMA);
+        RUN_TEST_CASE(MPU, CS_ENABLE);
+        RUN_TEST_CASE(MPU, CS_DISABLE);
+        RUN_TEST_CASE(MPU, write_byte);
+        RUN_TEST_CASE(MPU, read_byte);
+        RUN_TEST_CASE(MPU, write_check_byte);
+        RUN_TEST_CASE(MPU, read_multiple);
+        RUN_TEST_CASE(MPU, who_am_i);
+        RUN_TEST_CASE(MPU, set_gyro_bandwidth);
+        RUN_TEST_CASE(MPU, set_gyro_dlpf_bypass);
+        RUN_TEST_CASE(MPU, set_accel_bandwidth);
+        RUN_TEST_CASE(MPU, set_gyro_scale);
+        RUN_TEST_CASE(MPU, MPU_set_clk);
+        RUN_TEST_CASE(MPU, MPU_self_test);
+        RUN_TEST_CASE(MPU, math_scaled_gyro);
+        RUN_TEST_CASE(MPU, math_scaled_accel);
+        /* RUN_TEST_CASE(MPU, get_fifo_counter); */
+        /* RUN_TEST_CASE(MPU, get_fifo_data); */
+        /* RUN_TEST_CASE(MPU, set_fifo_data); */
+        RUN_TEST_CASE(MPU, INT_enable);
+        RUN_TEST_CASE(MPU, sleep);
+        /* RUN_TEST_CASE(MPU, calibrate); */
+        RUN_TEST_CASE(MPU, set_calibration);
+        RUN_TEST_CASE(MPU, accel_write_calibration);
+        RUN_TEST_CASE(MPU, gyro_write_calibration);
+        RUN_TEST_CASE(MPU, set_smplrt);
+        RUN_TEST_CASE(MPU, MPU_reset);
+        RUN_TEST_CASE(MPU, Reinit);  // MPU is Reinitialized to prior settings
+    }
 }
 static void set_up(void) {
     /* HAL_NVIC_DisableIRQ(MPU1_INT_EXTI_IRQn); */
@@ -363,9 +373,7 @@ TEST(MPU, MPU_self_test) {
     TEST_ASSERT_EQUAL(MPU_OK, function_response);
 }
 
-TEST(MPU, init_all) {  // it is not used
-    function_response = SS_MPU_init_all();
-    TEST_ASSERT_EQUAL(MPU_OK, function_response);
+TEST(MPU, bias) {  // it is not used
     SS_Check_bias_test();
 }
 TEST(MPU, Reinit) {
@@ -450,16 +458,4 @@ TEST(MPU, gyro_write_calibration) {
 TEST(MPU, set_smplrt) {
     function_response = SS_MPU_set_smplrt(mpu9250, 0);
     TEST_ASSERT_EQUAL(MPU_OK, function_response);
-}
-
-int SS_IMU_Tests(void) {
-    mpu9250 = &mpu1;
-    SS_MPU_calibration_read();
-    RUN_TEST_GROUP(MPU);
-
-    /* mpu9250 = &mpu2; */
-    /* SS_MPU_calibration_read(); */
-    /* RUN_TEST_GROUP(MPU); */
-
-    return 0;
 }

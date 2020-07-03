@@ -40,7 +40,6 @@ static MPU_STATUS SS_MPU_INT_enable(MPU9250 *mpu9250);
 static MPU_STATUS SS_MPU_sleep(MPU9250 *mpu9250, uint8_t state);
 
 /* Calibration */
-static MPU_STATUS SS_MPU_set_calibration(MPU9250 *mpu9250, int32_t bias[6]);
 static MPU_STATUS SS_MPU_accel_write_calibration(MPU9250 *mpu9250, int32_t *bias);
 static MPU_STATUS SS_MPU_gyro_write_calibration(MPU9250 *mpu9250, int32_t *gyro_bias);
 
@@ -50,20 +49,22 @@ static MPU_STATUS SS_MPU_self_test(MPU9250 *mpu9250);
 /* ==================================================================== */
 /* ========================= Global variables ========================= */
 /* ==================================================================== */
-MPU9250 mpu1;
+static MPU9250 *mpu_pointers[MAX_MPU_COUNT];
 MPU9250 *mpu_pointer;
-
-int16_t old_data[9];
-uint32_t mpu_cnt, mpu_delay;
-uint32_t accel_counter = 0;
-uint32_t gyro_counter = 0;
-uint32_t mgnt_counter = 0;
 
 /* ==================================================================== */
 /* ========================= Public functions ========================= */
 /* ==================================================================== */
 
 MPU_STATUS SS_MPU_init(MPU9250 *mpu9250) {
+    if(mpu_pointers[mpu9250->id] != mpu9250 && mpu_pointers[mpu9250->id] != NULL) {
+        SS_error("Duplicate MPU9250 id, %d", mpu9250->id);
+        return MPU_ERR;
+    }
+    if(mpu9250->id >= MAX_MPU_COUNT) {
+        SS_error("MPU9250 id: %d too high, max supported id: %d", mpu9250->id, MAX_MPU_COUNT);
+        return MPU_ERR;
+    }
     MPU_STATUS result = MPU_OK;
     result |= SS_AK8963_reset(mpu9250);
     HAL_Delay(50);
@@ -80,6 +81,9 @@ MPU_STATUS SS_MPU_init(MPU9250 *mpu9250) {
     result |= SS_MPU_set_accel_scale(mpu9250, mpu9250->accel_scale);
     result |= SS_MPU_set_gyro_scale(mpu9250, mpu9250->gyro_scale);
     result |= SS_MPU_self_test(mpu9250);
+
+    result |= SS_MPU_gyro_write_calibration(mpu9250, mpu9250->bias);
+    result |= SS_MPU_accel_write_calibration(mpu9250, mpu9250->bias);
     //	result |= SS_MPU_calibrate(mpu9250);
     mpu9250->result = result;
     switch(result) {
@@ -90,6 +94,7 @@ MPU_STATUS SS_MPU_init(MPU9250 *mpu9250) {
             SS_led_set_meas(true, false, false);  //Red
             break;
     }
+    mpu_pointers[mpu9250->id] = mpu9250;
     return result;
 }
 
@@ -314,6 +319,7 @@ static void SS_MPU_CS_DISABLE(MPU9250 *mpu9250) {
 
 /* DMA Communication */
 
+/* TODO Remove sensor argument */
 static MPU_STATUS SS_MPU_read_multiple_DMA(MPU9250 *mpu9250, uint8_t RegAdr, uint8_t *RegDat, uint8_t nbr, uint8_t sensor) {
     uint8_t temp = 0x80 | RegAdr;
     SS_MPU_CS_ENABLE(mpu9250);
@@ -660,42 +666,6 @@ static MPU_STATUS SS_MPU_self_test(MPU9250 *mpu9250) {  //Not tested
     return result;
 }
 
-
-MPU_STATUS SS_MPU_init_all() {
-    MPU_STATUS result = MPU_OK;
-    HAL_NVIC_DisableIRQ(MPU_INT_EXTI_IRQn);
-    /* HAL_NVIC_DisableIRQ(MPU2_INT_EXTI_IRQn); */
-    result |= SS_AK8963_set_calibration_values(&mpu1, 38, 217, 92, 1.040606, 1.018278, 0.946424);
-    /* result |= SS_AK8963_set_calibration_values(&mpu2, 178, 94, -107, 1.042196, 1.027092, 0.952840); */
-    mpu1.gyro_id = 10;
-    mpu1.accel_id = 11;
-    mpu1.mgnt_id = 12;
-    mpu1.CS_Port = MPU_CS_GPIO_Port;
-    mpu1.CS_Pin = MPU_CS_Pin;
-    mpu1.INT_Pin = MPU_INT_Pin;
-    mpu1.hspi = &hspi4;
-    mpu1.accel_scale = MPU_ACCEL_SCALE_2;
-    mpu1.gyro_scale = MPU_GYRO_SCALE_250;
-    HAL_Delay(50);
-    result |= SS_MPU_init(&mpu1);
-    /* mpu2.gyro_id = 20; */
-    /* mpu2.accel_id = 21; */
-    /* mpu2.mgnt_id = 22; */
-    /* mpu2.CS_Port = MPU2_CS_GPIO_Port; */
-    /* mpu2.CS_Pin = MPU2_CS_Pin; */
-    /* mpu2.accel_scale = MPU_ACCEL_SCALE_16; */
-    /* mpu2.gyro_scale = MPU_GYRO_SCALE_2000; */
-    /* result |= SS_MPU_init(&mpu2); */
-    /* int32_t bias1[] = {-15, -11, 72, 230, 300, 537}; */
-    /* result |= SS_MPU_set_calibration(&mpu1, bias1); */
-    /* int32_t bias2[] = {-359, 53, -91, -100, 350, 1100}; */
-    /* result |= SS_MPU_set_calibration(&mpu2, bias2); */
-    /* HAL_Delay(50); */
-    HAL_NVIC_EnableIRQ(MPU_INT_EXTI_IRQn);
-    /* HAL_NVIC_EnableIRQ(MPU2_INT_EXTI_IRQn); */
-    return result;
-}
-
 /* ==================================================================== */
 /* ============================ Callbacks ============================= */
 /* ==================================================================== */
@@ -737,20 +707,20 @@ static void SS_MPU_spi_tx_isr(MPU9250 *mpu9250) {
 }
 
 void SS_MPU_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
-    if(hspi == mpu1.hspi) {
-        SS_MPU_spi_tx_isr(mpu_pointer);
+    for(uint8_t i = 0; i < MAX_MPU_COUNT; i++) {
+        if(mpu_pointers[i] && hspi == mpu_pointers[i]->hspi) {
+            SS_MPU_spi_tx_isr(mpu_pointers[i]);
+        }
     }
 }
 
-/* TODO Handle multiple mpu-s */
-static void SS_MPU_exti_isr(MPU9250 *mpu9250, uint16_t GPIO_Pin) {
-    if(GPIO_Pin == mpu9250->INT_Pin) {
-        SS_MPU_get_data_DMA(mpu9250);
-    }
-}
 
 void SS_MPU_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
-    SS_MPU_exti_isr(&mpu1, GPIO_Pin);
+    for(uint8_t i = 0; i < MAX_MPU_COUNT; i++) {
+        if(mpu_pointers[i] && GPIO_Pin == mpu_pointers[i]->INT_Pin) {
+            SS_MPU_get_data_DMA(mpu_pointers[i]);
+        }
+    }
 }
 
 

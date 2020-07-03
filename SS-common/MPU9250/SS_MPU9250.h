@@ -28,6 +28,7 @@
 #define GYROSCOPE 1
 #define ACCELEROMETER 2
 
+#define MAX_MPU_COUNT 2
 
 /* ==================================================================== */
 /* ============================ Datatypes ============================= */
@@ -38,7 +39,8 @@ typedef enum {
     MPU_CALIBRATION_ERROR = 1,
     MPU_SELF_TEST_ERROR = 3,
     AK8963_ERROR = 7,
-    MPU_COMM_ERROR = 15
+    MPU_COMM_ERROR = 15,
+    MPU_ERR = 31,
 } MPU_STATUS;
 
 typedef struct {
@@ -46,6 +48,7 @@ typedef struct {
     GPIO_TypeDef *CS_Port;
     uint16_t CS_Pin;
     uint16_t INT_Pin;
+    uint8_t id;
     uint8_t gyro_id;
     uint8_t accel_id;
     uint8_t mgnt_id;
@@ -74,13 +77,6 @@ typedef struct {
     float mgnt_scaled_x;
     float mgnt_scaled_y;
     float mgnt_scaled_z;
-    /* uint16_t fifo_counter; */
-    /* uint8_t *fifo_data; */
-    /* uint8_t FIFO_HANDLED_FLAG; */
-    int32_t accel_bias_x;
-    int32_t accel_bias_y;
-    int32_t accel_bias_z;
-    /* float sample_time; */
     uint8_t xASens;
     uint8_t yASens;
     uint8_t zASens;
@@ -93,9 +89,9 @@ typedef struct {
     MPU_STATUS result;
     uint8_t rcv[23];
     int16_t old_data[9];
+    int32_t bias[6];
 } MPU9250;
 
-extern MPU9250 mpu1;
 extern MPU9250 *mpu_pointer;
 
 MPU_STATUS SS_MPU_init(MPU9250 *mpu9250);
