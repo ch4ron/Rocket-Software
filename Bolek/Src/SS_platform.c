@@ -3,6 +3,7 @@
 //
 
 #include "SS_platform.h"
+#include "spi.h"
 #include "main.h"
 
 #ifdef SS_USE_MS5X
@@ -61,7 +62,7 @@ static void SS_platform_adc_init(void) {
 
 
 /********** MPU9250 *********/
-/*
+
 static MPU9250 mpu = {
     .gyro_id = 10,
     .accel_id = 11,
@@ -69,7 +70,7 @@ static MPU9250 mpu = {
     .CS_Port = MPU_CS_GPIO_Port,
     .CS_Pin = MPU_CS_Pin,
     .INT_Pin = MPU_INT_Pin,
-    .hspi = &hspi4,
+    .hspi = &hspi1,
     .accel_scale = MPU_ACCEL_SCALE_2,
     .gyro_scale = MPU_GYRO_SCALE_250,
 
@@ -81,16 +82,16 @@ static MPU9250 mpu = {
     .mgnt_scale_z = 0.95,
     .bias = {-15, -11, 72, 230, 300, 537}
 };
-*/
+
 
 static void SS_platform_init_MPU(void) {
-//    MPU_STATUS result = MPU_OK;
+
+      MPU_STATUS result = MPU_OK;
     /* HAL_NVIC_DisableIRQ(MPU_INT_EXTI_IRQn); */
     /* HAL_Delay(50); */
     /* result |= SS_AK8963_set_calibration_values(&mpu, 38, 217, 92, 1.040606, 1.018278, 0.946424); */
-//    result |= SS_MPU_init(&mpu);
-    /* result |= SS_MPU_init(&mpu2); */
-    /* int32_t bias1[] = {-15, -11, 72, 230, 300, 537}; */
+      result |= SS_MPU_init(&mpu);
+    /* result |= SS_MPU_init(&mpu2); */   /* int32_t bias1[] = {-15, -11, 72, 230, 300, 537}; */
     /* result |= SS_MPU_set_calibration(&mpu1, bias1); */
     /* HAL_NVIC_EnableIRQ(MPU_INT_EXTI_IRQn); */
 }
@@ -100,5 +101,6 @@ static void SS_platform_init_MPU(void) {
 void SS_platform_init() {
     SS_log_init(&huart2);
     SS_console_init(&huart2);
+    SS_platform_init_MPU();
 
 }

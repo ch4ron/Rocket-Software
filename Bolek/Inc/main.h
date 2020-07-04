@@ -58,6 +58,17 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define MPU_CS_Pin GPIO_PIN_4
+#define MPU_CS_GPIO_Port GPIOA
+#define MPU_SCK_Pin GPIO_PIN_5
+#define MPU_SCK_GPIO_Port GPIOA
+#define MPU_MISO_Pin GPIO_PIN_6
+#define MPU_MISO_GPIO_Port GPIOA
+#define MPU_MOSI_Pin GPIO_PIN_7
+#define MPU_MOSI_GPIO_Port GPIOA
+#define MPU_INT_Pin GPIO_PIN_4
+#define MPU_INT_GPIO_Port GPIOC
+#define MPU_INT_EXTI_IRQn EXTI4_IRQn
 #define LED_GREEN_1_Pin GPIO_PIN_8
 #define LED_GREEN_1_GPIO_Port GPIOE
 #define LED_ORANGE_Pin GPIO_PIN_9

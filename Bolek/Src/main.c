@@ -26,10 +26,10 @@
 #include "usart.h"
 #include "gpio.h"
 
-
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "SS_platform.h"
+#include "SS_MPU9250.h"
 #include "SS_common.h"
 /* USER CODE END Includes */
 
@@ -50,7 +50,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+int32_t Dane=100;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -61,7 +61,25 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+static MPU9250 mpu = {
+    .gyro_id = 10,
+    .accel_id = 11,
+    .mgnt_id = 12,
+    .CS_Port = MPU_CS_GPIO_Port,
+    .CS_Pin = MPU_CS_Pin,
+    .INT_Pin = MPU_INT_Pin,
+    .hspi = &hspi1,
+    .accel_scale = MPU_ACCEL_SCALE_2,
+    .gyro_scale = MPU_GYRO_SCALE_250,
 
+    .mgnt_bias_x = 38,
+    .mgnt_bias_y = 217,
+    .mgnt_bias_z = 92,
+    .mgnt_scale_x = 1.040606,
+    .mgnt_scale_y = 1.015,
+    .mgnt_scale_z = 0.95,
+    .bias = {-15, -11, 72, 230, 300, 537}
+};
 /* USER CODE END 0 */
 
 /**
@@ -97,7 +115,12 @@ int main(void)
   MX_USART2_UART_Init();
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
+
   SS_platform_init();
+
+  SS_MPU_get_accel_data(&mpu);
+  SS_MPU_get_gyro_data(&mpu);
+  Dane=SS_MPU_who_am_i(&mpu);
   SS_init();
   /* USER CODE END 2 */
 
