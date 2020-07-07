@@ -25,6 +25,12 @@
 #include "usart.h"
 #include "SS_log.h"
 #include "stdbool.h"
+#include "quadspi.h"
+#ifdef SS_USE_FLASH
+#include "SS_s25fl.h"
+#include "SS_flash_caching.h"
+#include "SS_flash_ctrl.h"
+#endif
 
 /*********** LED **********/
 /*
@@ -102,5 +108,8 @@ void SS_platform_init() {
     SS_log_init(&huart2);
     SS_console_init(&huart2);
     SS_platform_init_MPU();
-
+#ifdef SS_USE_FLASH
+    assert(SS_s25fl_init() == FLASH_STATUS_OK);
+    assert(SS_flash_init(&hqspi, FLASH_RESET_GPIO_Port, FLASH_RESET_Pin) == FLASH_STATUS_OK);
+#endif
 }

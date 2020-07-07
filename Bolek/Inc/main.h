@@ -91,6 +91,8 @@ void Error_Handler(void);
 #define LED_RGB_HIGHONLY_DO_NOT_USE_GPIO_Port GPIOB
 #define LED_RGB_BLUE_DO_NOT_USE_Pin GPIO_PIN_14
 #define LED_RGB_BLUE_DO_NOT_USE_GPIO_Port GPIOB
+#define FLASH_RESET_Pin GPIO_PIN_8
+#define FLASH_RESET_GPIO_Port GPIOD
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

@@ -21,6 +21,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "dma.h"
+#include "quadspi.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
@@ -114,6 +115,7 @@ int main(void)
   MX_TIM14_Init();
   MX_USART2_UART_Init();
   MX_SPI1_Init();
+  MX_QUADSPI_Init();
   /* USER CODE BEGIN 2 */
 
   SS_platform_init();
