@@ -135,6 +135,15 @@ static const QSPI_CommandTypeDef default_cmd = {
     .SIOOMode = QSPI_SIOO_INST_EVERY_CMD
 };
 
+// Unlocked public functions.
+static S25flStatus unlocked_erase_all(void);
+static S25flStatus unlocked_erase_sector(uint32_t sector);
+
+// Locking functions.
+static bool get_is_in_interrupt(void);
+static S25flStatus lock(void);
+static S25flStatus unlock(S25flStatus status);
+
 // Unprotected by semaphore.
 static S25flStatus send_command(QSPI_CommandTypeDef cmd);
 static S25flStatus enable_write(void);
@@ -150,10 +159,14 @@ static S25flStatus cmd_read_status_reg2(uint8_t *val);
 static S25flStatus cmd_read_config_reg(uint8_t *val);
 
 static S25flStatus cmd_write(QSPI_CommandTypeDef cmd, uint8_t *data);
+static S25flStatus unlocked_cmd_write(QSPI_CommandTypeDef cmd, uint8_t *data);
 static S25flStatus cmd_write_dma(QSPI_CommandTypeDef cmd, uint8_t *data);
+static S25flStatus unlocked_cmd_write_dma(QSPI_CommandTypeDef cmd, uint8_t *data);
 
 static S25flStatus cmd_read(QSPI_CommandTypeDef cmd, uint8_t *data);
+static S25flStatus unlocked_cmd_read(QSPI_CommandTypeDef cmd, uint8_t *data);
 static S25flStatus cmd_read_dma(QSPI_CommandTypeDef cmd, uint8_t *data);
+static S25flStatus unlocked_cmd_read_dma(QSPI_CommandTypeDef cmd, uint8_t *data);
 
 static QSPI_CommandTypeDef create_write_cmd(uint32_t addr, uint32_t size);
 static QSPI_CommandTypeDef create_read_cmd(uint32_t addr, uint32_t size);
@@ -206,10 +219,16 @@ S25flStatus SS_s25fl_read_rems_id(uint16_t *id)
 
 S25flStatus SS_s25fl_erase_all(void)
 {
-    if (!xSemaphoreTake(semaphore, TIMEOUT_ms)) {
-        return S25FL_STATUS_BUSY;
+    S25flStatus status = lock();
+    if (status != S25FL_STATUS_OK) {
+        return status;
     }
 
+    return unlock(unlocked_erase_all());
+}
+
+static S25flStatus unlocked_erase_all(void)
+{
     S25flStatus status = enable_write();
     if (status != S25FL_STATUS_OK) {
         return status;
@@ -224,19 +243,21 @@ S25flStatus SS_s25fl_erase_all(void)
         return status;
     }
 
-    if (!xSemaphoreGive(semaphore)) {
-        return S25FL_STATUS_ERR;
-    }
-
     return S25FL_STATUS_OK;
 }
 
 S25flStatus SS_s25fl_erase_sector(uint32_t sector)
 {
-    if (!xSemaphoreTake(semaphore, TIMEOUT_ms)) {
-        return S25FL_STATUS_BUSY;
+    S25flStatus status = lock();
+    if (status != S25FL_STATUS_OK) {
+        return status;
     }
 
+    return unlock(unlocked_erase_sector(sector));
+}
+
+static S25flStatus unlocked_erase_sector(uint32_t sector)
+{
     S25flStatus status = enable_write();
     if (status != S25FL_STATUS_OK) {
         return status;
@@ -252,10 +273,6 @@ S25flStatus SS_s25fl_erase_sector(uint32_t sector)
     status = send_command(cmd);
     if (status != S25FL_STATUS_OK) {
         return status;
-    }
-
-    if (!xSemaphoreGive(semaphore)) {
-        return S25FL_STATUS_ERR;
     }
 
     return S25FL_STATUS_OK;
@@ -328,15 +345,12 @@ S25flStatus SS_s25fl_read_page_dma_wait(uint32_t page, uint8_t *data)
 
 S25flStatus SS_s25fl_wait_until_ready(void)
 {
-    if (!xSemaphoreTake(semaphore, TIMEOUT_ms)) {
-        return S25FL_STATUS_BUSY;
+    S25flStatus status = lock();
+    if (status != S25FL_STATUS_OK) {
+        return status;
     }
 
-    if (!xSemaphoreGive(semaphore)) {
-        return S25FL_STATUS_ERR;
-    }
-
-    return S25FL_STATUS_OK;
+    return unlock(S25FL_STATUS_OK);
 }
 
 S25flStatus SS_s25fl_get_status(void)
@@ -405,6 +419,40 @@ S25flStatus SS_s25fl_qspi_rxcplt_handler(QSPI_HandleTypeDef *hqspi_, bool *hptw)
 
         if (higher_priority_task_woken) {
             *hptw = true;
+        }
+    }
+
+    return status;
+}
+
+static bool get_is_in_interrupt(void)
+{
+    return SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk;
+}
+
+static S25flStatus lock(void)
+{
+    if (get_is_in_interrupt()) {
+        while (!xSemaphoreTakeFromISR(semaphore, NULL)) {
+        }
+    } else {
+        if (!xSemaphoreTake(semaphore, TIMEOUT_ms)) {
+            return S25FL_STATUS_BUSY;
+        }
+    }
+
+    return S25FL_STATUS_OK;
+}
+
+static S25flStatus unlock(S25flStatus status)
+{
+    if (get_is_in_interrupt()) {
+        if (!xSemaphoreGiveFromISR(semaphore, NULL)) {
+            return S25FL_STATUS_ERR;
+        }
+    } else {
+        if (!xSemaphoreGive(semaphore)) {
+            return S25FL_STATUS_ERR;
         }
     }
 
@@ -508,10 +556,16 @@ static S25flStatus cmd_read_config_reg(uint8_t *val)
 
 static S25flStatus cmd_write(QSPI_CommandTypeDef cmd, uint8_t *data)
 {
-    if (!xSemaphoreTake(semaphore, TIMEOUT_ms)) {
-        return S25FL_STATUS_BUSY;
+    S25flStatus status = lock();
+    if (status != S25FL_STATUS_OK) {
+        return status;
     }
 
+    return unlock(unlocked_cmd_write(cmd, data));
+}
+
+static S25flStatus unlocked_cmd_write(QSPI_CommandTypeDef cmd, uint8_t *data)
+{
     S25flStatus status = enable_write();
     if (status != S25FL_STATUS_OK) {
         return status;
@@ -527,19 +581,22 @@ static S25flStatus cmd_write(QSPI_CommandTypeDef cmd, uint8_t *data)
         return translate_hal_status(hal_status);
     }
 
-    if (!xSemaphoreGive(semaphore)) {
-        return S25FL_STATUS_ERR;
-    }
-
     return S25FL_STATUS_OK;
 }
 
 static S25flStatus cmd_write_dma(QSPI_CommandTypeDef cmd, uint8_t *data)
 {
-    if (!xSemaphoreTake(semaphore, TIMEOUT_ms)) {
-        return S25FL_STATUS_BUSY;
+    S25flStatus status = lock();
+    if (status != S25FL_STATUS_OK) {
+        return status;
     }
 
+    // Intentionally `unlock()` is not called.
+    return unlocked_cmd_write_dma(cmd, data);
+}
+
+static S25flStatus unlocked_cmd_write_dma(QSPI_CommandTypeDef cmd, uint8_t *data)
+{
     S25flStatus status = enable_write();
     if (status != S25FL_STATUS_OK) {
         return status;
@@ -556,30 +613,37 @@ static S25flStatus cmd_write_dma(QSPI_CommandTypeDef cmd, uint8_t *data)
 
 static S25flStatus cmd_read(QSPI_CommandTypeDef cmd, uint8_t *data)
 {
-    if (!xSemaphoreTake(semaphore, TIMEOUT_ms)) {
-        return S25FL_STATUS_BUSY;
+    S25flStatus status = lock();
+    if (status != S25FL_STATUS_OK) {
+        return status;
     }
 
+    return unlock(unlocked_cmd_read(cmd, data));
+}
+
+static S25flStatus unlocked_cmd_read(QSPI_CommandTypeDef cmd, uint8_t *data)
+{
     S25flStatus status = send_command(cmd);
     if (status != S25FL_STATUS_OK) {
         return status;
     }
 
     HAL_StatusTypeDef hal_status = HAL_QSPI_Receive(&hqspi, data, TIMEOUT_ms);
-
-    if (!xSemaphoreGive(semaphore)) {
-        return S25FL_STATUS_ERR;
-    }
-
     return translate_hal_status(hal_status);
 }
 
 static S25flStatus cmd_read_dma(QSPI_CommandTypeDef cmd, uint8_t *data)
 {
-    if (!xSemaphoreTake(semaphore, TIMEOUT_ms)) {
-        return S25FL_STATUS_BUSY;
+    S25flStatus status = lock();
+    if (status != S25FL_STATUS_OK) {
+        return status;
     }
 
+    return unlocked_cmd_read_dma(cmd, data);
+}
+
+static S25flStatus unlocked_cmd_read_dma(QSPI_CommandTypeDef cmd, uint8_t *data)
+{
     S25flStatus status = send_command(cmd);
     if (status != S25FL_STATUS_OK) {
         return status;

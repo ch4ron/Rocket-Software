@@ -183,7 +183,8 @@ static void SS_log_buf_put_wrapper(char character, void *buf) {
 static void SS_log_buf_flush_internal(CircularBuffer *buf) {
     uint16_t tail = buf->tail > buf->head ? buf->tail : buf->capacity;
     buf->transmit_tail = tail;
-    HAL_UART_Transmit_IT(log_huart, buf->data + buf->head, tail - buf->head);
+    HAL_StatusTypeDef res = HAL_UART_Transmit_IT(log_huart, buf->data + buf->head, tail - buf->head);
+    assert(res == HAL_OK);
 }
 
 /* ==================================================================== */

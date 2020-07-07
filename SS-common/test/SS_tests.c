@@ -13,6 +13,10 @@
 #ifdef SS_USE_ADS1258
 #include "SS_ADS1258_unit_tests.h"
 #endif
+#ifdef SS_USE_USB
+#include "SS_usb.h"
+    //RUN_TEST_GROUP(usb)
+#endif
 
 static void tests(void) {
 #ifdef SS_USE_ADS1258
@@ -63,11 +67,18 @@ static void tests(void) {
 
 /* Enable verbose output */
 int SS_run_all_tests(void) {
+    // XXX: For time being, disable USB during tests.
+    SS_usb_stop();
+
 #ifdef VERBOSE_TEST_OUTPUT
     const char* args[] = {"unity", "-v"};
     int unity_code = UnityMain(2, args, tests);
 #else
     int unity_code = UnityMain(0, NULL, tests);
 #endif
+
+    // XXX: For time being, reenable USB after tests.
+    SS_usb_start();
+
     return unity_code;
 }

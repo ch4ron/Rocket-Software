@@ -12,6 +12,7 @@
 
 FlashStatus SS_flash_log_init(void);
 FlashStatus SS_flash_log_var(FlashStream stream, uint8_t id, uint64_t data);
+FlashStatus SS_flash_log_str(FlashStream stream, char *str);
 void SS_flash_log_task(void *pvParameters);
 
 #endif // SS_FLASH_LOG_H

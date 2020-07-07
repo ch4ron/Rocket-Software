@@ -40,5 +40,6 @@ target_include_directories(${PROJECT_NAME}.elf PRIVATE
 #add_compile_definitions(SS_USE_JSON_SETTINGS)
 #add_compile_definitions(SS_USE_MS5X)
 add_compile_definitions(SS_USE_FLASH)
+add_compile_definitions(SS_USE_USB)
 
 create_target(${PROJECT_NAME})
