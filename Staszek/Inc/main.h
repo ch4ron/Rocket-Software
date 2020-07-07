@@ -29,7 +29,6 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
-#include "stm32f4xx_hal.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -70,6 +69,8 @@ void Error_Handler(void);
 #define MEMS_MOSI_GPIO_Port GPIOE
 #define ADC_CS_Pin GPIO_PIN_0
 #define ADC_CS_GPIO_Port GPIOC
+#define FLASH_RESET_Pin GPIO_PIN_3
+#define FLASH_RESET_GPIO_Port GPIOC
 #define MEM_RED_Pin GPIO_PIN_0
 #define MEM_RED_GPIO_Port GPIOA
 #define MEM_BLUE_Pin GPIO_PIN_1
@@ -123,12 +124,6 @@ void Error_Handler(void);
 #define ISL_G0_Z_GPIO_Port GPIOD
 #define ISL_G1_Pin GPIO_PIN_10
 #define ISL_G1_GPIO_Port GPIOD
-#define ISL_G1_Z_Pin GPIO_PIN_11
-#define ISL_G1_Z_GPIO_Port GPIOD
-#define POWER_INPUT4_Pin GPIO_PIN_12
-#define POWER_INPUT4_GPIO_Port GPIOD
-#define POWER_INPUT1_Pin GPIO_PIN_13
-#define POWER_INPUT1_GPIO_Port GPIOD
 #define POWER_INPUT2_Pin GPIO_PIN_14
 #define POWER_INPUT2_GPIO_Port GPIOD
 #define POWER_INPUT3_Pin GPIO_PIN_15
@@ -157,10 +152,6 @@ void Error_Handler(void);
 #define ADC_DOUT_GPIO_Port GPIOB
 #define ADC_MOSI_Pin GPIO_PIN_5
 #define ADC_MOSI_GPIO_Port GPIOB
-#define MAGNETO_SCL_Pin GPIO_PIN_6
-#define MAGNETO_SCL_GPIO_Port GPIOB
-#define MAGNETO_SDA_Pin GPIO_PIN_7
-#define MAGNETO_SDA_GPIO_Port GPIOB
 #define IND_LED_Pin GPIO_PIN_0
 #define IND_LED_GPIO_Port GPIOE
 #define LOOP_LED_Pin GPIO_PIN_1

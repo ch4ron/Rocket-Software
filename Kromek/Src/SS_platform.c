@@ -4,7 +4,13 @@
 
 /* #include "SS_s25fl.h" */
 #include "SS_platform.h"
+#include "flash/SS_flash.h"
 
+#ifdef SS_USE_FLASH
+#include "SS_s25fl.h"
+#include "SS_flash_caching.h"
+#include "SS_flash_ctrl.h"
+#endif
 #include "SS_adc.h"
 #include "SS_can.h"
 #include "SS_common.h"
@@ -14,6 +20,8 @@
 #include "adc.h"
 #include "can.h"
 #include "spi.h"
+#include "usart.h"
+#include "quadspi.h"
 #include "usart.h"
 
 /*********** LED **********/
@@ -178,5 +186,6 @@ void SS_platform_init() {
 #ifdef SS_USE_DYNAMIXEL
     SS_dynamixel_init(&dynamixel);
 #endif
-    /* SS_s25fl_init(); */
+    assert(SS_s25fl_init() == FLASH_STATUS_OK);
+    assert(SS_flash_init(&hqspi, FLASH_RESET_GPIO_Port, FLASH_RESET_Pin) == FLASH_STATUS_OK);
 }

@@ -7,10 +7,11 @@
 
 #include "SS_s25fl.h"
 #include "FreeRTOS.h"
+#include "projdefs.h"
 #include "semphr.h"
 
-#define NRST_GPIO GPIOA
-#define NRST_PIN GPIO_PIN_0
+#define NRST_GPIO FLASH_RESET_GPIO_Port
+#define NRST_PIN FLASH_RESET_Pin
 
 #define TIMEOUT_ms 3000
 #define ERASE_ALL_TIMEOUT_ms 500000
@@ -556,12 +557,14 @@ static S25flStatus cmd_write_dma(QSPI_CommandTypeDef cmd, uint8_t *data)
 
 static S25flStatus cmd_read(QSPI_CommandTypeDef cmd, uint8_t *data)
 {
+
     if (!xSemaphoreTake(semaphore, TIMEOUT_ms)) {
         return S25FL_STATUS_BUSY;
     }
 
     S25flStatus status = send_command(cmd);
     if (status != S25FL_STATUS_OK) {
+        SS_println("send cmd fail");
         return status;
     }
 

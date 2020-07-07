@@ -362,6 +362,7 @@ FlashStatus SS_flash_ctrl_stop_logging(void)
     // Emulate device disconnection to force the host OS to read the files again.
     // XXX: Perhaps move this somewhere else, this does not seem to fit here.
     // XXX: Does this even work at all?
+#ifdef SS_USE_USB
     HAL_StatusTypeDef hal_status = USB_DevDisconnect(USB_OTG_FS);
     if (hal_status != HAL_OK) {
         return translate_hal_status(hal_status);
@@ -371,6 +372,7 @@ FlashStatus SS_flash_ctrl_stop_logging(void)
     if (hal_status != HAL_OK) {
         return translate_hal_status(hal_status);
     }
+#endif
 
     return FLASH_STATUS_OK;
 }

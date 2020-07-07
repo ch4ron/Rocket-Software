@@ -19,6 +19,12 @@
 #ifdef SS_USE_MPU9250
 #include "SS_MPU9250.h"
 #endif
+#ifdef SS_USE_FLASH
+#include "SS_s25fl.h"
+#include "SS_flash_caching.h"
+#include "SS_flash_ctrl.h"
+#endif
+#include "quadspi.h"
 #include "tim.h"
 #include "SS_console.h"
 #include "usart.h"
@@ -98,6 +104,7 @@ static void SS_platform_ADS1258_init(void) {
 
 /********** MPU9250 *********/
 
+#ifdef SS_USE_MPU9250
 static MPU9250 mpu = {
     .gyro_id = 10,
     .accel_id = 11,
@@ -129,6 +136,7 @@ static void SS_platform_init_MPU(void) {
     /* result |= SS_MPU_set_calibration(&mpu1, bias1); */
     /* HAL_NVIC_EnableIRQ(MPU_INT_EXTI_IRQn); */
 }
+#endif
 
 /********** MAIN INIT *********/
 
@@ -136,16 +144,21 @@ void SS_platform_init() {
     SS_log_init(&huart4);
     SS_console_init(&huart4);
     //    SS_platform_adc_init();
+#ifdef SS_USE_SERVOS
     SS_platform_servos_init();
+#endif
 #ifdef SS_USE_ADS1258
     SS_platform_ADS1258_init();
 #endif
-#ifdef SS_USE_S25FL
-    SS_s25fl_init();
-#endif
     /* SS_MS56_init(&ms5607, MS56_PRESS_4096, MS56_TEMP_4096); */
+#ifdef SS_USE_CAN
     SS_can_init(&hcan2, COM_STASZEK_ID);
-    HAL_Delay(100);
+#endif
+#ifdef SS_USE_MPU9250
     SS_platform_init_MPU();
-    HAL_Delay(100);
+#endif
+#ifdef SS_USE_FLASH
+    assert(SS_s25fl_init() == FLASH_STATUS_OK);
+    assert(SS_flash_init(&hqspi, FLASH_RESET_GPIO_Port, FLASH_RESET_Pin) == FLASH_STATUS_OK);
+#endif
 }

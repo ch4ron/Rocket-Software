@@ -23,7 +23,7 @@
 #include "adc.h"
 #include "can.h"
 #include "dma.h"
-#include "i2c.h"
+#include "quadspi.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
@@ -32,6 +32,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "SS_common.h"
+#include "SS_log.h"
 #include "SS_platform.h"
 
 /* USER CODE END Includes */
@@ -96,21 +97,21 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
-  MX_I2C1_Init();
   MX_UART4_Init();
   MX_UART5_Init();
   MX_SPI1_Init();
   MX_ADC1_Init();
   MX_SPI4_Init();
   MX_SPI2_Init();
+  MX_QUADSPI_Init();
   /* USER CODE BEGIN 2 */
 
-    MX_CAN1_Init();
-    MX_CAN2_Init();
-    MX_TIM1_Init();
-    MX_TIM4_Init();
-    MX_TIM8_Init();
-    HAL_GPIO_WritePin(MPU_CS_GPIO_Port, MPU_CS_Pin, GPIO_PIN_SET);
+    /* MX_CAN1_Init(); */
+    /* MX_CAN2_Init(); */
+    /* MX_TIM1_Init(); */
+    /* MX_TIM4_Init(); */
+    /* MX_TIM8_Init(); */
+    /* HAL_GPIO_WritePin(MPU_CS_GPIO_Port, MPU_CS_Pin, GPIO_PIN_SET); */
 
     SS_platform_init();
 
@@ -143,12 +144,11 @@ void SystemClock_Config(void)
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
   /** Initializes the CPU, AHB and APB busses clocks 
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLM = 8;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLM = 4;
   RCC_OscInitStruct.PLL.PLLN = 180;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 2;
@@ -211,6 +211,7 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
     /* User can add his own implementation to report the HAL error return state */
+  assert(0);
 
   /* USER CODE END Error_Handler_Debug */
 }
