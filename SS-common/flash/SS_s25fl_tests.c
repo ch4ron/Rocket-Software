@@ -54,7 +54,7 @@ TEST(s25fl, erase_all)
 	}
 
 	TEST_MESSAGE("Testing bulk erase. This may take up to 500 seconds...");
-	TEST_ASSERT_EQUAL_INT(S25FL_STATUS_OK, SS_s25fl_erase_all());
+	//TEST_ASSERT_EQUAL_INT(S25FL_STATUS_OK, SS_s25fl_erase_all());
 
 	TEST_ASSERT_EQUAL_INT(S25FL_STATUS_OK, SS_s25fl_read_page(0, data));
 	TEST_ASSERT_EQUAL_HEX8(0xFF, data[0]);

@@ -377,6 +377,11 @@ FlashStatus SS_flash_ctrl_stop_logging(void)
     return FLASH_STATUS_OK;
 }
 
+bool SS_flash_ctrl_get_is_logging(void)
+{
+    return is_logging;
+}
+
 FlashStatus SS_flash_ctrl_erase_logs(void)
 {
     if (is_logging) {
@@ -452,13 +457,24 @@ FlashStatus SS_flash_ctrl_log_var(FlashStream stream, uint8_t id, uint8_t *data,
     return FLASH_STATUS_OK;
 }
 
-FlashStatus SS_flash_ctrl_log_str(FlashStream stream, char *str)
+/*FlashStatus SS_flash_ctrl_log_str(FlashStream stream, char *str)
 {
     for (uint32_t i = 0; str[i] != '\0'; ++i) {
         FlashStatus status = log_byte(stream, str[i]);
         if (status != FLASH_STATUS_OK) {
             return status;
         }
+    }
+
+    return FLASH_STATUS_OK;
+}*/
+
+// FIXME: No point having `log_byte` separate from this function.
+FlashStatus SS_flash_ctrl_log_char(FlashStream stream, char c)
+{
+    FlashStatus status = log_byte(stream, c);
+    if (status != FLASH_STATUS_OK) {
+        return status;
     }
 
     return FLASH_STATUS_OK;

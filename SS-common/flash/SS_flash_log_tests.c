@@ -37,6 +37,8 @@ TEST(flash_log, log_vars)
 	TEST_ASSERT_EQUAL_INT(FLASH_STATUS_OK, SS_flash_log_var(FLASH_STREAM_VAR, 0x03, data3));
 	TEST_ASSERT_EQUAL_INT(FLASH_STATUS_OK, SS_flash_ctrl_stop_logging());
 
+    // FIXME: Test should wait until all values are successfully written to flash.
+
 	static uint8_t data[S25FL_PAGE_SIZE];
 
 	TEST_ASSERT_EQUAL_INT(FLASH_STATUS_OK, SS_flash_ctrl_read_page_dma_wait(0x00085200UL/S25FL_PAGE_SIZE, data));
@@ -52,6 +54,17 @@ TEST(flash_log, log_vars)
 }
 
 // TODO.
-//TEST(flash_log, log_text)
-//{
-//}
+TEST(flash_log, log_text)
+{
+    static char str1[] = "Never gonna give you up";
+    static char str2[] = "Never gonna let you down";
+    static char str3[] = "Never gonna run around and desert you";
+
+	TEST_ASSERT_EQUAL_INT(FLASH_STATUS_OK, SS_flash_ctrl_start_logging());
+	TEST_ASSERT_EQUAL_INT(FLASH_STATUS_OK, SS_flash_log_str(FLASH_STREAM_TEXT, str1));
+	TEST_ASSERT_EQUAL_INT(FLASH_STATUS_OK, SS_flash_log_str(FLASH_STREAM_TEXT, str2));
+	TEST_ASSERT_EQUAL_INT(FLASH_STATUS_OK, SS_flash_log_str(FLASH_STREAM_TEXT, str3));
+	TEST_ASSERT_EQUAL_INT(FLASH_STATUS_OK, SS_flash_ctrl_stop_logging());
+
+    static uint8_t data[S25FL_PAGE_SIZE];
+}
