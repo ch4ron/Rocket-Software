@@ -109,16 +109,25 @@ void SS_flash_log_task(void *pvParameters)
     }
 }
 
+static bool is_page_empty(uint8_t *data) {
+    for(uint16_t i = 0; i < S25FL_PAGE_SIZE; i++) {
+        if(data[i] != 0xFF) {
+            return false;
+        }
+    }
+    return true;
+}
+
 void SS_flash_print_logs(char *args) {
     SS_MPU_set_is_logging(false);
     /* SS_println("Start transmiting"); */
-    for (uint32_t i = 0; i < 100; ++i) {
+    for(uint32_t i = 0;; i++) {
         static uint8_t data[S25FL_PAGE_SIZE];
         SS_s25fl_read_page(0x00089200UL/S25FL_PAGE_SIZE + i, data);
-        SS_print_bytes(data, 128);
-        SS_print_bytes(data + 128, 128);
-        SS_print_bytes(data + 256, 128);
-        SS_print_bytes(data + 384, 128);
+        if(is_page_empty(data)) {
+            return;
+        }
+        SS_print_bytes(data, S25FL_PAGE_SIZE);
         /* for (uint32_t ii = 0; ii < S25FL_PAGE_SIZE; ++ii) { */
             /* if(ii%16 == 0) { */
                 /* SS_println(""); */
