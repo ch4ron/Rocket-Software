@@ -72,7 +72,7 @@ MPU_STATUS SS_MPU_init(MPU9250 *mpu9250) {
         SS_error("MPU9250 id: %d too high, max supported id: %d", mpu9250->id, MAX_MPU_COUNT);
         return MPU_ERR;
     }
-    SS_MPU_set_is_logging(true);
+    SS_MPU_set_is_logging(false);
     MPU_STATUS result = MPU_OK;
     HAL_NVIC_DisableIRQ(MPU_INT_EXTI_IRQn);
     result |= SS_AK8963_reset(mpu9250);
@@ -691,26 +691,32 @@ static void SS_MPU_spi_tx_rx_isr(MPU9250 *mpu9250) {
     mpu9250->gyro_raw_z = (int16_t)((int16_t) mpu9250->rcv[13] << 8) | mpu9250->rcv[14];
 
     bool hptw;
-    if (is_logging) {
-        SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x01, (uint8_t *)&mpu9250->accel_raw_x, 2, &hptw);
-        SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x02, (uint8_t *)&mpu9250->accel_raw_y, 2, &hptw);
-        SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x03, (uint8_t *)&mpu9250->accel_raw_z, 2, &hptw);
-
-        SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x04, (uint8_t *)&mpu9250->gyro_raw_x, 2, &hptw);
-        SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x05, (uint8_t *)&mpu9250->gyro_raw_y, 2, &hptw);
-        SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x06, (uint8_t *)&mpu9250->gyro_raw_z, 2, &hptw);
-    }
 
     if((mpu9250->rcv[21] & 0x10)) {  //Check if the data is overflown
         mpu9250->mgnt_raw_x = (int16_t)((int16_t) mpu9250->rcv[16] << 8) | mpu9250->rcv[15];
         mpu9250->mgnt_raw_y = (int16_t)((int16_t) mpu9250->rcv[18] << 8) | mpu9250->rcv[17];
         mpu9250->mgnt_raw_z = (int16_t)((int16_t) mpu9250->rcv[20] << 8) | mpu9250->rcv[19];
 
-        if (is_logging) {
-            SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x07, (uint8_t *)&mpu9250->mgnt_raw_x, 2, &hptw);
-            SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x08, (uint8_t *)&mpu9250->mgnt_raw_y, 2, &hptw);
-            SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x09, (uint8_t *)&mpu9250->mgnt_raw_z, 2, &hptw);
-        }
+        /* if (is_logging) { */
+            /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x07, (uint8_t *)&mpu9250->mgnt_raw_x, 2, &hptw); */
+            /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x08, (uint8_t *)&mpu9250->mgnt_raw_y, 2, &hptw); */
+            /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x09, (uint8_t *)&mpu9250->mgnt_raw_z, 2, &hptw); */
+        /* } */
+    }
+
+    if (is_logging) {
+        /* uint8_t array[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32}; */
+        /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 11, array, 12, &hptw); */
+        SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 11, (uint8_t *) &mpu9250->accel_raw_x, 12, &hptw);
+        /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 12, array, 6, &hptw); */
+        /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 13, array, 6, &hptw); */
+        /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x01, (uint8_t *)&mpu9250->accel_raw_x, 18, &hptw); */
+        /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x02, (uint8_t *)&mpu9250->accel_raw_y, 2, &hptw); */
+        /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x03, (uint8_t *)&mpu9250->accel_raw_z, 2, &hptw); */
+
+        /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x04, (uint8_t *)&mpu9250->gyro_raw_x, 2, &hptw); */
+        /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x05, (uint8_t *)&mpu9250->gyro_raw_y, 2, &hptw); */
+        /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x06, (uint8_t *)&mpu9250->gyro_raw_z, 2, &hptw); */
     }
 
     /* TODO ಠ_ಠ why? */

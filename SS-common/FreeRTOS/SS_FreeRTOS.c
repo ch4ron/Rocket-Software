@@ -102,8 +102,6 @@ static void SS_FreeRTOS_create_tasks(void) {
     res = xTaskCreate(SS_can_tx_handler_task, "Can Tx Task", 64, NULL, 5, NULL);
     assert(res == pdTRUE);
 #endif /* SS_USE_COM */
-    res = xTaskCreate(SS_console_task, "Console Task", 256, NULL, 5, (TaskHandle_t *) NULL);
-    assert(res == pdTRUE);
 #ifdef SS_USE_EXT_CAN
     res = xTaskCreate(SS_can_tx_handler_task, "Ext Can Tx Task", 64, NULL, 5, NULL);
     assert(res == pdTRUE);
@@ -119,7 +117,7 @@ static void SS_FreeRTOS_create_tasks(void) {
     res = xTaskCreate(SS_flash_log_task, "Flash Log Task", 256, NULL, 6, NULL);
     assert(res == pdTRUE);
 #endif /* SS_USE_FLASH */
-    res = xTaskCreate(SS_console_task, "Console Task", 256, NULL, 5, (TaskHandle_t *) NULL);
+    res = xTaskCreate(SS_console_task, "Console Task", 256, NULL, 3, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
 }
 

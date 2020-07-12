@@ -57,6 +57,12 @@ static char console_buf[30];
 static SemaphoreHandle_t rx_sem;
 static volatile uint8_t idx;
 
+extern MPU9250 mpu;
+
+static void SS_print_MPU_params(char *params) {
+    SS_println("%f %f", mpu.gyro_resolution, mpu.accel_resolution);
+}
+
 static void SS_erase_flash(char *params) {
     SS_println("Erasing flash...");
     SS_flash_ctrl_stop_logging();
@@ -90,6 +96,7 @@ ConsoleCommand commands[] = {
     {"stop", "Stop logging", SS_flash_stop},
     {"start", "Start logging", SS_flash_start},
     {"print", "Pring logs", SS_flash_print_logs},
+    {"mpu", "Prints mpu config", SS_print_MPU_params},
 #endif
     {"help", "Print help", SS_console_print_help},
 };

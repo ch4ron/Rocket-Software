@@ -11,7 +11,7 @@
 // XXX: Is this necessary?
 #include "SS_s25fl.h"
 
-#define SS_FLASH_MAX_VAR_DATA_SIZE 8
+#define SS_FLASH_MAX_VAR_DATA_SIZE 16
 
 typedef enum
 {

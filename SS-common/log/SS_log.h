@@ -25,6 +25,7 @@ void SS_log_init(UART_HandleTypeDef *huart);
 void SS_log_buf_put(char data);
 void SS_log_buf_flush(void);
 void SS_log_tx_isr(UART_HandleTypeDef *huart);
+void SS_print_bytes(char *data, uint16_t size);
 
 void _SS_print(const char *format, ...);
 void _SS_print_fromISR(const char *format, ...);

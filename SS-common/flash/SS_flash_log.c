@@ -7,6 +7,7 @@
 
 #include "SS_flash.h"
 #include "FreeRTOS.h"
+#include "SS_s25fl.h"
 #include "semphr.h"
 #include <string.h>
 
@@ -109,22 +110,22 @@ void SS_flash_log_task(void *pvParameters)
 }
 
 void SS_flash_print_logs(char *args) {
-        if (xTaskGetTickCount() >= 2000) {
-            SS_MPU_set_is_logging(false);
-            SS_print("mem dump from 0x00085200\r\n");
-
-            for (uint32_t i = 0; i < 100; ++i) {
-                static uint8_t data[S25FL_PAGE_SIZE];
-                SS_s25fl_read_page(0x00089200UL/S25FL_PAGE_SIZE + i, data);
-                for (uint32_t ii = 0; ii < S25FL_PAGE_SIZE; ++ii) {
-                    SS_print("%x ", data[ii]);
-                    vTaskDelay(pdMS_TO_TICKS(5));
-                }
-
-                SS_print("\r\n");
-            }
-
-            while (true) {
-            }
-        }
+    SS_MPU_set_is_logging(false);
+    /* SS_println("Start transmiting"); */
+    for (uint32_t i = 0; i < 100; ++i) {
+        static uint8_t data[S25FL_PAGE_SIZE];
+        SS_s25fl_read_page(0x00089200UL/S25FL_PAGE_SIZE + i, data);
+        SS_print_bytes(data, 128);
+        SS_print_bytes(data + 128, 128);
+        SS_print_bytes(data + 256, 128);
+        SS_print_bytes(data + 384, 128);
+        /* for (uint32_t ii = 0; ii < S25FL_PAGE_SIZE; ++ii) { */
+            /* if(ii%16 == 0) { */
+                /* SS_println(""); */
+            /* } */
+            /* SS_print("%d ", data[ii]); */
+        /* } */
+        /* SS_print("\n\n------------------\n\n"); */
+    }
+    /* SS_println("Transmit done"); */
 }

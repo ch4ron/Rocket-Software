@@ -7,6 +7,9 @@
 
 #include "SS_flash.h"
 #include "SS_s25fl.h"
+#include "FreeRTOS.h"
+#include "projdefs.h"
+#include "semphr.h"
 #include <string.h>
 
 #define NULL_PAGE (~0UL)
@@ -267,6 +270,7 @@ static volatile bool is_config_file_open;
 static volatile bool is_flush_required[FLASH_STREAM_COUNT];
 static volatile bool is_logging;
 static volatile bool is_emulating;
+static SemaphoreHandle_t log_semaphore;
 
 FlashStatus SS_flash_ctrl_init(void)
 {
@@ -282,6 +286,8 @@ FlashStatus SS_flash_ctrl_init(void)
         is_flush_required[stream] = false;
     }
 
+    log_semaphore = xSemaphoreCreateMutex();
+    assert(log_semaphore != NULL);
     S25flStatus s25fl_status = SS_s25fl_init();
     if (s25fl_status != S25FL_STATUS_OK) {
         return SS_flash_translate_s25fl_status(s25fl_status);
@@ -424,10 +430,15 @@ FlashStatus SS_flash_ctrl_erase_logs(void)
     return FLASH_STATUS_OK;
 }
 
+#include "SS_log.h"
 FlashStatus SS_flash_ctrl_log_var(FlashStream stream, uint8_t id, uint8_t *data, uint32_t size)
 {
     if (!is_logging) {
         return FLASH_STATUS_DISABLED;
+    }
+
+    if(xSemaphoreTake(log_semaphore, pdMS_TO_TICKS(200)) != pdTRUE) {
+        return FLASH_STATUS_BUSY;
     }
 
     FlashStatus status = log_byte(stream, id);
@@ -435,7 +446,7 @@ FlashStatus SS_flash_ctrl_log_var(FlashStream stream, uint8_t id, uint8_t *data,
         return status;
     }
 
-    // Log only 2 most significant bytes of time.
+    // Log only 3 most significant bytes of time.
     status = log_byte(stream, time);
     if (status != FLASH_STATUS_OK) {
         return status;
@@ -446,13 +457,18 @@ FlashStatus SS_flash_ctrl_log_var(FlashStream stream, uint8_t id, uint8_t *data,
         return status;
     }
 
+    status = log_byte(stream, time >> 16);
+    if (status != FLASH_STATUS_OK) {
+        return status;
+    }
+
     for (uint32_t i = 0; i < size; ++i) {
         status = log_byte(stream, data[i]);
         if (status != FLASH_STATUS_OK) {
             return status;
         }
     }
-
+    xSemaphoreGive(log_semaphore);
     return FLASH_STATUS_OK;
 }
 
