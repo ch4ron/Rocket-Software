@@ -13,7 +13,10 @@
 #include "SS_AK8963.h"
 #include "SS_misc.h"
 #include "main.h"
+#include "stm32f4xx_hal_cortex.h"
+#ifdef SS_USE_FLASH
 #include "SS_flash.h"
+#endif
 #include "SS_log.h"
 /* TODO Remove math */
 #include "math.h"
@@ -70,6 +73,7 @@ MPU_STATUS SS_MPU_init(MPU9250 *mpu9250) {
         return MPU_ERR;
     }
     MPU_STATUS result = MPU_OK;
+    HAL_NVIC_DisableIRQ(MPU_INT_EXTI_IRQn);
     result |= SS_AK8963_reset(mpu9250);
     HAL_Delay(50);
     result |= SS_MPU_reset(mpu9250);
@@ -99,6 +103,7 @@ MPU_STATUS SS_MPU_init(MPU9250 *mpu9250) {
             break;
     }
     mpu_pointers[mpu9250->id] = mpu9250;
+    HAL_NVIC_EnableIRQ(MPU_INT_EXTI_IRQn);
     return result;
 }
 
@@ -683,6 +688,7 @@ static void SS_MPU_spi_tx_rx_isr(MPU9250 *mpu9250) {
     mpu9250->gyro_raw_x = (int16_t)((int16_t) mpu9250->rcv[9] << 8) | mpu9250->rcv[10];
     mpu9250->gyro_raw_y = (int16_t)((int16_t) mpu9250->rcv[11] << 8) | mpu9250->rcv[12];
     mpu9250->gyro_raw_z = (int16_t)((int16_t) mpu9250->rcv[13] << 8) | mpu9250->rcv[14];
+    /* SS_println_fromISR("%d", mpu9250->accel_raw_x); */
 
     bool hptw;
     if (is_logging) {
@@ -728,14 +734,12 @@ static void SS_MPU_spi_tx_rx_isr(MPU9250 *mpu9250) {
     }
 }
 
-MPU_STATUS SS_MPU_set_is_logging(bool is_logging_)
-{
+MPU_STATUS SS_MPU_set_is_logging(bool is_logging_) {
     is_logging = is_logging_;
     return MPU_OK;
 }
 
-bool SS_MPU_get_is_logging(void)
-{
+bool SS_MPU_get_is_logging(void) {
     return is_logging;
 }
 

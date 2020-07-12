@@ -69,7 +69,7 @@ static void SS_platform_adc_init(void) {
 
 /********** MPU9250 *********/
 
-static MPU9250 mpu = {
+MPU9250 mpu = {
     .gyro_id = 10,
     .accel_id = 11,
     .mgnt_id = 12,
@@ -109,7 +109,8 @@ void SS_platform_init() {
     SS_console_init(&huart2);
     SS_platform_init_MPU();
 #ifdef SS_USE_FLASH
-    assert(SS_s25fl_init() == FLASH_STATUS_OK);
+    /* assert(SS_s25fl_init() == FLASH_STATUS_OK); */
     assert(SS_flash_init(&hqspi, FLASH_RESET_GPIO_Port, FLASH_RESET_Pin) == FLASH_STATUS_OK);
+    SS_flash_ctrl_start_logging();
 #endif
 }

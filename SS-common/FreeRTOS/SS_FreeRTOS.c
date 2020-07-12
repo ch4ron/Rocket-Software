@@ -10,6 +10,7 @@
 /* ==================================================================== */
 
 #include "FreeRTOS.h"
+#include "MPU9250/SS_MPU9250.h"
 #include "assert.h"
 #include "main.h"
 #include "task.h"
@@ -67,11 +68,16 @@ void SS_run_tests_task(void *pvParameters) {
 /* ==================================================================== */
 /* ======================== Private functions ========================= */
 /* ==================================================================== */
+#include "SS_MPU9250.h"
 
+extern MPU9250 mpu;
 static void vLEDFlashTask(void *pvParameters) {
     while(1) {
         vTaskDelay(500);
+        /* SS_println("%d, %d, %d", mpu.accel_raw_x, mpu.accel_raw_y, mpu.accel_raw_z); */
         SS_platform_toggle_loop_led();
+        /* SS_MPU_math_scaled_accel(&mpu); */
+        /* SS_println("%f, %f, %f", mpu.accel_scaled_x, mpu.accel_scaled_y, mpu.accel_scaled_z); */
     }
 }
 
