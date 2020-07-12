@@ -77,8 +77,8 @@ MPU9250 mpu = {
     .CS_Pin = MPU_CS_Pin,
     .INT_Pin = MPU_INT_Pin,
     .hspi = &hspi1,
-    .accel_scale = MPU_ACCEL_SCALE_2,
-    .gyro_scale = MPU_GYRO_SCALE_250,
+    .accel_scale = MPU_ACCEL_SCALE_8,
+    .gyro_scale = MPU_GYRO_SCALE_1000,
 
     .mgnt_bias_x = 38,
     .mgnt_bias_y = 217,
@@ -86,7 +86,7 @@ MPU9250 mpu = {
     .mgnt_scale_x = 1.040606,
     .mgnt_scale_y = 1.015,
     .mgnt_scale_z = 0.95,
-    .bias = {-15, -11, 72, 230, 300, 537}
+    .bias = {0, 0, 0, 0, 0, 0}
 };
 
 

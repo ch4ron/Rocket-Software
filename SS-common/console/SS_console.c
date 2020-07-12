@@ -77,12 +77,15 @@ static void SS_erase_flash(char *params) {
 
 static void SS_flash_start(char *params) {
     SS_flash_ctrl_start_logging();
-    SS_println("Logging enabled");
 }
 
 static void SS_flash_stop(char *params) {
     SS_flash_ctrl_stop_logging();
     SS_println("Logging disabled");
+}
+
+static void SS_mpu_calibrate(char *params) {
+    /* SS_MPU_calibrate(&mpu); */
 }
 
 ConsoleCommand commands[] = {
@@ -97,6 +100,7 @@ ConsoleCommand commands[] = {
     {"start", "Start logging", SS_flash_start},
     {"print", "Pring logs", SS_flash_print_logs},
     {"mpu", "Prints mpu config", SS_print_MPU_params},
+    /* {"calibrate", "Calibrate", SS_mpu_calibrate}, */
 #endif
     {"help", "Print help", SS_console_print_help},
 };

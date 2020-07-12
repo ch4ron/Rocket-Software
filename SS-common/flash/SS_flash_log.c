@@ -13,6 +13,7 @@
 
 // XXX.
 #include "SS_MPU9250.h"
+#include "usart.h"
 
 typedef struct
 {
@@ -132,7 +133,9 @@ void SS_flash_print_logs(char *args) {
             }
             SS_s25fl_read_page(0x00089200UL/S25FL_PAGE_SIZE + i, data);
         }
-        SS_print_bytes(data, S25FL_PAGE_SIZE);
+        /* SS_print("tx page: %d", i); */
+        HAL_UART_Transmit(&huart2, data, S25FL_PAGE_SIZE, 4000);
+        /* SS_print_bytes(data, S25FL_PAGE_SIZE); */
         /* for (uint32_t ii = 0; ii < S25FL_PAGE_SIZE; ++ii) { */
             /* if(ii%16 == 0) { */
                 /* SS_println(""); */

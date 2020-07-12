@@ -333,10 +333,9 @@ FlashStatus SS_flash_ctrl_start_logging(void)
 
         cur_page_buf_pos[stream] = 0;
     }
+    SS_println("Start logging");
 
     time = 0;
-    uint8_t array[12] = {0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
-    SS_flash_log_var(FLASH_STREAM_VAR, 11, array, 12);
     return FLASH_STATUS_OK;
 }
 
@@ -433,6 +432,7 @@ FlashStatus SS_flash_ctrl_erase_logs(void)
 }
 
 #include "SS_log.h"
+uint32_t flash_counter;
 FlashStatus SS_flash_ctrl_log_var(FlashStream stream, uint8_t id, uint8_t *data, uint32_t size)
 {
     if (!is_logging) {
@@ -442,14 +442,15 @@ FlashStatus SS_flash_ctrl_log_var(FlashStream stream, uint8_t id, uint8_t *data,
     if(xSemaphoreTake(log_semaphore, pdMS_TO_TICKS(200)) != pdTRUE) {
         return FLASH_STATUS_BUSY;
     }
+    flash_counter++;
 
-    FlashStatus status = log_byte(stream, id);
-    if (status != FLASH_STATUS_OK) {
-        return status;
-    }
 
-    // Log only 3 most significant bytes of time.
-    status = log_byte(stream, time);
+    /* FlashStatus status = log_byte(stream, id); */
+    /* if (status != FLASH_STATUS_OK) { */
+        /* return status; */
+    /* } */
+
+    FlashStatus status = log_byte(stream, time);
     if (status != FLASH_STATUS_OK) {
         return status;
     }
@@ -460,6 +461,11 @@ FlashStatus SS_flash_ctrl_log_var(FlashStream stream, uint8_t id, uint8_t *data,
     }
 
     status = log_byte(stream, time >> 16);
+    if (status != FLASH_STATUS_OK) {
+        return status;
+    }
+
+    status = log_byte(stream, time >> 24);
     if (status != FLASH_STATUS_OK) {
         return status;
     }
@@ -755,13 +761,14 @@ static FlashStatus find_last_logged_page(FlashStream stream, uint32_t *page)
             return S25FL_STATUS_OK;
         }
     }
-
+    SS_println("Overflow");
     return FLASH_STATUS_STREAM_OVERFLOW;
 }
 
 static FlashStatus select_next_page(FlashStream stream)
 {
     if (cur_page[FLASH_STREAM_TEXT] - cur_page[FLASH_STREAM_VAR] <= 1) {
+        SS_println("Overflow");
         return FLASH_STATUS_STREAM_OVERFLOW;
     }
 
@@ -784,6 +791,7 @@ static FlashStatus select_next_page(FlashStream stream)
 static FlashStatus log_byte(FlashStream stream, uint8_t byte)
 {
     if (cur_page[stream] >= LOG_FILE_FIRST_PAGE+LOG_FILE_LEN) {
+        SS_println("Overflow");
         return FLASH_STATUS_STREAM_OVERFLOW;
     }
 

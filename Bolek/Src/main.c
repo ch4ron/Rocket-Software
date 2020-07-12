@@ -120,9 +120,9 @@ int main(void)
 
   SS_platform_init();
 
-  SS_MPU_get_accel_data(&mpu);
-  SS_MPU_get_gyro_data(&mpu);
-  Dane=SS_MPU_who_am_i(&mpu);
+  /* SS_MPU_get_accel_data(&mpu); */
+  /* SS_MPU_get_gyro_data(&mpu); */
+  /* Dane=SS_MPU_who_am_i(&mpu); */
   SS_init();
   /* USER CODE END 2 */
 
@@ -187,7 +187,7 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+extern void SS_FreeRTOS_25khz_timer_callback(TIM_HandleTypeDef *htim);
 /* USER CODE END 4 */
 
  /**
@@ -202,6 +202,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* USER CODE BEGIN Callback 0 */
 
+  SS_FreeRTOS_25khz_timer_callback(htim);
   /* USER CODE END Callback 0 */
   if (htim->Instance == TIM13) {
     HAL_IncTick();

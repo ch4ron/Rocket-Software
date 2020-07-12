@@ -680,7 +680,9 @@ static MPU_STATUS SS_MPU_self_test(MPU9250 *mpu9250) {  //Not tested
 /* ============================ Callbacks ============================= */
 /* ==================================================================== */
 
+uint32_t mpu_counter;
 static void SS_MPU_spi_tx_rx_isr(MPU9250 *mpu9250) {
+    static uint8_t counter;
     SS_MPU_CS_DISABLE(mpu9250);
     mpu9250->accel_raw_x = (int16_t)((int16_t) mpu9250->rcv[1] << 8) | mpu9250->rcv[2];
     mpu9250->accel_raw_y = (int16_t)((int16_t) mpu9250->rcv[3] << 8) | mpu9250->rcv[4];
@@ -703,11 +705,13 @@ static void SS_MPU_spi_tx_rx_isr(MPU9250 *mpu9250) {
             /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x09, (uint8_t *)&mpu9250->mgnt_raw_z, 2, &hptw); */
         /* } */
     }
+    counter++;
 
-    if (is_logging) {
+    if (is_logging && counter >= 5) {
         /* uint8_t array[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32}; */
         /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 11, array, 12, &hptw); */
         SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 11, (uint8_t *) &mpu9250->accel_raw_x, 12, &hptw);
+        counter = 0;
         /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 12, array, 6, &hptw); */
         /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 13, array, 6, &hptw); */
         /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x01, (uint8_t *)&mpu9250->accel_raw_x, 18, &hptw); */
@@ -717,26 +721,6 @@ static void SS_MPU_spi_tx_rx_isr(MPU9250 *mpu9250) {
         /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x04, (uint8_t *)&mpu9250->gyro_raw_x, 2, &hptw); */
         /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x05, (uint8_t *)&mpu9250->gyro_raw_y, 2, &hptw); */
         /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x06, (uint8_t *)&mpu9250->gyro_raw_z, 2, &hptw); */
-    }
-
-    /* TODO ಠ_ಠ why? */
-    if(mpu9250->old_data[0] != mpu9250->accel_raw_x || mpu9250->old_data[1] != mpu9250->accel_raw_y || mpu9250->old_data[2] != mpu9250->accel_raw_z) {
-        mpu9250->old_data[0] = mpu9250->accel_raw_x;
-        mpu9250->old_data[1] = mpu9250->accel_raw_y;
-        mpu9250->old_data[2] = mpu9250->accel_raw_z;
-        //        SS_S25FL_save_3x_int16_t(mpu9250->accel_id, mpu9250->accel_raw_x, mpu9250->accel_raw_y, mpu9250->accel_raw_z);
-    }
-    if(mpu9250->old_data[3] != mpu9250->gyro_raw_x || mpu9250->old_data[4] != mpu9250->gyro_raw_y || mpu9250->old_data[5] != mpu9250->gyro_raw_z) {
-        mpu9250->old_data[3] = mpu9250->gyro_raw_x;
-        mpu9250->old_data[4] = mpu9250->gyro_raw_y;
-        mpu9250->old_data[5] = mpu9250->gyro_raw_z;
-        //        SS_S25FL_save_3x_int16_t(mpu9250->gyro_id, mpu9250->gyro_raw_x, mpu9250->gyro_raw_y, mpu9250->gyro_raw_z);
-    }
-    if(mpu9250->old_data[6] != mpu9250->mgnt_raw_x || mpu9250->old_data[7] != mpu9250->mgnt_raw_y || mpu9250->old_data[8] != mpu9250->mgnt_raw_z) {
-        mpu9250->old_data[6] = mpu9250->mgnt_raw_x;
-        mpu9250->old_data[7] = mpu9250->mgnt_raw_y;
-        mpu9250->old_data[8] = mpu9250->mgnt_raw_z;
-        //        SS_S25FL_save_3x_int16_t(mpu9250->mgnt_id, mpu9250->mgnt_raw_x, mpu9250->mgnt_raw_y, mpu9250->mgnt_raw_z);
     }
 }
 
