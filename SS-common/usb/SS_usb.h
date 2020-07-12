@@ -8,8 +8,7 @@
 #ifndef SS_USB_H
 #define SS_USB_H
 
-// TODO: Use a common header for stuff like 'stdbool.h', 'stdio.h' and 'stdint.h'.
-#include "main.h"
+#include "SS_common.h"
 
 typedef enum
 {

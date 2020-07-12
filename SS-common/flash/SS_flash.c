@@ -22,6 +22,17 @@ FlashStatus SS_flash_init(QSPI_HandleTypeDef *hqspi, GPIO_TypeDef *nrst_gpio, ui
     return FLASH_STATUS_OK;
 }
 
+FlashStatus SS_flash_translate_hal_status(HAL_StatusTypeDef hal_status)
+{
+    switch(hal_status) {
+    case HAL_OK:
+        return FLASH_STATUS_OK;
+    case HAL_ERROR:
+    default:
+        return FLASH_STATUS_ERR;
+    }
+}
+
 FlashStatus SS_flash_translate_s25fl_status(S25flStatus s25fl_status)
 {
     switch (s25fl_status) {

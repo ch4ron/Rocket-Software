@@ -7,6 +7,7 @@
 
 #include "SS_flash.h"
 #include "SS_s25fl.h"
+#include <string.h>
 
 #define NULL_PAGE (~0UL)
 #define TIMEOUT_ms 100
@@ -29,7 +30,7 @@
 #define FAT_REGION_FIRST_PAGE 32
 #define FAT_REGION_LEN 1016
 
-// XXX: The file information could perhaps be moved to a structure.
+// XXX: The file information could perhaps be moved to a struct.
 
 #define DIR_TABLE_FIRST_CLUSTER 2
 #define DIR_TABLE_CLUSTER_COUNT 1 // Dir table takes only one cluster.
@@ -245,8 +246,6 @@ static FlashStatus select_next_page(FlashStream stream);
 static FlashStatus log_byte(FlashStream stream, uint8_t byte);
 //static FlashStatus flush_stream(FlashStream stream);
 
-static FlashStatus translate_hal_status(HAL_StatusTypeDef hal_status);
-
 //static uint8_t *get_flushed_buf(FlashStream stream);
 //static int32_t get_first_set_bit_pos(uint8_t byte, int32_t direction);
 
@@ -365,12 +364,12 @@ FlashStatus SS_flash_ctrl_stop_logging(void)
 #ifdef SS_USE_USB
     HAL_StatusTypeDef hal_status = USB_DevDisconnect(USB_OTG_FS);
     if (hal_status != HAL_OK) {
-        return translate_hal_status(hal_status);
+        return SS_flash_translate_hal_status(hal_status);
     }
     HAL_Delay(1000);
     hal_status = USB_DevConnect(USB_OTG_FS);
     if (hal_status != HAL_OK) {
-        return translate_hal_status(hal_status);
+        return SS_flash_translate_hal_status(hal_status);
     }
 #endif
 
@@ -787,17 +786,6 @@ static FlashStatus log_byte(FlashStream stream, uint8_t byte)
     }
 
     return FLASH_STATUS_OK;
-}
-
-static FlashStatus translate_hal_status(HAL_StatusTypeDef hal_status)
-{
-    switch (hal_status) {
-    case HAL_OK:
-        return FLASH_STATUS_OK;
-    case HAL_ERROR:
-    default:
-        return FLASH_STATUS_ERR;
-    }
 }
 
 /*static uint8_t *get_flushed_buf(FlashStream stream)

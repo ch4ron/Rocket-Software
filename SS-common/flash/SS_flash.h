@@ -11,6 +11,8 @@
 // XXX: Is this necessary?
 #include "SS_s25fl.h"
 
+#define SS_FLASH_MAX_VAR_DATA_SIZE 8
+
 typedef enum
 {
     FLASH_STATUS_OK,
@@ -35,6 +37,7 @@ typedef enum
 #include "SS_flash_caching.h"
 
 FlashStatus SS_flash_init(QSPI_HandleTypeDef *hqspi, GPIO_TypeDef *nrst_gpio, uint16_t nrst_pin);
+FlashStatus SS_flash_translate_hal_status(HAL_StatusTypeDef hal_status);
 FlashStatus SS_flash_translate_s25fl_status(S25flStatus s25fl_status);
 
 #endif /* SS_FLASH_H */

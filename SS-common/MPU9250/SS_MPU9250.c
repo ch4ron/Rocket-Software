@@ -13,6 +13,7 @@
 #include "SS_AK8963.h"
 #include "SS_misc.h"
 #include "main.h"
+#include "SS_flash.h"
 #include "SS_log.h"
 /* TODO Remove math */
 #include "math.h"
@@ -51,6 +52,9 @@ static MPU_STATUS SS_MPU_self_test(MPU9250 *mpu9250);
 /* ==================================================================== */
 static MPU9250 *mpu_pointers[MAX_MPU_COUNT];
 MPU9250 *mpu_pointer;
+
+// XXX: Perhaps it should be in the MPU9250 struct?
+static bool is_logging = true;
 
 /* ==================================================================== */
 /* ========================= Public functions ========================= */
@@ -670,7 +674,7 @@ static MPU_STATUS SS_MPU_self_test(MPU9250 *mpu9250) {  //Not tested
 /* ============================ Callbacks ============================= */
 /* ==================================================================== */
 
-static void SS_MPU_spi_tx_isr(MPU9250 *mpu9250) {
+static void SS_MPU_spi_tx_rx_isr(MPU9250 *mpu9250) {
     SS_MPU_CS_DISABLE(mpu9250);
     mpu9250->accel_raw_x = (int16_t)((int16_t) mpu9250->rcv[1] << 8) | mpu9250->rcv[2];
     mpu9250->accel_raw_y = (int16_t)((int16_t) mpu9250->rcv[3] << 8) | mpu9250->rcv[4];
@@ -680,11 +684,29 @@ static void SS_MPU_spi_tx_isr(MPU9250 *mpu9250) {
     mpu9250->gyro_raw_y = (int16_t)((int16_t) mpu9250->rcv[11] << 8) | mpu9250->rcv[12];
     mpu9250->gyro_raw_z = (int16_t)((int16_t) mpu9250->rcv[13] << 8) | mpu9250->rcv[14];
 
+    bool hptw;
+    if (is_logging) {
+        SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x01, (uint8_t *)&mpu9250->accel_raw_x, 2, &hptw);
+        SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x02, (uint8_t *)&mpu9250->accel_raw_y, 2, &hptw);
+        SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x03, (uint8_t *)&mpu9250->accel_raw_z, 2, &hptw);
+
+        SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x04, (uint8_t *)&mpu9250->gyro_raw_x, 2, &hptw);
+        SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x05, (uint8_t *)&mpu9250->gyro_raw_y, 2, &hptw);
+        SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x06, (uint8_t *)&mpu9250->gyro_raw_z, 2, &hptw);
+    }
+
     if((mpu9250->rcv[21] & 0x10)) {  //Check if the data is overflown
         mpu9250->mgnt_raw_x = (int16_t)((int16_t) mpu9250->rcv[16] << 8) | mpu9250->rcv[15];
         mpu9250->mgnt_raw_y = (int16_t)((int16_t) mpu9250->rcv[18] << 8) | mpu9250->rcv[17];
         mpu9250->mgnt_raw_z = (int16_t)((int16_t) mpu9250->rcv[20] << 8) | mpu9250->rcv[19];
+
+        if (is_logging) {
+            SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x07, (uint8_t *)&mpu9250->mgnt_raw_x, 2, &hptw);
+            SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x08, (uint8_t *)&mpu9250->mgnt_raw_y, 2, &hptw);
+            SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x09, (uint8_t *)&mpu9250->mgnt_raw_z, 2, &hptw);
+        }
     }
+
     /* TODO ಠ_ಠ why? */
     if(mpu9250->old_data[0] != mpu9250->accel_raw_x || mpu9250->old_data[1] != mpu9250->accel_raw_y || mpu9250->old_data[2] != mpu9250->accel_raw_z) {
         mpu9250->old_data[0] = mpu9250->accel_raw_x;
@@ -706,10 +728,21 @@ static void SS_MPU_spi_tx_isr(MPU9250 *mpu9250) {
     }
 }
 
+MPU_STATUS SS_MPU_set_is_logging(bool is_logging_)
+{
+    is_logging = is_logging_;
+    return MPU_OK;
+}
+
+bool SS_MPU_get_is_logging(void)
+{
+    return is_logging;
+}
+
 void SS_MPU_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
     for(uint8_t i = 0; i < MAX_MPU_COUNT; i++) {
         if(mpu_pointers[i] && hspi == mpu_pointers[i]->hspi) {
-            SS_MPU_spi_tx_isr(mpu_pointers[i]);
+            SS_MPU_spi_tx_rx_isr(mpu_pointers[i]);
         }
     }
 }

@@ -9,6 +9,7 @@
 #include "FreeRTOS.h"
 #include "projdefs.h"
 #include "semphr.h"
+#include <string.h>
 
 #define NRST_GPIO FLASH_RESET_GPIO_Port
 #define NRST_PIN FLASH_RESET_Pin

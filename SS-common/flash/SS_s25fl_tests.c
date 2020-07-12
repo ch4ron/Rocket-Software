@@ -7,6 +7,7 @@
 
 #include "unity_fixture.h"
 #include "SS_s25fl.h"
+#include <string.h>
 
 TEST_GROUP(s25fl);
 

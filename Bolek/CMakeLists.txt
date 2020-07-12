@@ -19,6 +19,7 @@ target_include_directories(${PROJECT_NAME}.elf PRIVATE Inc)
 # DEFINE YOUR LIBRARIES HERE
 add_compile_definitions(SS_USE_MPU9250)
 add_compile_definitions(SS_USE_FLASH)
+#add_compile_definitions(SS_USE_USB)
 add_compile_definitions(DEBUG)
 
 create_target(${PROJECT_NAME})
