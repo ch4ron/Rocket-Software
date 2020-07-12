@@ -15,5 +15,6 @@ FlashStatus SS_flash_log_var(FlashStream stream, uint8_t id, uint8_t *data, uint
 FlashStatus SS_flash_log_var_from_isr(FlashStream stream, uint8_t id, uint8_t *data, uint32_t size, bool *hptw);
 FlashStatus SS_flash_log_str(FlashStream stream, char *str);
 void SS_flash_log_task(void *pvParameters);
+void SS_flash_print_logs(char *args);
 
 #endif // SS_FLASH_LOG_H

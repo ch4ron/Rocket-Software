@@ -72,6 +72,12 @@ void SS_run_tests_task(void *pvParameters) {
 
 extern MPU9250 mpu;
 static void vLEDFlashTask(void *pvParameters) {
+    /* TODO Temporary fix */
+#ifndef SS_RUN_TESTS
+    vTaskDelay(500);
+    SS_flash_ctrl_start_logging();
+    SS_MPU_set_is_logging(true);
+#endif
     while(1) {
         vTaskDelay(500);
         /* SS_println("%d, %d, %d", mpu.accel_raw_x, mpu.accel_raw_y, mpu.accel_raw_z); */
@@ -110,7 +116,7 @@ static void SS_FreeRTOS_create_tasks(void) {
 #endif /* SS_USE_GRAZYNA */
 #endif /* SS_USE_COM */
 #ifdef SS_USE_FLASH
-    res = xTaskCreate(SS_flash_log_task, "Flash Log Task", 256, NULL, 5, NULL);
+    res = xTaskCreate(SS_flash_log_task, "Flash Log Task", 256, NULL, 6, NULL);
     assert(res == pdTRUE);
 #endif /* SS_USE_FLASH */
     res = xTaskCreate(SS_console_task, "Console Task", 256, NULL, 5, (TaskHandle_t *) NULL);

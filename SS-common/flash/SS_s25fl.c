@@ -627,7 +627,6 @@ static S25flStatus unlocked_cmd_read(QSPI_CommandTypeDef cmd, uint8_t *data)
 {
     S25flStatus status = send_command(cmd);
     if (status != S25FL_STATUS_OK) {
-        SS_println("send cmd fail");
         return status;
     }
 

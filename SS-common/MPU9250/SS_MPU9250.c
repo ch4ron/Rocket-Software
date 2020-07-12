@@ -57,7 +57,7 @@ static MPU9250 *mpu_pointers[MAX_MPU_COUNT];
 MPU9250 *mpu_pointer;
 
 // XXX: Perhaps it should be in the MPU9250 struct?
-static bool is_logging = true;
+static volatile bool is_logging = true;
 
 /* ==================================================================== */
 /* ========================= Public functions ========================= */
@@ -72,6 +72,7 @@ MPU_STATUS SS_MPU_init(MPU9250 *mpu9250) {
         SS_error("MPU9250 id: %d too high, max supported id: %d", mpu9250->id, MAX_MPU_COUNT);
         return MPU_ERR;
     }
+    SS_MPU_set_is_logging(true);
     MPU_STATUS result = MPU_OK;
     HAL_NVIC_DisableIRQ(MPU_INT_EXTI_IRQn);
     result |= SS_AK8963_reset(mpu9250);
@@ -688,7 +689,6 @@ static void SS_MPU_spi_tx_rx_isr(MPU9250 *mpu9250) {
     mpu9250->gyro_raw_x = (int16_t)((int16_t) mpu9250->rcv[9] << 8) | mpu9250->rcv[10];
     mpu9250->gyro_raw_y = (int16_t)((int16_t) mpu9250->rcv[11] << 8) | mpu9250->rcv[12];
     mpu9250->gyro_raw_z = (int16_t)((int16_t) mpu9250->rcv[13] << 8) | mpu9250->rcv[14];
-    /* SS_println_fromISR("%d", mpu9250->accel_raw_x); */
 
     bool hptw;
     if (is_logging) {

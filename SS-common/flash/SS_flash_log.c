@@ -74,6 +74,7 @@ FlashStatus SS_flash_log_var_from_isr(FlashStream stream, uint8_t id, uint8_t *d
         return FLASH_STATUS_BUSY;
     }
     *hptw = higher_priority_task_woken;
+    /* Call task yield from ISR? */
 
     return FLASH_STATUS_OK;
 }
@@ -104,11 +105,15 @@ void SS_flash_log_task(void *pvParameters)
         /*if (xQueueReceive(text_queue, &c, pdMS_TO_TICKS(1)) == pdTRUE) {
             SS_flash_ctrl_log_char(FLASH_STREAM_TEXT, c);
         }*/
-        if (xTaskGetTickCount() >= 20000) {
+    }
+}
+
+void SS_flash_print_logs(char *args) {
+        if (xTaskGetTickCount() >= 2000) {
             SS_MPU_set_is_logging(false);
             SS_print("mem dump from 0x00085200\r\n");
 
-            for (uint32_t i = 0; i < 10; ++i) {
+            for (uint32_t i = 0; i < 100; ++i) {
                 static uint8_t data[S25FL_PAGE_SIZE];
                 SS_s25fl_read_page(0x00089200UL/S25FL_PAGE_SIZE + i, data);
                 for (uint32_t ii = 0; ii < S25FL_PAGE_SIZE; ++ii) {
@@ -118,9 +123,8 @@ void SS_flash_log_task(void *pvParameters)
 
                 SS_print("\r\n");
             }
-            
+
             while (true) {
             }
         }
-    }
 }

@@ -30,7 +30,7 @@ TEST_GROUP_RUNNER(MPU) {
             continue;
         }
         SS_MPU_calibration_read();
-        RUN_TEST_CASE(MPU, init);
+        /* RUN_TEST_CASE(MPU, init); */
         /* RUN_TEST_CASE(MPU, bias); */
         RUN_TEST_CASE(MPU, set_accel_scale);
         RUN_TEST_CASE(MPU, get_accel_data);
@@ -62,7 +62,7 @@ TEST_GROUP_RUNNER(MPU) {
         RUN_TEST_CASE(MPU, gyro_write_calibration);
         RUN_TEST_CASE(MPU, set_smplrt);
         RUN_TEST_CASE(MPU, MPU_reset);
-        RUN_TEST_CASE(MPU, Reinit);  // MPU is Reinitialized to prior settings
+        /* RUN_TEST_CASE(MPU, Reinit);  // MPU is Reinitialized to prior settings */
     }
 }
 static void set_up(void) {

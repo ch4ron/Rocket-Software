@@ -12,15 +12,21 @@
 #include "SS_console.h"
 
 #include "FreeRTOS.h"
+#include "SS_flash.h"
+#include "SS_flash_log.h"
 #include "assert.h"
 #include "portmacro.h"
 #include "semphr.h"
 #include "string.h"
 #include "task.h"
+#ifdef SS_USE_FLASH
+#include "SS_flash_ctrl.h"
+#endif
 
 #include "SS_common.h"
 #include "SS_log.h"
 #include "SS_FreeRTOS.h"
+#include "SS_MPU9250.h"
 
 /* ==================================================================== */
 /* ======================== Private datatypes ========================= */
@@ -51,12 +57,40 @@ static char console_buf[30];
 static SemaphoreHandle_t rx_sem;
 static volatile uint8_t idx;
 
+static void SS_erase_flash(char *params) {
+    SS_println("Erasing flash...");
+    SS_flash_ctrl_stop_logging();
+    SS_MPU_set_is_logging(false);
+    FlashStatus status = SS_flash_ctrl_erase_logs();
+    if(status == FLASH_STATUS_OK) {
+        SS_println("Erase finished successfully!");
+    } else {
+        SS_println("Erase finished with error code: %#x!", status);
+    }
+}
+
+static void SS_flash_start(char *params) {
+    SS_flash_ctrl_start_logging();
+    SS_println("Logging enabled");
+}
+
+static void SS_flash_stop(char *params) {
+    SS_flash_ctrl_stop_logging();
+    SS_println("Logging disabled");
+}
+
 ConsoleCommand commands[] = {
 #if defined(SS_RUN_TESTS) && defined(SS_RUN_TESTS_FROM_CONSOLE)
     {"test", "Run tests", SS_console_run_all_tests},
 #endif /* defined(SS_RUN_TESTS) && defined(SS_RUN_TESTS_FROM_CONSOLE) */
     {"tasks", "Print task info", SS_print_tasks_info},
     {"stats", "Print task info", SS_print_runtime_stats},
+#ifdef SS_USE_FLASH
+    {"erase", "Erase flash", SS_erase_flash},
+    {"stop", "Stop logging", SS_flash_stop},
+    {"start", "Start logging", SS_flash_start},
+    {"print", "Pring logs", SS_flash_print_logs},
+#endif
     {"help", "Print help", SS_console_print_help},
 };
 
@@ -121,6 +155,7 @@ static void SS_print_tasks_info(char *args) {
     char *task_info = pvPortMalloc(1024);
     assert(task_info != NULL);
     vTaskList(task_info);
+    /* TODO Add print bytes function & check asser with flash */
     SS_print("%s", task_info);
     vPortFree(task_info);
 }
