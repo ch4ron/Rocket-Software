@@ -125,16 +125,20 @@ void SS_flash_print_logs(char *args) {
         static uint8_t data[S25FL_PAGE_SIZE];
         SS_s25fl_read_page(0x00089200UL/S25FL_PAGE_SIZE + i, data);
         if(is_page_empty(data)) {
-            return;
+            SS_s25fl_read_page(0x00089200UL/S25FL_PAGE_SIZE + i + 1, data);
+            if(is_page_empty(data)) {
+                /* SS_println("Transmit done, page: %d", i); */
+                return;
+            }
+            SS_s25fl_read_page(0x00089200UL/S25FL_PAGE_SIZE + i, data);
         }
         SS_print_bytes(data, S25FL_PAGE_SIZE);
         /* for (uint32_t ii = 0; ii < S25FL_PAGE_SIZE; ++ii) { */
             /* if(ii%16 == 0) { */
                 /* SS_println(""); */
             /* } */
-            /* SS_print("%d ", data[ii]); */
+            /* SS_print("%x ", data[ii]); */
         /* } */
         /* SS_print("\n\n------------------\n\n"); */
     }
-    /* SS_println("Transmit done"); */
 }

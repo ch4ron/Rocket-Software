@@ -335,6 +335,8 @@ FlashStatus SS_flash_ctrl_start_logging(void)
     }
 
     time = 0;
+    uint8_t array[12] = {0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
+    SS_flash_log_var(FLASH_STREAM_VAR, 11, array, 12);
     return FLASH_STATUS_OK;
 }
 
