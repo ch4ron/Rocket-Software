@@ -18,7 +18,6 @@
 #include "string.h"
 #include "task.h"
 
-#include "SS_common.h"
 #include "SS_log.h"
 #include "SS_FreeRTOS.h"
 
