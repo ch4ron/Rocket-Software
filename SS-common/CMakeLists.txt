@@ -14,8 +14,8 @@ endif()
 add_library(common INTERFACE)
 
 target_sources(common INTERFACE
-  ${CMAKE_CURRENT_SOURCE_DIR}/SS_common.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/SS_common.h)
+  ${CMAKE_CURRENT_SOURCE_DIR}/SS_init.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/SS_init.h)
 
 set(SS_COMMON_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 

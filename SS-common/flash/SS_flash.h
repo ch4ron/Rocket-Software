@@ -8,6 +8,7 @@
 #ifndef SS_FLASH_H
 #define SS_FLASH_H
 
+#include "SS_common.h"
 #include "stm32f4xx_hal.h"
 
 #ifndef FLASH_PAGE_BUF_SIZE

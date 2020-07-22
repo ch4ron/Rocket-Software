@@ -8,7 +8,7 @@
 #include "SS_adc.h"
 #endif
 
-#include "SS_common.h"
+#include "SS_init.h"
 #include "SS_log.h"
 #include "SS_misc.h"
 

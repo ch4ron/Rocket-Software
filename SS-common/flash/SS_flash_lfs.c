@@ -40,10 +40,6 @@ FlashStatus SS_flash_lfs_init(void)
     cfg.lookahead_buffer = lookahead_buffer;
 
     if (lfs_mount(&lfs, &cfg)) {
-        // TODO: Don't do this here. Execute format from a command.
-        // XXX.
-        SS_println("err!");
-
         return SS_flash_lfs_format_and_remount();
     }
 
@@ -63,6 +59,8 @@ FlashStatus SS_flash_lfs_format_and_remount(void)
     if (lfs_mount(&lfs, &cfg)) {
         return FLASH_STATUS_ERR;
     }
+
+    return FLASH_STATUS_OK;
 }
 
 lfs_t *SS_flash_lfs_get(void)

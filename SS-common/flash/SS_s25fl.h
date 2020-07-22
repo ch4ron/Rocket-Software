@@ -8,7 +8,8 @@
 #ifndef SS_S25FL_H
 #define SS_S25FL_H
 
-#include "main.h"
+#include "SS_common.h"
+#include "stm32f4xx_hal.h"
 
 typedef enum
 {

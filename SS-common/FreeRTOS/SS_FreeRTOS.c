@@ -57,7 +57,7 @@ void SS_FreeRTOS_init(void) {
 }
 
 #ifdef SS_RUN_TESTS
-#include "SS_common.h"
+#include "SS_init.h"
 void SS_run_tests_task(void *pvParameters) {
     SS_run_all_tests();
     vTaskDelete(NULL);
