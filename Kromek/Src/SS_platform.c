@@ -6,6 +6,7 @@
 #include "SS_relays.h"
 #include "SS_servos.h"
 #include "SS_ADS1258.h"
+#include "SS_grazyna.h"
 #include "SS_adc.h"
 #include "SS_can.h"
 #include "SS_console.h"
