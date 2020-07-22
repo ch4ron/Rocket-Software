@@ -2,12 +2,10 @@
 // Created by maciek on 28.02.2020.
 //
 
-/* #include "SS_s25fl.h" */
 #include "SS_platform.h"
-
+#include "SS_servos.h"
 #include "SS_adc.h"
 #include "SS_can.h"
-#include "SS_common.h"
 #include "SS_console.h"
 #include "SS_dynamixel.h"
 #include "SS_log.h"
