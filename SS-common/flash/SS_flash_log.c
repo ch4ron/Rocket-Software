@@ -169,5 +169,7 @@ void SS_flash_log_task(void *pvParameters)
         if (xQueueReceive(text_queue, &c, pdMS_TO_TICKS(1)) == pdTRUE) {
             lfs_file_write(lfs, &text_file, &c, sizeof(c));
         }
+
+        vTaskDelay(1);
     }
 }

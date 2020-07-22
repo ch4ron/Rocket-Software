@@ -152,7 +152,7 @@ TEST(flash_log, reset_log_text)
         TEST_ASSERT_EQUAL_INT(FLASH_STATUS_OK, SS_flash_log_text("X"));
     }
 
-    HAL_Delay(3000);
+    //HAL_Delay(3000);
     //vTaskDelay(pdMS_TO_TICKS(1000));
     //vTaskDelay(pdMS_TO_TICKS(100));
     
