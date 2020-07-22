@@ -68,7 +68,9 @@ static void tests(void) {
 /* Enable verbose output */
 int SS_run_all_tests(void) {
     // XXX: For time being, disable USB during tests.
+#ifdef SS_USE_USB
     SS_usb_stop();
+#endif
 
 #ifdef VERBOSE_TEST_OUTPUT
     const char* args[] = {"unity", "-v"};
@@ -78,7 +80,9 @@ int SS_run_all_tests(void) {
 #endif
 
     // XXX: For time being, reenable USB after tests.
+#ifdef SS_USE_USB
     SS_usb_start();
+#endif
 
     return unity_code;
 }
