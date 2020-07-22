@@ -8,8 +8,11 @@
 #ifndef SS_FLASH_H
 #define SS_FLASH_H
 
-// XXX: Is this necessary?
-#include "SS_s25fl.h"
+#include "stm32f4xx_hal.h"
+
+#ifndef FLASH_PAGE_BUF_SIZE
+#define FLASH_PAGE_BUF_SIZE 512
+#endif
 
 typedef enum
 {
@@ -23,18 +26,6 @@ typedef enum
     FLASH_STATUS_COUNT,
 }FlashStatus;
 
-typedef enum
-{
-    FLASH_STREAM_VAR,
-    FLASH_STREAM_TEXT,
-    FLASH_STREAM_COUNT,
-}FlashStream;
-
-#include "SS_flash_ctrl.h"
-#include "SS_flash_log.h"
-#include "SS_flash_caching.h"
-
 FlashStatus SS_flash_init(QSPI_HandleTypeDef *hqspi, GPIO_TypeDef *nrst_gpio, uint16_t nrst_pin);
-FlashStatus SS_flash_translate_s25fl_status(S25flStatus s25fl_status);
 
 #endif /* SS_FLASH_H */

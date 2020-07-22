@@ -9,16 +9,22 @@
 #include "FreeRTOS.h"
 #include "semphr.h"
 
-#define NRST_GPIO GPIOA
-#define NRST_PIN GPIO_PIN_0
+#define TIMEOUT_ms pdMS_TO_TICKS(300)
+#define ERASE_ALL_TIMEOUT_ms pdMS_TO_TICKS(500000)
 
-#define TIMEOUT_ms 3000
-#define ERASE_ALL_TIMEOUT_ms 500000
+typedef enum
+{
+    STATUS_REG1 = 0,
+    CONFIG_REG1 = 1,
+    CONFIG_REG2 = 2,
+    CONFIG_REG3 = 3,
+    REG_COUNT,
+}Reg;
 
 // Identification reading commands.
 
-#define CMD_READ_ID_REMS 0x90
 #define CMD_READ_ID 0x9F
+#define CMD_READ_ID_REMS 0x90
 #define CMD_READ_SIG 0xAB
 #define CMD_READ_SFDP 0x5A
 
@@ -26,7 +32,9 @@
 
 #define CMD_READ_STATUS_REG1 0x05
 #define CMD_READ_STATUS_REG2 0x07
-#define CMD_READ_CONFIG_REG 0x35
+#define CMD_READ_CONFIG_REG1 0x35
+#define CMD_READ_CONFIG_REG2 0x15
+#define CMD_READ_CONFIG_REG3 0x33
 
 #define CMD_WRITE_REGISTERS 0x01
 #define CMD_WRITE_DISABLE 0x04
@@ -108,12 +116,27 @@
 #define STATUS_REG1_WEL 0x02
 #define STATUS_REG1_WIP 0x01
 
-#define CONFIG_REG_LC1 0x80
-#define CONFIG_REG_LC0 0x40
-#define CONFIG_REG_TBPROT 0x20
-#define CONFIG_REG_BPNV 0x08
-#define CONFIG_REG_QUAD 0x02
-#define CONFIG_REG_FREEZE 0x01
+#define CONFIG_REG1_LC1 0x80
+#define CONFIG_REG1_LC0 0x40
+#define CONFIG_REG1_TBPROT 0x20
+#define CONFIG_REG1_BPNV 0x08
+#define CONFIG_REG1_QUAD 0x02
+#define CONFIG_REG1_FREEZE 0x01
+
+#define CONFIG_REG2_IO3R 0x80
+#define CONFIG_REG2_OI1 0x40
+#define CONFIG_REG2_OI0 0x20
+#define CONFIG_REG2_QPI 0x08
+#define CONFIG_REG2_WPS 0x04
+#define CONFIG_REG2_ADP 0x02
+
+#define CONFIG_REG3_WL1 0x40
+#define CONFIG_REG3_WL0 0x20
+#define CONFIG_REG3_WE 0x10
+#define CONFIG_REG3_RL3 0x08
+#define CONFIG_REG3_RL2 0x04
+#define CONFIG_REG3_RL1 0x02
+#define CONFIG_REG3_RL0 0x01
 
 #define STATUS_REG2_ES 0x02
 #define STATUS_REG2_PS 0x01
@@ -151,17 +174,19 @@ static S25flStatus autopoll(uint8_t reg1_mask, uint8_t reg1_match);
 
 // Protected by semaphore.
 
-static S25flStatus cmd_write_regs(uint8_t status_reg1, uint8_t config_reg);
+static S25flStatus cmd_write_regs(uint8_t *regs, uint32_t reg_count);
 
 static S25flStatus cmd_read_status_reg1(uint8_t *val);
 static S25flStatus cmd_read_status_reg2(uint8_t *val);
 
-static S25flStatus cmd_read_config_reg(uint8_t *val);
+static S25flStatus cmd_read_config_reg1(uint8_t *val);
+static S25flStatus cmd_read_config_reg2(uint8_t *val);
+static S25flStatus cmd_read_config_reg3(uint8_t *val);
 
-static S25flStatus cmd_write(QSPI_CommandTypeDef cmd, uint8_t *data);
-static S25flStatus unlocked_cmd_write(QSPI_CommandTypeDef cmd, uint8_t *data);
-static S25flStatus cmd_write_dma(QSPI_CommandTypeDef cmd, uint8_t *data);
-static S25flStatus unlocked_cmd_write_dma(QSPI_CommandTypeDef cmd, uint8_t *data);
+static S25flStatus cmd_write(QSPI_CommandTypeDef cmd, const uint8_t *data);
+static S25flStatus unlocked_cmd_write(QSPI_CommandTypeDef cmd, const uint8_t *data);
+static S25flStatus cmd_write_dma(QSPI_CommandTypeDef cmd, const uint8_t *data);
+static S25flStatus unlocked_cmd_write_dma(QSPI_CommandTypeDef cmd, const  uint8_t *data);
 
 static S25flStatus cmd_read(QSPI_CommandTypeDef cmd, uint8_t *data);
 static S25flStatus unlocked_cmd_read(QSPI_CommandTypeDef cmd, uint8_t *data);
@@ -176,25 +201,98 @@ static S25flStatus translate_hal_status(HAL_StatusTypeDef hal_status);
 extern QSPI_HandleTypeDef hqspi;
 extern DMA_HandleTypeDef hdma_quadspi;
 
+static volatile StaticSemaphore_t static_semaphore;
 static volatile SemaphoreHandle_t semaphore;
 
-S25flStatus SS_s25fl_init(void)
+// Should not be `volatile` -- these variables are used in arithmetic, we want to optimize this to logic shifts.
+static uint32_t memory_size, sector_size, page_size;
+static uint32_t qior_dummy_cycles_count;
+static bool use_quad;
+
+S25flStatus SS_s25fl_init(GPIO_TypeDef *nrst_gpio, uint16_t nrst_pin,
+    uint32_t memory_size_, uint32_t sector_size_, uint32_t page_size_,
+    bool use_quad_, uint32_t qior_dummy_cycles_count_, uint32_t config_reg_count)
 {
-    HAL_GPIO_WritePin(NRST_GPIO, NRST_PIN, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(nrst_gpio, nrst_pin, GPIO_PIN_RESET);
     HAL_Delay(1);
-    HAL_GPIO_WritePin(NRST_GPIO, NRST_PIN, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(nrst_gpio, nrst_pin, GPIO_PIN_SET);
     HAL_Delay(1);
 
-    semaphore = xSemaphoreCreateBinary();
+    semaphore = xSemaphoreCreateBinaryStatic((StaticSemaphore_t *)&static_semaphore);
     if (!xSemaphoreGive(semaphore)) {
         return S25FL_STATUS_ERR;
     }
 
-#ifdef S25FL_USE_QUAD
-    return cmd_write_regs(0x00, CONFIG_REG_QUAD);
-#else
-    return cmd_write_regs(0x00, 0x00);
-#endif
+    memory_size = memory_size_;
+    sector_size = sector_size_;
+    page_size = page_size_;
+    use_quad = use_quad_;
+    qior_dummy_cycles_count = qior_dummy_cycles_count_;
+
+    // FIXME: The configuration register value should be checked before writing to avoid wearing out the register
+    // with erasures.
+    uint8_t status_reg1 = 0x00;
+    S25flStatus status = cmd_read_status_reg1(&status_reg1);
+    if (status != S25FL_STATUS_OK) {
+        return status;
+    }
+
+    uint8_t regs[REG_COUNT] = {
+        [STATUS_REG1] = status_reg1,
+        [CONFIG_REG1] = use_quad? CONFIG_REG1_QUAD : 0x00,
+        // Same as the factory defaults for S25FL256L.
+        [CONFIG_REG2] = CONFIG_REG2_OI1 | CONFIG_REG2_OI0,
+        [CONFIG_REG3] = CONFIG_REG3_WL1 | CONFIG_REG3_WL0 | CONFIG_REG3_WE | CONFIG_REG3_RL3,
+    };
+
+    uint8_t config_reg1 = regs[CONFIG_REG1];
+    uint8_t config_reg2 = regs[CONFIG_REG2];
+    uint8_t config_reg3 = regs[CONFIG_REG3];
+
+    status = cmd_read_config_reg1(&config_reg1);
+    if (status != S25FL_STATUS_OK) {
+        return status;
+    }
+
+    if (config_reg_count >= 2) {
+        status = cmd_read_config_reg2(&config_reg2);
+        if (status != S25FL_STATUS_OK) {
+            return status;
+        }
+    }
+
+    if (config_reg_count >= 3) {
+        status = cmd_read_config_reg3(&config_reg3);
+        if (status != S25FL_STATUS_OK) {
+            return status;
+        }
+    }
+
+    if (config_reg1 != regs[CONFIG_REG1]
+    || config_reg2 != regs[CONFIG_REG2]
+    || config_reg3 != regs[CONFIG_REG3]) {
+        // First reg is status reg 1.
+        return cmd_write_regs(regs, config_reg_count+1);
+    }
+
+    return S25FL_STATUS_OK;
+}
+
+S25flStatus SS_s25fl_read_id(uint16_t *id)
+{
+    QSPI_CommandTypeDef cmd = default_cmd;
+    cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
+    cmd.Instruction = CMD_READ_ID;
+    cmd.DataMode = QSPI_DATA_1_LINE;
+    cmd.NbData = 2;
+
+    uint8_t data[2];
+    S25flStatus status = cmd_read(cmd, data);
+    if (status == S25FL_STATUS_OK) {
+        *id = (data[0]<<8) | data[1];
+    }
+    
+    return status;
 }
 
 S25flStatus SS_s25fl_read_rems_id(uint16_t *id)
@@ -268,7 +366,7 @@ static S25flStatus unlocked_erase_sector(uint32_t sector)
     cmd.Instruction = CMD_4_SECTOR_ERASE;
     cmd.AddressMode = QSPI_ADDRESS_1_LINE;
     cmd.AddressSize = QSPI_ADDRESS_32_BITS;
-    cmd.Address = sector*S25FL_SECTOR_SIZE;
+    cmd.Address = sector*sector_size;
 
     status = send_command(cmd);
     if (status != S25FL_STATUS_OK) {
@@ -280,7 +378,7 @@ static S25flStatus unlocked_erase_sector(uint32_t sector)
 
 // XXX: It should be forbidden to write to bytes directly over a continuous segment overlapping more than one page.
 
-S25flStatus SS_s25fl_write_bytes(uint32_t addr, uint8_t *data, uint32_t size)
+S25flStatus SS_s25fl_write_bytes(uint32_t addr, const uint8_t *data, uint32_t size)
 {
     // Writing across more than one page will not work properly.
     //assert(addr+size >= (addr/PAGE_SIZE+1)*PAGE_SIZE);
@@ -289,7 +387,7 @@ S25flStatus SS_s25fl_write_bytes(uint32_t addr, uint8_t *data, uint32_t size)
     return cmd_write(cmd, data);
 }
 
-S25flStatus SS_s25fl_write_bytes_dma(uint32_t addr, uint8_t *data, uint32_t size)
+S25flStatus SS_s25fl_write_bytes_dma(uint32_t addr, const uint8_t *data, uint32_t size)
 {
     QSPI_CommandTypeDef cmd = create_write_cmd(addr, size);
     return cmd_write_dma(cmd, data);
@@ -297,12 +395,12 @@ S25flStatus SS_s25fl_write_bytes_dma(uint32_t addr, uint8_t *data, uint32_t size
 
 S25flStatus SS_s25fl_write_page(uint32_t page, uint8_t *data)
 {
-    return SS_s25fl_write_bytes(page*S25FL_PAGE_SIZE, data, S25FL_PAGE_SIZE);
+    return SS_s25fl_write_bytes(page*page_size, data, page_size);
 }
 
 S25flStatus SS_s25fl_write_page_dma(uint32_t page, uint8_t *data)
 {
-    return SS_s25fl_write_bytes_dma(page*S25FL_PAGE_SIZE, data, S25FL_PAGE_SIZE);
+    return SS_s25fl_write_bytes_dma(page*page_size, data, page_size);
 }
 
 S25flStatus SS_s25fl_read_bytes(uint32_t addr, uint8_t *data, uint32_t size)
@@ -330,17 +428,17 @@ S25flStatus SS_s25fl_read_bytes_dma_wait(uint32_t addr, uint8_t *data, uint32_t 
 
 S25flStatus SS_s25fl_read_page(uint32_t page, uint8_t *data)
 {
-    return SS_s25fl_read_bytes(page*S25FL_PAGE_SIZE, data, S25FL_PAGE_SIZE);
+    return SS_s25fl_read_bytes(page*page_size, data, page_size);
 }
 
 S25flStatus SS_s25fl_read_page_dma(uint32_t page, uint8_t *data)
 {
-    return SS_s25fl_read_bytes_dma(page*S25FL_PAGE_SIZE, data, S25FL_PAGE_SIZE);
+    return SS_s25fl_read_bytes_dma(page*page_size, data, page_size);
 }
 
 S25flStatus SS_s25fl_read_page_dma_wait(uint32_t page, uint8_t *data)
 {
-    return SS_s25fl_read_bytes_dma_wait(page*S25FL_PAGE_SIZE, data, S25FL_PAGE_SIZE);
+    return SS_s25fl_read_bytes_dma_wait(page*page_size, data, page_size);
 }
 
 S25flStatus SS_s25fl_wait_until_ready(void)
@@ -372,6 +470,21 @@ S25flStatus SS_s25fl_get_status(void)
     }
 
     return translate_status_regs(status_reg1, status_reg2);
+}
+
+uint32_t SS_s25fl_get_memory_size(void)
+{
+    return memory_size;
+}
+
+uint32_t SS_s25fl_get_sector_size(void)
+{
+    return sector_size;
+}
+
+uint32_t SS_s25fl_get_page_size(void)
+{
+    return page_size;
 }
 
 S25flStatus SS_s25fl_qspi_cmdcplt_handler(QSPI_HandleTypeDef *hqspi_, bool *hptw)
@@ -509,16 +622,15 @@ static S25flStatus autopoll(uint8_t reg1_mask, uint8_t reg1_match)
     return S25FL_STATUS_OK;
 }
 
-static S25flStatus cmd_write_regs(uint8_t status_reg1, uint8_t config_reg)
+static S25flStatus cmd_write_regs(uint8_t *regs, uint32_t reg_count)
 {
     QSPI_CommandTypeDef cmd = default_cmd;
     cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
     cmd.Instruction = CMD_WRITE_REGISTERS;
     cmd.DataMode = QSPI_DATA_1_LINE;
-    cmd.NbData = 2;
+    cmd.NbData = reg_count;
 
-    uint8_t data[2] = {status_reg1, config_reg};
-    return cmd_write(cmd, data);
+    return cmd_write(cmd, regs);
 }
 
 static S25flStatus cmd_read_status_reg1(uint8_t *val)
@@ -543,18 +655,40 @@ static S25flStatus cmd_read_status_reg2(uint8_t *val)
     return cmd_read(cmd, val);
 }
 
-static S25flStatus cmd_read_config_reg(uint8_t *val)
+static S25flStatus cmd_read_config_reg1(uint8_t *val)
 {
     QSPI_CommandTypeDef cmd = default_cmd;
     cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
-    cmd.Instruction = CMD_READ_CONFIG_REG;
+    cmd.Instruction = CMD_READ_CONFIG_REG1;
     cmd.DataMode = QSPI_DATA_1_LINE;
     cmd.NbData = 1;
 
     return cmd_read(cmd, val);
 }
 
-static S25flStatus cmd_write(QSPI_CommandTypeDef cmd, uint8_t *data)
+static S25flStatus cmd_read_config_reg2(uint8_t *val)
+{
+    QSPI_CommandTypeDef cmd = default_cmd;
+    cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
+    cmd.Instruction = CMD_READ_CONFIG_REG2;
+    cmd.DataMode = QSPI_DATA_1_LINE;
+    cmd.NbData = 1;
+
+    return cmd_read(cmd, val);
+}
+
+static S25flStatus cmd_read_config_reg3(uint8_t *val)
+{
+    QSPI_CommandTypeDef cmd = default_cmd;
+    cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
+    cmd.Instruction = CMD_READ_CONFIG_REG3;
+    cmd.DataMode = QSPI_DATA_1_LINE;
+    cmd.NbData = 1;
+
+    return cmd_read(cmd, val);
+}
+
+static S25flStatus cmd_write(QSPI_CommandTypeDef cmd, const uint8_t *data)
 {
     S25flStatus status = lock();
     if (status != S25FL_STATUS_OK) {
@@ -564,7 +698,7 @@ static S25flStatus cmd_write(QSPI_CommandTypeDef cmd, uint8_t *data)
     return unlock(unlocked_cmd_write(cmd, data));
 }
 
-static S25flStatus unlocked_cmd_write(QSPI_CommandTypeDef cmd, uint8_t *data)
+static S25flStatus unlocked_cmd_write(QSPI_CommandTypeDef cmd, const uint8_t *data)
 {
     S25flStatus status = enable_write();
     if (status != S25FL_STATUS_OK) {
@@ -576,7 +710,7 @@ static S25flStatus unlocked_cmd_write(QSPI_CommandTypeDef cmd, uint8_t *data)
         return status;
     }
 
-    HAL_StatusTypeDef hal_status = HAL_QSPI_Transmit(&hqspi, data, TIMEOUT_ms);
+    HAL_StatusTypeDef hal_status = HAL_QSPI_Transmit(&hqspi, (uint8_t *)data, TIMEOUT_ms);
     if (hal_status != HAL_OK) {
         return translate_hal_status(hal_status);
     }
@@ -584,7 +718,7 @@ static S25flStatus unlocked_cmd_write(QSPI_CommandTypeDef cmd, uint8_t *data)
     return S25FL_STATUS_OK;
 }
 
-static S25flStatus cmd_write_dma(QSPI_CommandTypeDef cmd, uint8_t *data)
+static S25flStatus cmd_write_dma(QSPI_CommandTypeDef cmd, const uint8_t *data)
 {
     S25flStatus status = lock();
     if (status != S25FL_STATUS_OK) {
@@ -595,7 +729,7 @@ static S25flStatus cmd_write_dma(QSPI_CommandTypeDef cmd, uint8_t *data)
     return unlocked_cmd_write_dma(cmd, data);
 }
 
-static S25flStatus unlocked_cmd_write_dma(QSPI_CommandTypeDef cmd, uint8_t *data)
+static S25flStatus unlocked_cmd_write_dma(QSPI_CommandTypeDef cmd, const uint8_t *data)
 {
     S25flStatus status = enable_write();
     if (status != S25FL_STATUS_OK) {
@@ -607,7 +741,7 @@ static S25flStatus unlocked_cmd_write_dma(QSPI_CommandTypeDef cmd, uint8_t *data
         return status;
     }
 
-    HAL_StatusTypeDef hal_status = HAL_QSPI_Transmit_DMA(&hqspi, data);
+    HAL_StatusTypeDef hal_status = HAL_QSPI_Transmit_DMA(&hqspi, (uint8_t *)data);
     return translate_hal_status(hal_status);
 }
 
@@ -657,23 +791,23 @@ static QSPI_CommandTypeDef create_write_cmd(uint32_t addr, uint32_t size)
 {
     QSPI_CommandTypeDef cmd = default_cmd;
 
-#ifdef S25FL_USE_QUAD
-    cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
-    cmd.Instruction = CMD_4_QUAD_PAGE_PROGRAM;
-    cmd.AddressMode = QSPI_ADDRESS_1_LINE;
-    cmd.AddressSize = QSPI_ADDRESS_32_BITS;
-    cmd.Address = addr;
-    cmd.DataMode = QSPI_DATA_4_LINES;
-    cmd.NbData = size;
-#else
-    cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
-    cmd.Instruction = CMD_4_PAGE_PROGRAM;
-    cmd.AddressMode = QSPI_ADDRESS_1_LINE;
-    cmd.AddressSize = QSPI_ADDRESS_32_BITS;
-    cmd.Address = addr;
-    cmd.DataMode = QSPI_DATA_1_LINE;
-    cmd.NbData = size;
-#endif
+    if (use_quad) {
+        cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
+        cmd.Instruction = CMD_4_QUAD_PAGE_PROGRAM;
+        cmd.AddressMode = QSPI_ADDRESS_1_LINE;
+        cmd.AddressSize = QSPI_ADDRESS_32_BITS;
+        cmd.Address = addr;
+        cmd.DataMode = QSPI_DATA_4_LINES;
+        cmd.NbData = size;
+    } else {
+        cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
+        cmd.Instruction = CMD_4_PAGE_PROGRAM;
+        cmd.AddressMode = QSPI_ADDRESS_1_LINE;
+        cmd.AddressSize = QSPI_ADDRESS_32_BITS;
+        cmd.Address = addr;
+        cmd.DataMode = QSPI_DATA_1_LINE;
+        cmd.NbData = size;
+    }
 
     return cmd;
 }
@@ -682,27 +816,27 @@ static QSPI_CommandTypeDef create_read_cmd(uint32_t addr, uint32_t size)
 {
     QSPI_CommandTypeDef cmd = default_cmd;
 
-#ifdef S25FL_USE_QUAD
-    cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
-    cmd.Instruction = CMD_4_QUAD_IO_READ;
-    cmd.AddressMode = QSPI_ADDRESS_4_LINES;
-    cmd.AddressSize = QSPI_ADDRESS_32_BITS;
-    cmd.Address = addr;
-    cmd.AlternateByteMode = QSPI_ALTERNATE_BYTES_4_LINES;
-    cmd.AlternateBytesSize = QSPI_ALTERNATE_BYTES_8_BITS;
-    cmd.AlternateBytes = 0x00;
-    cmd.DummyCycles = 4;
-    cmd.DataMode = QSPI_DATA_4_LINES;
-    cmd.NbData = size;
-#else
-    cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
-    cmd.Instruction = CMD_4_READ;
-    cmd.AddressMode = QSPI_ADDRESS_1_LINE;
-    cmd.AddressSize = QSPI_ADDRESS_32_BITS;
-    cmd.Address = addr;
-    cmd.DataMode = QSPI_DATA_1_LINE;
-    cmd.NbData = size;
-#endif
+    if (use_quad) {
+        cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
+        cmd.Instruction = CMD_4_QUAD_IO_READ;
+        cmd.AddressMode = QSPI_ADDRESS_4_LINES;
+        cmd.AddressSize = QSPI_ADDRESS_32_BITS;
+        cmd.Address = addr;
+        cmd.AlternateByteMode = QSPI_ALTERNATE_BYTES_4_LINES;
+        cmd.AlternateBytesSize = QSPI_ALTERNATE_BYTES_8_BITS;
+        cmd.AlternateBytes = 0x00;
+        cmd.DummyCycles = qior_dummy_cycles_count;
+        cmd.DataMode = QSPI_DATA_4_LINES;
+        cmd.NbData = size;
+    } else {
+        cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
+        cmd.Instruction = CMD_4_READ;
+        cmd.AddressMode = QSPI_ADDRESS_1_LINE;
+        cmd.AddressSize = QSPI_ADDRESS_32_BITS;
+        cmd.Address = addr;
+        cmd.DataMode = QSPI_DATA_1_LINE;
+        cmd.NbData = size;
+    }
 
     return cmd;
 }
@@ -736,18 +870,33 @@ static S25flStatus translate_hal_status(HAL_StatusTypeDef hal_status)
 }
 
 #ifdef DEBUG
-S25flStatus SS_s25fl_debug_read_regs(uint8_t *status_reg1, uint8_t *status_reg2, uint8_t *config_reg)
+S25flStatus SS_s25fl_debug_read_status_reg1(uint8_t *val)
 {
-    S25flStatus status = cmd_read_status_reg1(status_reg1);
-    if (status != S25FL_STATUS_OK) {
-        return status;
-    }
+    return cmd_read_status_reg1(val);
+}
 
-    status = cmd_read_status_reg2(status_reg2);
-    if (status != S25FL_STATUS_OK) {
-        return status;
-    }
+S25flStatus SS_s25fl_debug_read_status_reg2(uint8_t *val)
+{
+    return cmd_read_status_reg2(val);
+}
 
-    return cmd_read_config_reg(config_reg);
+S25flStatus SS_s25fl_debug_read_config_reg1(uint8_t *val)
+{
+    return cmd_read_config_reg1(val);
+}
+
+S25flStatus SS_s25fl_debug_read_config_reg2(uint8_t *val)
+{
+    return cmd_read_config_reg2(val);
+}
+
+S25flStatus SS_s25fl_debug_read_config_reg3(uint8_t *val)
+{
+    return cmd_read_config_reg3(val);
+}
+
+uint32_t SS_s25fl_debug_get_page_size(void)
+{
+    return page_size;
 }
 #endif

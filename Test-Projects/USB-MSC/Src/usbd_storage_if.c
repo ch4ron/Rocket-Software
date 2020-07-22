@@ -243,10 +243,10 @@ int8_t STORAGE_Read_FS(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t bl
 		return USBD_FAIL;
 	}
 
-	if (SS_flash_caching_read_pages(blk_addr/PAGES_PER_BLOCK, blk_len*PAGES_PER_BLOCK, buf) != FLASH_STATUS_OK) {
+	/*if (SS_flash_caching_read_pages(blk_addr/PAGES_PER_BLOCK, blk_len*PAGES_PER_BLOCK, buf) != FLASH_STATUS_OK) {
 		//fprintf(stderr, "Reading %ld pages from 0x%lX failed.\r\n", blk_len, blk_addr);
 		return USBD_FAIL;
-	}
+	}*/
 
 	return USBD_OK;
   /* USER CODE END 6 */

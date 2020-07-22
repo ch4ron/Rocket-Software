@@ -109,11 +109,10 @@ int main(void)
   MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
     //SS_s25fl_init();
-    SS_s25fl_init();
-    SS_flash_init(&hqspi, GPIOA, GPIO_PIN_0);
-
     SS_log_init(&huart2);
     SS_console_init(&huart2);
+    SS_s25fl_init(GPIOA, GPIO_PIN_0, 16*1024*1024, 64*1024, 256, false, 8, 3);
+    SS_flash_init(&hqspi, GPIOA, GPIO_PIN_0);
     SS_init();
   /* USER CODE END 2 */
 

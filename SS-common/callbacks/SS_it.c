@@ -141,7 +141,7 @@ void HAL_QSPI_RxCpltCallback(QSPI_HandleTypeDef *hqspi) {
     bool higher_priority_task_woken = false;
 
     SS_s25fl_qspi_rxcplt_handler(hqspi, &higher_priority_task_woken);
-    SS_flash_caching_qspi_rxcplt_handler(hqspi, &higher_priority_task_woken);
+    //SS_flash_caching_qspi_rxcplt_handler(hqspi, &higher_priority_task_woken);
     portYIELD_FROM_ISR(higher_priority_task_woken);
 #endif
 }
@@ -162,6 +162,6 @@ void HAL_SYSTICK_Callback() {
     SS_MS56_SYSTICK_Callback();
 #endif
 #ifdef SS_USE_FLASH
-    SS_flash_ctrl_time_increment_handler();
+    //SS_flash_ctrl_time_increment_handler();
 #endif
 }

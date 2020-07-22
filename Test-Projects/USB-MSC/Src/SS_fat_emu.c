@@ -5,8 +5,8 @@
  *      Author: Mikolaj Wielgus
  */
 
-#include "SS_fat_emu.h"
-#include "SS_flash_ctrl.h"
+//#include "SS_fat_emu.h"
+//#include "SS_flash_ctrl.h"
 
 /*FatEmuStatus SS_fat_emu_init(void)
 {

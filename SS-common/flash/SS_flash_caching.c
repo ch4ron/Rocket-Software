@@ -9,10 +9,13 @@
 #include "SS_flash_ctrl.h"
 #include "SS_s25fl.h"
 
+#define FLASH_PAGE_SIZE 512
+
 static FlashStatus cached_write_page(uint32_t page, uint8_t *data);
 static FlashStatus cached_read_page(uint32_t page, uint8_t *data);
 
-static volatile uint8_t cache[S25FL_PAGE_SIZE];
+//static volatile uint8_t cache[S25FL_PAGE_SIZE];
+static volatile uint8_t cache[FLASH_PAGE_SIZE];
 static volatile uint32_t cached_page;
 static volatile bool is_caching_enabled = false;
 static volatile bool is_cached = false;
@@ -46,7 +49,7 @@ FlashStatus SS_flash_caching_write_pages(uint32_t first_page, uint32_t len, uint
     }
 
     for (uint32_t i = 0; i < len; ++i) {
-        FlashStatus status = cached_write_page(first_page+i, &data[i*S25FL_PAGE_SIZE]);
+        FlashStatus status = cached_write_page(first_page+i, &data[i*FLASH_PAGE_SIZE]);
         if (status != FLASH_STATUS_OK) {
             return status;
         }
@@ -58,7 +61,7 @@ FlashStatus SS_flash_caching_write_pages(uint32_t first_page, uint32_t len, uint
 FlashStatus SS_flash_caching_read_pages(uint32_t first_page, uint32_t len, uint8_t *data)
 {
     for (uint32_t i = 0; i < len; ++i) {
-        FlashStatus status = cached_read_page(first_page+i, &data[i*S25FL_PAGE_SIZE]);
+        FlashStatus status = cached_read_page(first_page+i, &data[i*FLASH_PAGE_SIZE]);
         if (status != FLASH_STATUS_OK) {
             return status;
         }
@@ -95,7 +98,7 @@ static FlashStatus cached_write_page(uint32_t page, uint8_t *data)
 static FlashStatus cached_read_page(uint32_t page, uint8_t *data)
 {
     if (is_cached && is_cache_ready && page == cached_page) {
-        memcpy(data, (uint8_t *)cache, S25FL_PAGE_SIZE);
+        memcpy(data, (uint8_t *)cache, FLASH_PAGE_SIZE);
     } else {
         FlashStatus status = SS_flash_ctrl_read_page_dma_wait(page, data);
         if (status != FLASH_STATUS_OK) {

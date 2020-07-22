@@ -41,10 +41,10 @@ TEST(flash_caching, start_stop)
 
 TEST(flash_caching, read_write_page)
 {
-	static uint8_t data1[S25FL_PAGE_SIZE], data2[S25FL_PAGE_SIZE], data3[S25FL_PAGE_SIZE];
-	for (uint32_t i = 0; i < S25FL_PAGE_SIZE; ++i) {
+	static uint8_t data1[FLASH_PAGE_BUF_SIZE], data2[FLASH_PAGE_BUF_SIZE], data3[FLASH_PAGE_BUF_SIZE];
+	for (uint32_t i = 0; i < FLASH_PAGE_BUF_SIZE; ++i) {
 		data1[i] = i;
-		data2[S25FL_PAGE_SIZE-1-i] = i*2;
+		data2[FLASH_PAGE_BUF_SIZE-1-i] = i*2;
 	}
 
 	TEST_ASSERT_EQUAL_INT(FLASH_STATUS_OK, SS_flash_ctrl_set_is_emulating(false));
@@ -53,9 +53,9 @@ TEST(flash_caching, read_write_page)
 	TEST_ASSERT_EQUAL_INT(FLASH_STATUS_OK, SS_flash_caching_write_pages(31, 1, data2));
 	TEST_ASSERT_EQUAL_INT(FLASH_STATUS_OK, SS_flash_caching_write_pages(32, 1, data3));
 
-	static uint8_t data[S25FL_PAGE_SIZE];
+	static uint8_t data[FLASH_PAGE_BUF_SIZE];
 	TEST_ASSERT_EQUAL_INT(FLASH_STATUS_OK, SS_flash_caching_read_pages(30, 1, data));
-	TEST_ASSERT_EQUAL_INT(0, memcmp(data, data1, S25FL_PAGE_SIZE));
+	TEST_ASSERT_EQUAL_INT(0, memcmp(data, data1, FLASH_PAGE_BUF_SIZE));
 
 	HAL_Delay(10);
 	TEST_ASSERT_TRUE(SS_flash_caching_debug_get_is_cache_ready());
@@ -63,7 +63,7 @@ TEST(flash_caching, read_write_page)
 
 
 	TEST_ASSERT_EQUAL_INT(FLASH_STATUS_OK, SS_flash_caching_read_pages(31, 1, data));
-	TEST_ASSERT_EQUAL_INT(0, memcmp(data, data2, S25FL_PAGE_SIZE));
+	TEST_ASSERT_EQUAL_INT(0, memcmp(data, data2, FLASH_PAGE_BUF_SIZE));
 
 	HAL_Delay(10);
 	TEST_ASSERT_TRUE(SS_flash_caching_debug_get_is_cache_ready());
@@ -71,7 +71,7 @@ TEST(flash_caching, read_write_page)
 
 
 	TEST_ASSERT_EQUAL_INT(FLASH_STATUS_OK, SS_flash_caching_read_pages(32, 1, data));
-	TEST_ASSERT_EQUAL_INT(0, memcmp(data, data3, S25FL_PAGE_SIZE));
+	TEST_ASSERT_EQUAL_INT(0, memcmp(data, data3, FLASH_PAGE_BUF_SIZE));
 
 	HAL_Delay(10);
 	TEST_ASSERT_TRUE(SS_flash_caching_debug_get_is_cache_ready());
@@ -82,11 +82,11 @@ TEST(flash_caching, read_write_page)
 
 TEST(flash_caching, read_write_pages1)
 {
-	static uint8_t data1[S25FL_PAGE_SIZE*FLASH_CACHING_MAX_CACHE_LEN];
-	static uint8_t data2[S25FL_PAGE_SIZE*FLASH_CACHING_MAX_CACHE_LEN];
-	for (uint32_t i = 0; i < S25FL_PAGE_SIZE*FLASH_CACHING_MAX_CACHE_LEN; ++i) {
+	static uint8_t data1[FLASH_PAGE_BUF_SIZE*FLASH_CACHING_MAX_CACHE_LEN];
+	static uint8_t data2[FLASH_PAGE_BUF_SIZE*FLASH_CACHING_MAX_CACHE_LEN];
+	for (uint32_t i = 0; i < FLASH_PAGE_BUF_SIZE*FLASH_CACHING_MAX_CACHE_LEN; ++i) {
 		data1[i] = i;
-		data2[S25FL_PAGE_SIZE*FLASH_CACHING_MAX_CACHE_LEN-1-i] = i*2;
+		data2[FLASH_PAGE_BUF_SIZE*FLASH_CACHING_MAX_CACHE_LEN-1-i] = i*2;
 	}
 
 	TEST_ASSERT_EQUAL_INT(FLASH_STATUS_OK, SS_flash_ctrl_set_is_emulating(false));
@@ -98,16 +98,16 @@ TEST(flash_caching, read_write_pages1)
 	TEST_ASSERT_TRUE(SS_flash_caching_debug_get_is_cache_ready());
 
 
-	static uint8_t data[S25FL_PAGE_SIZE*FLASH_CACHING_MAX_CACHE_LEN];
+	static uint8_t data[FLASH_PAGE_BUF_SIZE*FLASH_CACHING_MAX_CACHE_LEN];
 	TEST_ASSERT_EQUAL_INT(FLASH_STATUS_OK, SS_flash_caching_read_pages(33, FLASH_CACHING_MAX_CACHE_LEN, data));
-	TEST_ASSERT_EQUAL_INT(0, memcmp(data, data1, S25FL_PAGE_SIZE*FLASH_CACHING_MAX_CACHE_LEN));
+	TEST_ASSERT_EQUAL_INT(0, memcmp(data, data1, FLASH_PAGE_BUF_SIZE*FLASH_CACHING_MAX_CACHE_LEN));
 
 	TEST_ASSERT_TRUE(SS_flash_caching_debug_get_is_cache_ready());
 	TEST_ASSERT_EQUAL_INT(33+FLASH_CACHING_MAX_CACHE_LEN, SS_flash_caching_debug_get_cached_page());
 
 
 	TEST_ASSERT_EQUAL_INT(FLASH_STATUS_OK, SS_flash_caching_read_pages(33+FLASH_CACHING_MAX_CACHE_LEN, FLASH_CACHING_MAX_CACHE_LEN, data));
-	TEST_ASSERT_EQUAL_INT(0, memcmp(data, data2, S25FL_PAGE_SIZE*FLASH_CACHING_MAX_CACHE_LEN));
+	TEST_ASSERT_EQUAL_INT(0, memcmp(data, data2, FLASH_PAGE_BUF_SIZE*FLASH_CACHING_MAX_CACHE_LEN));
 
 	TEST_ASSERT_TRUE(SS_flash_caching_debug_get_is_cache_ready());
 	TEST_ASSERT_EQUAL_INT(33+2*FLASH_CACHING_MAX_CACHE_LEN, SS_flash_caching_debug_get_cached_page());
@@ -118,9 +118,9 @@ TEST(flash_caching, read_write_pages1)
 TEST(flash_caching, read_write_pages2)
 {
 #define LEN (3*FLASH_CACHING_MAX_CACHE_LEN)
-	static uint8_t data1[LEN*S25FL_PAGE_SIZE];
-	static uint8_t data2[LEN*S25FL_PAGE_SIZE];
-	for (uint32_t i = 0; i < LEN*S25FL_PAGE_SIZE; ++i) {
+	static uint8_t data1[LEN*FLASH_PAGE_BUF_SIZE];
+	static uint8_t data2[LEN*FLASH_PAGE_BUF_SIZE];
+	for (uint32_t i = 0; i < LEN*FLASH_PAGE_BUF_SIZE; ++i) {
 		data1[i] = i;
 		data2[LEN-1-i] = i*2;
 	}
@@ -131,16 +131,16 @@ TEST(flash_caching, read_write_pages2)
 	TEST_ASSERT_EQUAL_INT(FLASH_STATUS_OK, SS_flash_caching_write_pages(40+LEN, LEN, data2));
 
 
-	static uint8_t data[LEN*S25FL_PAGE_SIZE];
+	static uint8_t data[LEN*FLASH_PAGE_BUF_SIZE];
 	TEST_ASSERT_EQUAL_INT(FLASH_STATUS_OK, SS_flash_caching_read_pages(40, LEN, data));
-	TEST_ASSERT_EQUAL_INT(0, memcmp(data, data1, LEN*S25FL_PAGE_SIZE));
+	TEST_ASSERT_EQUAL_INT(0, memcmp(data, data1, LEN*FLASH_PAGE_BUF_SIZE));
 
 	TEST_ASSERT_TRUE(SS_flash_caching_debug_get_is_cache_ready());
 	TEST_ASSERT_EQUAL_INT(40+LEN, SS_flash_caching_debug_get_cached_page());
 
 
 	TEST_ASSERT_EQUAL_INT(FLASH_STATUS_OK, SS_flash_caching_read_pages(40+LEN, LEN, data));
-	TEST_ASSERT_EQUAL_INT(0, memcmp(data, data2, LEN*S25FL_PAGE_SIZE));
+	TEST_ASSERT_EQUAL_INT(0, memcmp(data, data2, LEN*FLASH_PAGE_BUF_SIZE));
 
 	TEST_ASSERT_TRUE(SS_flash_caching_debug_get_is_cache_ready());
 	TEST_ASSERT_EQUAL_INT(40+2*LEN, SS_flash_caching_debug_get_cached_page());
