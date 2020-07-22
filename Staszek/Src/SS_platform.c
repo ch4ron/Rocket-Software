@@ -12,13 +12,19 @@
 #include "SS_can.h"
 #include "can.h"
 #endif
-#include "SS_common.h"
+
+#ifdef SS_USE_ADS1258
+#include "SS_ADS1258.h"
+#include "SS_measurements.h"
+#endif
+
 #ifdef SS_USE_SERVOS
 #include "SS_servos.h"
 #endif
 #ifdef SS_USE_MPU9250
 #include "SS_MPU9250.h"
 #endif
+
 #include "tim.h"
 #include "SS_console.h"
 #include "usart.h"
