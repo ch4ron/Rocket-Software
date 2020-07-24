@@ -111,8 +111,8 @@ int main(void)
     //SS_s25fl_init();
     SS_log_init(&huart2);
     SS_console_init(&huart2);
-    SS_s25fl_init(GPIOA, GPIO_PIN_0, 16*1024*1024, 64*1024, 256, false, 8, 3);
-    SS_flash_init(&hqspi, GPIOA, GPIO_PIN_0);
+    assert(SS_s25fl_init(GPIOA, GPIO_PIN_0, 16*1024*1024, 64*1024, 256, false, 8, 3) == S25FL_STATUS_OK);
+    assert(SS_flash_init(&hqspi, GPIOA, GPIO_PIN_0) == FLASH_STATUS_OK);
     SS_init();
   /* USER CODE END 2 */
 

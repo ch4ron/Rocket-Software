@@ -153,8 +153,11 @@ TEST(flash_log, reset_log_text)
     }
 
     //HAL_Delay(3000);
-    //vTaskDelay(pdMS_TO_TICKS(1000));
+    vTaskDelay(pdMS_TO_TICKS(3000));
     //vTaskDelay(pdMS_TO_TICKS(100));
+    
+    // Simulate reset.
+    SS_flash_lfs_init();
     
     // XXX.
     //SS_flash_log_stop();

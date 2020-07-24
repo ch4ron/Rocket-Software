@@ -136,7 +136,7 @@ FlashStatus SS_flash_log_var(uint8_t id, uint8_t *data, uint32_t size)
     var.size = size;
     memcpy(var.data, data, size);
 
-    if (!xQueueSend(vars_queue, &var, pdMS_TO_TICKS(10))) {
+    if (!xQueueSend(vars_queue, &var, pdMS_TO_TICKS(1))) {
         return FLASH_STATUS_BUSY;
     }
 
@@ -161,15 +161,15 @@ void SS_flash_log_task(void *pvParameters)
     char c;
 
     while (true) {
-        if (xQueueReceive(vars_queue, &var, pdMS_TO_TICKS(1)) == pdTRUE) {
+        if (xQueueReceive(vars_queue, &var, pdMS_TO_TICKS(1))) {
             lfs_file_write(lfs, &vars_file, &var.id, sizeof(var.id));
             lfs_file_write(lfs, &vars_file, var.data, var.size);
         }
 
-        if (xQueueReceive(text_queue, &c, pdMS_TO_TICKS(1)) == pdTRUE) {
+        if (xQueueReceive(text_queue, &c, pdMS_TO_TICKS(1))) {
             lfs_file_write(lfs, &text_file, &c, sizeof(c));
+            char str[2] = {c, '\0'};
+            SS_print("%s", str);
         }
-
-        vTaskDelay(1);
     }
 }

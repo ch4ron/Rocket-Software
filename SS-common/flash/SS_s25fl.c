@@ -116,6 +116,9 @@ typedef enum
 #define STATUS_REG1_WEL 0x02
 #define STATUS_REG1_WIP 0x01
 
+#define STATUS_REG2_ES 0x02
+#define STATUS_REG2_PS 0x01
+
 #define CONFIG_REG1_LC1 0x80
 #define CONFIG_REG1_LC0 0x40
 #define CONFIG_REG1_TBPROT 0x20
@@ -137,9 +140,6 @@ typedef enum
 #define CONFIG_REG3_RL2 0x04
 #define CONFIG_REG3_RL1 0x02
 #define CONFIG_REG3_RL0 0x01
-
-#define STATUS_REG2_ES 0x02
-#define STATUS_REG2_PS 0x01
 
 static const QSPI_CommandTypeDef default_cmd = {
     .Address = 0,
@@ -166,6 +166,8 @@ static S25flStatus unlocked_erase_sector(uint32_t sector);
 static bool get_is_in_interrupt(void);
 static S25flStatus lock(void);
 static S25flStatus unlock(S25flStatus status);
+//static S25flStatus unlock_semaphore(S25flStatus status);
+static S25flStatus unlock_mutex(S25flStatus status);
 
 // Unprotected by semaphore.
 static S25flStatus send_command(QSPI_CommandTypeDef cmd);
@@ -186,7 +188,7 @@ static S25flStatus cmd_read_config_reg3(uint8_t *val);
 static S25flStatus cmd_write(QSPI_CommandTypeDef cmd, const uint8_t *data);
 static S25flStatus unlocked_cmd_write(QSPI_CommandTypeDef cmd, const uint8_t *data);
 static S25flStatus cmd_write_dma(QSPI_CommandTypeDef cmd, const uint8_t *data);
-static S25flStatus unlocked_cmd_write_dma(QSPI_CommandTypeDef cmd, const  uint8_t *data);
+static S25flStatus unlocked_cmd_write_dma(QSPI_CommandTypeDef cmd, const uint8_t *data);
 
 static S25flStatus cmd_read(QSPI_CommandTypeDef cmd, uint8_t *data);
 static S25flStatus unlocked_cmd_read(QSPI_CommandTypeDef cmd, uint8_t *data);
@@ -201,10 +203,13 @@ static S25flStatus translate_hal_status(HAL_StatusTypeDef hal_status);
 extern QSPI_HandleTypeDef hqspi;
 extern DMA_HandleTypeDef hdma_quadspi;
 
+static StaticSemaphore_t static_mutex;
+static SemaphoreHandle_t mutex;
+
 static volatile StaticSemaphore_t static_semaphore;
 static volatile SemaphoreHandle_t semaphore;
 
-// Should not be `volatile` -- these variables are used in arithmetic, we want to optimize this to logic shifts.
+// Should not be `volatile` -- these variables are used in arithmetic, we want to optimize this.
 static uint32_t memory_size, sector_size, page_size;
 static uint32_t qior_dummy_cycles_count;
 static bool use_quad;
@@ -218,6 +223,8 @@ S25flStatus SS_s25fl_init(GPIO_TypeDef *nrst_gpio, uint16_t nrst_pin,
     HAL_GPIO_WritePin(nrst_gpio, nrst_pin, GPIO_PIN_SET);
     HAL_Delay(1);
 
+    mutex = xSemaphoreCreateMutexStatic((StaticSemaphore_t *)&static_mutex);
+
     semaphore = xSemaphoreCreateBinaryStatic((StaticSemaphore_t *)&static_semaphore);
     if (!xSemaphoreGive(semaphore)) {
         return S25FL_STATUS_ERR;
@@ -229,8 +236,6 @@ S25flStatus SS_s25fl_init(GPIO_TypeDef *nrst_gpio, uint16_t nrst_pin,
     use_quad = use_quad_;
     qior_dummy_cycles_count = qior_dummy_cycles_count_;
 
-    // FIXME: The configuration register value should be checked before writing to avoid wearing out the register
-    // with erasures.
     uint8_t status_reg1 = 0x00;
     S25flStatus status = cmd_read_status_reg1(&status_reg1);
     if (status != S25FL_STATUS_OK) {
@@ -526,7 +531,7 @@ S25flStatus SS_s25fl_qspi_rxcplt_handler(QSPI_HandleTypeDef *hqspi_, bool *hptw)
     if (hqspi_ == &hqspi) {
         BaseType_t higher_priority_task_woken = pdFALSE;
 
-        if (!xSemaphoreGiveFromISR(semaphore, NULL)) {
+        if (!xSemaphoreGiveFromISR(semaphore, &higher_priority_task_woken)) {
             status = S25FL_STATUS_ERR;
         }
 
@@ -549,6 +554,10 @@ static S25flStatus lock(void)
         while (!xSemaphoreTakeFromISR(semaphore, NULL)) {
         }
     } else {
+        if (!xSemaphoreTake(mutex, TIMEOUT_ms)) {
+            return S25FL_STATUS_BUSY;
+        }
+
         if (!xSemaphoreTake(semaphore, TIMEOUT_ms)) {
             return S25FL_STATUS_BUSY;
         }
@@ -561,6 +570,25 @@ static S25flStatus unlock(S25flStatus status)
 {
     if (get_is_in_interrupt()) {
         if (!xSemaphoreGiveFromISR(semaphore, NULL)) {
+            status = S25FL_STATUS_ERR;
+        }
+    } else {
+        if (!xSemaphoreGive(semaphore)) {
+            status = S25FL_STATUS_ERR;
+        }
+
+        if (!xSemaphoreGive(mutex)) {
+            status = S25FL_STATUS_ERR;
+        }
+    }
+
+    return status;
+}
+
+/*static S25flStatus unlock_semaphore(S25flStatus status)
+{
+    if (get_is_in_interrupt()) {
+        if (!xSemaphoreGiveFromISR(semaphore, NULL)) {
             return S25FL_STATUS_ERR;
         }
     } else {
@@ -569,6 +597,17 @@ static S25flStatus unlock(S25flStatus status)
         }
     }
 
+    return status;
+}*/
+
+static S25flStatus unlock_mutex(S25flStatus status)
+{
+    if (!get_is_in_interrupt()) {
+        if (!xSemaphoreGive(mutex)) {
+            return S25FL_STATUS_ERR;
+        }
+    }
+    
     return status;
 }
 
@@ -594,7 +633,6 @@ static S25flStatus enable_write(void)
         return status;
     }
 
-    // XXX: This autopoll may be unnecessary.
     return autopoll(STATUS_REG1_WEL | STATUS_REG1_WIP, STATUS_REG1_WEL);
 }
 
@@ -725,8 +763,7 @@ static S25flStatus cmd_write_dma(QSPI_CommandTypeDef cmd, const uint8_t *data)
         return status;
     }
 
-    // Intentionally `unlock()` is not called.
-    return unlocked_cmd_write_dma(cmd, data);
+    return unlock_mutex(unlocked_cmd_write_dma(cmd, data));
 }
 
 static S25flStatus unlocked_cmd_write_dma(QSPI_CommandTypeDef cmd, const uint8_t *data)
@@ -773,7 +810,7 @@ static S25flStatus cmd_read_dma(QSPI_CommandTypeDef cmd, uint8_t *data)
         return status;
     }
 
-    return unlocked_cmd_read_dma(cmd, data);
+    return unlock_mutex(unlocked_cmd_read_dma(cmd, data));
 }
 
 static S25flStatus unlocked_cmd_read_dma(QSPI_CommandTypeDef cmd, uint8_t *data)
@@ -899,4 +936,4 @@ uint32_t SS_s25fl_debug_get_page_size(void)
 {
     return page_size;
 }
-#endif
+#endif /* DEBUG */
