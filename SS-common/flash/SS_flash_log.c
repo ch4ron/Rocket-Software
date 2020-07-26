@@ -7,32 +7,52 @@
 
 #include "SS_flash.h"
 #include "FreeRTOS.h"
+#include "SS_s25fl.h"
 #include "semphr.h"
+#include <string.h>
+
+// XXX.
+#include "SS_MPU9250.h"
+#include "usart.h"
 
 typedef struct
 {
     uint8_t id;
-    uint64_t data;
+    uint8_t data[SS_FLASH_MAX_VAR_DATA_SIZE];
+    uint32_t size;
 }Var;
 
+// TODO: Support var and text queues for more than 2 streams.
 static QueueHandle_t var_queue;
+static QueueHandle_t text_queue;
 
 FlashStatus SS_flash_log_init(void)
 {
-    var_queue = xQueueCreate(30, sizeof(Var));
+    var_queue = xQueueCreate(64, sizeof(Var));
     if (var_queue == NULL) {
+        return FLASH_STATUS_ERR;
+    }
+
+    text_queue = xQueueCreate(256, sizeof(char));
+    if (text_queue == NULL) {
         return FLASH_STATUS_ERR;
     }
 
     return FLASH_STATUS_OK;
 }
 
-FlashStatus SS_flash_log_var(FlashStream stream, uint8_t id, uint64_t data)
+FlashStatus SS_flash_log_var(FlashStream stream, uint8_t id, uint8_t *data, uint32_t size)
 {
-    Var var = {
+    /*Var var = {
         .id = id,
         .data = data
+    };*/
+    Var var = {
+        .id = id,
+        .size = size,
     };
+
+    memcpy(&var.data, data, size);
 
     if (!xQueueSend(var_queue, &var, pdMS_TO_TICKS(10))) {
         return FLASH_STATUS_BUSY;
@@ -41,14 +61,87 @@ FlashStatus SS_flash_log_var(FlashStream stream, uint8_t id, uint64_t data)
     return FLASH_STATUS_OK;
 }
 
+
+FlashStatus SS_flash_log_var_from_isr(FlashStream stream, uint8_t id, uint8_t *data, uint32_t size, bool *hptw)
+{
+    Var var = {
+        .id = id,
+        .size = size,
+    };
+
+    memcpy(&var.data, data, size);
+
+    BaseType_t higher_priority_task_woken;
+    if (!xQueueSendFromISR(var_queue, &var, &higher_priority_task_woken)) {
+        return FLASH_STATUS_BUSY;
+    }
+    *hptw = higher_priority_task_woken;
+    /* Call task yield from ISR? */
+
+    return FLASH_STATUS_OK;
+}
+
+FlashStatus SS_flash_log_str(FlashStream stream, char *str)
+{
+    for (uint32_t i = 0; str[i] != '\0'; ++i) {
+        if (!xQueueSend(text_queue, &str[i], pdMS_TO_TICKS(10))) {
+            return FLASH_STATUS_BUSY;
+        }
+    }
+
+    return FLASH_STATUS_OK;
+}
+
+// TODO: Add start and stop logging functions for this module. Stopping logging at this layer of abstraction shall wait until all variables and chars are logged.
+
 void SS_flash_log_task(void *pvParameters)
 {
     Var var;
+    char c;
 
-    while (1) {
-        if (xQueueReceive(var_queue, &var, portMAX_DELAY) == pdTRUE) {
-            // FIXME: Do not cast (uint64_t *) to (uint8_t *), make an array instead.
-            SS_flash_ctrl_log_var(FLASH_STREAM_VAR, var.id, (uint8_t *)&var.data, 4);
+    while (true) {
+        if (xQueueReceive(var_queue, &var, pdMS_TO_TICKS(1)) == pdTRUE) {
+            SS_flash_ctrl_log_var(FLASH_STREAM_VAR, var.id, (uint8_t *)&var.data, var.size);
         }
+
+        /*if (xQueueReceive(text_queue, &c, pdMS_TO_TICKS(1)) == pdTRUE) {
+            SS_flash_ctrl_log_char(FLASH_STREAM_TEXT, c);
+        }*/
+    }
+}
+
+static bool is_page_empty(uint8_t *data) {
+    for(uint16_t i = 0; i < S25FL_PAGE_SIZE; i++) {
+        if(data[i] != 0xFF) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void SS_flash_print_logs(char *args) {
+    SS_MPU_set_is_logging(false);
+    /* SS_println("Start transmiting"); */
+    for(uint32_t i = 0;; i++) {
+        static uint8_t data[S25FL_PAGE_SIZE];
+        SS_s25fl_read_page(0x00089200UL/S25FL_PAGE_SIZE + i, data);
+        if(is_page_empty(data)) {
+            SS_s25fl_read_page(0x00089200UL/S25FL_PAGE_SIZE + i + 1, data);
+            if(is_page_empty(data)) {
+                /* SS_println("Transmit done, page: %d", i); */
+                return;
+            }
+            SS_s25fl_read_page(0x00089200UL/S25FL_PAGE_SIZE + i, data);
+        }
+        /* SS_print("tx page: %d", i); */
+        HAL_UART_Transmit(&huart2, data, S25FL_PAGE_SIZE, 4000);
+        /* SS_print_bytes(data, S25FL_PAGE_SIZE); */
+        /* for (uint32_t ii = 0; ii < S25FL_PAGE_SIZE; ++ii) { */
+            /* if(ii%16 == 0) { */
+                /* SS_println(""); */
+            /* } */
+            /* SS_print("%x ", data[ii]); */
+        /* } */
+        /* SS_print("\n\n------------------\n\n"); */
     }
 }

@@ -7,6 +7,10 @@
 
 #include "SS_flash.h"
 #include "SS_s25fl.h"
+#include "FreeRTOS.h"
+#include "projdefs.h"
+#include "semphr.h"
+#include <string.h>
 
 #define NULL_PAGE (~0UL)
 #define TIMEOUT_ms 100
@@ -29,7 +33,7 @@
 #define FAT_REGION_FIRST_PAGE 32
 #define FAT_REGION_LEN 1016
 
-// XXX: The file information could perhaps be moved to a structure.
+// XXX: The file information could perhaps be moved to a struct.
 
 #define DIR_TABLE_FIRST_CLUSTER 2
 #define DIR_TABLE_CLUSTER_COUNT 1 // Dir table takes only one cluster.
@@ -245,8 +249,6 @@ static FlashStatus select_next_page(FlashStream stream);
 static FlashStatus log_byte(FlashStream stream, uint8_t byte);
 //static FlashStatus flush_stream(FlashStream stream);
 
-static FlashStatus translate_hal_status(HAL_StatusTypeDef hal_status);
-
 //static uint8_t *get_flushed_buf(FlashStream stream);
 //static int32_t get_first_set_bit_pos(uint8_t byte, int32_t direction);
 
@@ -268,6 +270,7 @@ static volatile bool is_config_file_open;
 static volatile bool is_flush_required[FLASH_STREAM_COUNT];
 static volatile bool is_logging;
 static volatile bool is_emulating;
+static SemaphoreHandle_t log_semaphore;
 
 FlashStatus SS_flash_ctrl_init(void)
 {
@@ -283,6 +286,8 @@ FlashStatus SS_flash_ctrl_init(void)
         is_flush_required[stream] = false;
     }
 
+    log_semaphore = xSemaphoreCreateMutex();
+    assert(log_semaphore != NULL);
     S25flStatus s25fl_status = SS_s25fl_init();
     if (s25fl_status != S25FL_STATUS_OK) {
         return SS_flash_translate_s25fl_status(s25fl_status);
@@ -328,6 +333,7 @@ FlashStatus SS_flash_ctrl_start_logging(void)
 
         cur_page_buf_pos[stream] = 0;
     }
+    SS_println("Start logging");
 
     time = 0;
     return FLASH_STATUS_OK;
@@ -365,16 +371,21 @@ FlashStatus SS_flash_ctrl_stop_logging(void)
 #ifdef SS_USE_USB
     HAL_StatusTypeDef hal_status = USB_DevDisconnect(USB_OTG_FS);
     if (hal_status != HAL_OK) {
-        return translate_hal_status(hal_status);
+        return SS_flash_translate_hal_status(hal_status);
     }
     HAL_Delay(1000);
     hal_status = USB_DevConnect(USB_OTG_FS);
     if (hal_status != HAL_OK) {
-        return translate_hal_status(hal_status);
+        return SS_flash_translate_hal_status(hal_status);
     }
 #endif
 
     return FLASH_STATUS_OK;
+}
+
+bool SS_flash_ctrl_get_is_logging(void)
+{
+    return is_logging;
 }
 
 FlashStatus SS_flash_ctrl_erase_logs(void)
@@ -420,24 +431,41 @@ FlashStatus SS_flash_ctrl_erase_logs(void)
     return FLASH_STATUS_OK;
 }
 
+#include "SS_log.h"
+uint32_t flash_counter;
 FlashStatus SS_flash_ctrl_log_var(FlashStream stream, uint8_t id, uint8_t *data, uint32_t size)
 {
     if (!is_logging) {
         return FLASH_STATUS_DISABLED;
     }
 
-    FlashStatus status = log_byte(stream, id);
-    if (status != FLASH_STATUS_OK) {
-        return status;
+    if(xSemaphoreTake(log_semaphore, pdMS_TO_TICKS(200)) != pdTRUE) {
+        return FLASH_STATUS_BUSY;
     }
+    flash_counter++;
 
-    // Log only 2 most significant bytes of time.
-    status = log_byte(stream, time);
+
+    /* FlashStatus status = log_byte(stream, id); */
+    /* if (status != FLASH_STATUS_OK) { */
+        /* return status; */
+    /* } */
+
+    FlashStatus status = log_byte(stream, time);
     if (status != FLASH_STATUS_OK) {
         return status;
     }
 
     status = log_byte(stream, time >> 8);
+    if (status != FLASH_STATUS_OK) {
+        return status;
+    }
+
+    status = log_byte(stream, time >> 16);
+    if (status != FLASH_STATUS_OK) {
+        return status;
+    }
+
+    status = log_byte(stream, time >> 24);
     if (status != FLASH_STATUS_OK) {
         return status;
     }
@@ -448,17 +476,28 @@ FlashStatus SS_flash_ctrl_log_var(FlashStream stream, uint8_t id, uint8_t *data,
             return status;
         }
     }
-
+    xSemaphoreGive(log_semaphore);
     return FLASH_STATUS_OK;
 }
 
-FlashStatus SS_flash_ctrl_log_str(FlashStream stream, char *str)
+/*FlashStatus SS_flash_ctrl_log_str(FlashStream stream, char *str)
 {
     for (uint32_t i = 0; str[i] != '\0'; ++i) {
         FlashStatus status = log_byte(stream, str[i]);
         if (status != FLASH_STATUS_OK) {
             return status;
         }
+    }
+
+    return FLASH_STATUS_OK;
+}*/
+
+// FIXME: No point having `log_byte` separate from this function.
+FlashStatus SS_flash_ctrl_log_char(FlashStream stream, char c)
+{
+    FlashStatus status = log_byte(stream, c);
+    if (status != FLASH_STATUS_OK) {
+        return status;
     }
 
     return FLASH_STATUS_OK;
@@ -722,13 +761,14 @@ static FlashStatus find_last_logged_page(FlashStream stream, uint32_t *page)
             return S25FL_STATUS_OK;
         }
     }
-
+    SS_println("Overflow");
     return FLASH_STATUS_STREAM_OVERFLOW;
 }
 
 static FlashStatus select_next_page(FlashStream stream)
 {
     if (cur_page[FLASH_STREAM_TEXT] - cur_page[FLASH_STREAM_VAR] <= 1) {
+        SS_println("Overflow");
         return FLASH_STATUS_STREAM_OVERFLOW;
     }
 
@@ -751,6 +791,7 @@ static FlashStatus select_next_page(FlashStream stream)
 static FlashStatus log_byte(FlashStream stream, uint8_t byte)
 {
     if (cur_page[stream] >= LOG_FILE_FIRST_PAGE+LOG_FILE_LEN) {
+        SS_println("Overflow");
         return FLASH_STATUS_STREAM_OVERFLOW;
     }
 
@@ -771,17 +812,6 @@ static FlashStatus log_byte(FlashStream stream, uint8_t byte)
     }
 
     return FLASH_STATUS_OK;
-}
-
-static FlashStatus translate_hal_status(HAL_StatusTypeDef hal_status)
-{
-    switch (hal_status) {
-    case HAL_OK:
-        return FLASH_STATUS_OK;
-    case HAL_ERROR:
-    default:
-        return FLASH_STATUS_ERR;
-    }
 }
 
 /*static uint8_t *get_flushed_buf(FlashStream stream)

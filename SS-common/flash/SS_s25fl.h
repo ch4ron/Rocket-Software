@@ -8,8 +8,8 @@
 #ifndef SS_S25FL_H
 #define SS_S25FL_H
 
+#include "SS_common.h"
 #include "main.h"
-#include "stdbool.h"
 
 #ifndef S25FL_USE_QUAD
 #define S25FL_USE_QUAD

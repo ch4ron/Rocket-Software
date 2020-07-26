@@ -8,6 +8,7 @@
 #include "unity_fixture.h"
 #include "SS_s25fl.h"
 #include "SS_flash_ctrl.h"
+#include <string.h>
 
 TEST_GROUP(flash_ctrl);
 

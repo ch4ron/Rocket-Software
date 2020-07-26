@@ -5,6 +5,10 @@
 #ifndef SS_COMMON_H
 #define SS_COMMON_H
 
+#include "stm32f4xx_hal.h"
+#include <stdbool.h>
+#include <stdint.h>
+
 #ifdef SS_USE_RELAYS
 #include "SS_relays.h"
 #endif

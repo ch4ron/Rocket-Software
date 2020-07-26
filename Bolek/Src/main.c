@@ -120,10 +120,9 @@ int main(void)
 
   SS_platform_init();
 
-  SS_MPU_get_accel_data(&mpu);
-  SS_MPU_get_gyro_data(&mpu);
-  Dane=SS_MPU_who_am_i(&mpu);
-
+  /* SS_MPU_get_accel_data(&mpu); */
+  /* SS_MPU_get_gyro_data(&mpu); */
+  /* Dane=SS_MPU_who_am_i(&mpu); */
   SS_init();
   /* USER CODE END 2 */
 
@@ -153,12 +152,11 @@ void SystemClock_Config(void)
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
   /** Initializes the CPU, AHB and APB busses clocks 
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLM = 8;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLM = 4;
   RCC_OscInitStruct.PLL.PLLN = 180;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 2;
@@ -189,7 +187,7 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+extern void SS_FreeRTOS_25khz_timer_callback(TIM_HandleTypeDef *htim);
 /* USER CODE END 4 */
 
  /**
@@ -204,6 +202,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* USER CODE BEGIN Callback 0 */
 
+  SS_FreeRTOS_25khz_timer_callback(htim);
   /* USER CODE END Callback 0 */
   if (htim->Instance == TIM13) {
     HAL_IncTick();

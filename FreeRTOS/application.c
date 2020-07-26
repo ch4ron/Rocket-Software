@@ -1,5 +1,6 @@
 #include "FreeRTOS.h"
 #include "stm32f4xx_hal.h"
+#include "SS_it.h"
 
 /* External Idle and Timer task static memory allocation functions */
 extern void vApplicationGetIdleTaskMemory  (StaticTask_t **ppxIdleTaskTCBBuffer,  StackType_t **ppxIdleTaskStackBuffer,  uint32_t *pulIdleTaskStackSize);
@@ -88,6 +89,7 @@ volatile uint32_t counter25khz;
 void __attribute__((weak)) SS_FreeRTOS_25khz_timer_callback(TIM_HandleTypeDef *htim) {
     if(htim == &htim14) {
         counter25khz++;
+        SS_25khz_timer_callback();
     }
 }
 

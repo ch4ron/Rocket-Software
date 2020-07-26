@@ -10,6 +10,7 @@
 /* ==================================================================== */
 
 #include "FreeRTOS.h"
+#include "MPU9250/SS_MPU9250.h"
 #include "assert.h"
 #include "main.h"
 #include "task.h"
@@ -67,11 +68,26 @@ void SS_run_tests_task(void *pvParameters) {
 /* ==================================================================== */
 /* ======================== Private functions ========================= */
 /* ==================================================================== */
+#include "SS_MPU9250.h"
 
+extern MPU9250 mpu;
+extern uint32_t flash_counter;
 static void vLEDFlashTask(void *pvParameters) {
+    /* TODO Temporary fix */
+#ifndef SS_RUN_TESTS
+    vTaskDelay(10000);
+    SS_flash_ctrl_start_logging();
+    SS_MPU_set_is_logging(true);
+#endif
     while(1) {
         vTaskDelay(500);
+        /* SS_println("%d, %d, %d", mpu.accel_raw_x, mpu.accel_raw_y, mpu.accel_raw_z); */
         SS_platform_toggle_loop_led();
+        /* SS_MPU_math_scaled_accel(&mpu); */
+        /* SS_println("%f, %f, %f", mpu.accel_scaled_x, mpu.accel_scaled_y, mpu.accel_scaled_z); */
+        /* SS_println("%d, %d, %d", mpu.accel_raw_x, mpu.accel_raw_y, mpu.accel_raw_z); */
+        /* SS_println("%d", flash_counter); */
+        /* flash_counter = 0; */
     }
 }
 
@@ -81,7 +97,7 @@ static void SS_FreeRTOS_create_tasks(void) {
     res = xTaskCreate(SS_run_tests_task, "Tests task", 512, NULL, 4, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
 #endif /* defined(SS_RUN_TESTS) && !defined(SS_RUN_TESTS_FROM_CONSOLE) */
-    res = xTaskCreate(vLEDFlashTask, "LED Task", 64, NULL, 2, (TaskHandle_t *) NULL);
+    res = xTaskCreate(vLEDFlashTask, "LED Task", 256, NULL, 2, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
 #ifdef SS_USE_COM
     res = xTaskCreate(SS_com_rx_handler_task, "Com Rx Task", 256, NULL, 5, NULL);
@@ -90,8 +106,6 @@ static void SS_FreeRTOS_create_tasks(void) {
     res = xTaskCreate(SS_can_tx_handler_task, "Can Tx Task", 64, NULL, 5, NULL);
     assert(res == pdTRUE);
 #endif /* SS_USE_COM */
-    res = xTaskCreate(SS_console_task, "Console Task", 256, NULL, 5, (TaskHandle_t *) NULL);
-    assert(res == pdTRUE);
 #ifdef SS_USE_EXT_CAN
     res = xTaskCreate(SS_can_tx_handler_task, "Ext Can Tx Task", 64, NULL, 5, NULL);
     assert(res == pdTRUE);
@@ -104,10 +118,10 @@ static void SS_FreeRTOS_create_tasks(void) {
 #endif /* SS_USE_GRAZYNA */
 #endif /* SS_USE_COM */
 #ifdef SS_USE_FLASH
-    res = xTaskCreate(SS_flash_log_task, "Flash Log Task", 256, NULL, 5, NULL);
+    res = xTaskCreate(SS_flash_log_task, "Flash Log Task", 256, NULL, 6, NULL);
     assert(res == pdTRUE);
 #endif /* SS_USE_FLASH */
-    res = xTaskCreate(SS_console_task, "Console Task", 256, NULL, 5, (TaskHandle_t *) NULL);
+    res = xTaskCreate(SS_console_task, "Console Task", 256, NULL, 3, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
 }
 

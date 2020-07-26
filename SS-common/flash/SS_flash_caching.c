@@ -8,6 +8,7 @@
 #include "SS_flash_caching.h"
 #include "SS_flash_ctrl.h"
 #include "SS_s25fl.h"
+#include <string.h>
 
 static FlashStatus cached_write_page(uint32_t page, uint8_t *data);
 static FlashStatus cached_read_page(uint32_t page, uint8_t *data);
