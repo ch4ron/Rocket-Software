@@ -61,6 +61,7 @@ void SS_MS56_init(struct MS5607 *ms5607, uint8_t MS56_PRESS_mode, uint8_t MS56_T
   */
 void SS_MS56_CS_ENABLE(void) {
     HAL_GPIO_WritePin(MS56_CS_GPIO_Port, MS56_CS_Pin, RESET);
+
 }
 
 /**

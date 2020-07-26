@@ -86,7 +86,7 @@ static MPU9250 mpu = {
     .mgnt_scale_x = 1.040606,
     .mgnt_scale_y = 1.015,
     .mgnt_scale_z = 0.95,
-    .bias = {-15, -11, 72, 230, 300, 537}
+    .bias = {-12, -11, 72, 230, 300, -800}
 };
 
 

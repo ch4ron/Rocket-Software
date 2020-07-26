@@ -123,6 +123,7 @@ int main(void)
   SS_MPU_get_accel_data(&mpu);
   SS_MPU_get_gyro_data(&mpu);
   Dane=SS_MPU_who_am_i(&mpu);
+
   SS_init();
   /* USER CODE END 2 */
 
