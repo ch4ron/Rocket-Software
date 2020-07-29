@@ -20,7 +20,7 @@
 
 /*	Check if it coincides with pointer to a SPI_HandleTypeDef structure that
  * 	contains the configuration information for proper SPI module. */
-#define HSPI_MS56 hspi4
+#define HSPI_MS56 hspi3
 
 #define MS56_PRESS_256 0x40
 #define MS56_PRESS_512 0x42

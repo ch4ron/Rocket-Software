@@ -101,13 +101,19 @@ static void SS_platform_init_MPU(void) {
     /* result |= SS_MPU_set_calibration(&mpu1, bias1); */
     /* HAL_NVIC_EnableIRQ(MPU_INT_EXTI_IRQn); */
 }
-
+static void SS_platform_MS56_init(void){
+    SS_MS56_init(&ms5607,MS56_PRESS_512,MS56_TEMP_512);
+    SS_MS56_read_convert(&ms5607);
+}
 /********** MAIN INIT *********/
 
 void SS_platform_init() {
     SS_log_init(&huart2);
     SS_console_init(&huart2);
     SS_platform_init_MPU();
+    SS_platform_MS56_init()
+
+
 #ifdef SS_USE_FLASH
     /* assert(SS_s25fl_init() == FLASH_STATUS_OK); */
     assert(SS_flash_init(&hqspi, FLASH_RESET_GPIO_Port, FLASH_RESET_Pin) == FLASH_STATUS_OK);

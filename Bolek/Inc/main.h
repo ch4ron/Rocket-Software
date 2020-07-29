@@ -93,6 +93,14 @@ void Error_Handler(void);
 #define LED_RGB_BLUE_DO_NOT_USE_GPIO_Port GPIOB
 #define FLASH_RESET_Pin GPIO_PIN_8
 #define FLASH_RESET_GPIO_Port GPIOD
+#define MS56_CS_Pin GPIO_PIN_7
+#define MS56_CS_GPIO_Port GPIOD
+#define MS56_SCK_Pin GPIO_PIN_3
+#define MS56_SCK_GPIO_Port GPIOB
+#define MS56_MISO_Pin GPIO_PIN_4
+#define MS56_MISO_GPIO_Port GPIOB
+#define MS56_MOSI_Pin GPIO_PIN_5
+#define MS56_MOSI_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

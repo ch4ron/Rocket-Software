@@ -32,6 +32,7 @@
 #include "SS_platform.h"
 #include "SS_MPU9250.h"
 #include "SS_common.h"
+#include "SS_MS5X.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -51,7 +52,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-int32_t Dane=100;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -116,13 +117,11 @@ int main(void)
   MX_USART2_UART_Init();
   MX_SPI1_Init();
   MX_QUADSPI_Init();
+  MX_SPI3_Init();
   /* USER CODE BEGIN 2 */
 
   SS_platform_init();
 
-  /* SS_MPU_get_accel_data(&mpu); */
-  /* SS_MPU_get_gyro_data(&mpu); */
-  /* Dane=SS_MPU_who_am_i(&mpu); */
   SS_init();
   /* USER CODE END 2 */
 
