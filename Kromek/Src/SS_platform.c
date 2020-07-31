@@ -18,6 +18,9 @@
 #include "can.h"
 #include "spi.h"
 #include "usart.h"
+#include "quadspi.h"
+#include "SS_s25fl.h"
+#include "SS_flash.h"
 
 /*********** LED **********/
 
@@ -181,5 +184,7 @@ void SS_platform_init() {
 #ifdef SS_USE_DYNAMIXEL
     SS_dynamixel_init(&dynamixel);
 #endif
-    /* SS_s25fl_init(); */
+    assert(SS_s25fl_init(FLASH_RESET_GPIO_Port, FLASH_RESET_Pin, 64*1024*1024, 256*1024, 512, true, 4, 1) == S25FL_STATUS_OK);
+    SS_println("flash init: %d", SS_flash_init(&hqspi, FLASH_RESET_GPIO_Port, FLASH_RESET_Pin));
+    HAL_Delay(100);
 }
