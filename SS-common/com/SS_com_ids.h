@@ -31,7 +31,9 @@ typedef enum {
     /* Action that needs to send back data, respond with RESPONSE */
     COM_REQUEST       = 0x05,
     /* Acknowledge message and send back data */
-    COM_RESPONSE      = 0x06
+    COM_RESPONSE      = 0x06,
+    /* Send a sequence element */
+    COM_SEQUENCE      = 0x07
 } ComActionID;
 
 typedef enum {

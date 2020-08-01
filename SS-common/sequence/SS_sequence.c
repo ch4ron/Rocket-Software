@@ -8,61 +8,43 @@
 #include "SS_sequence.h"
 #include "string.h"
 #include "stdbool.h"
+#include "SS_log.h"
 
-SequenceItem sequence_items[MAX_SEQUENCE_ITEMS];
-static bool sequence_ongoing;
-volatile static uint32_t time_elapsed;
-volatile static uint8_t item_number;
+typedef struct {
+    uint8_t size;
+    SequenceItem items[MAX_SEQUENCE_ITEMS];
+} Sequence;
 
-static void SS_sequence_parse(void (*func)(uint32_t), uint32_t value, uint32_t time, uint8_t i) {
-    sequence_items[i].func = func;
-    sequence_items[i].value = value;
-    sequence_items[i].time = time;
-}
+static Sequence sequence;
 
-void SS_sequence_add(void (*func)(uint32_t), uint32_t value, uint32_t time) {
-    for(uint8_t i = 0; i < MAX_SEQUENCE_ITEMS; i++) {
-        if(sequence_items[i].func == 0) {
-            SS_sequence_parse(func, value, time, i);
-            break;
-        }
-        else if(sequence_items[i].time > time) {
-            for(uint8_t j =  MAX_SEQUENCE_ITEMS - 1; j > i; j--) {
-                sequence_items[j] = sequence_items[j - 1];
-            }
-            SS_sequence_parse(func, value, time, i);
+void SS_sequence_add(uint8_t id, uint8_t operation, int16_t value, int16_t time) {
+    if(sequence.size >= MAX_SEQUENCE_ITEMS) {
+        SS_error("Sequence is full, dropping");
+        return;
+    }
+    SequenceItem new_item = {
+        .id = id,
+        .operation = operation, 
+        .value = value, 
+        .time = time
+    };
+    uint8_t i;
+    for(i = 0; i < sequence.size; i++) {
+        if(time < sequence.items[i].time) {
+            memmove(&sequence.items[i+1], &sequence.items[i], (sequence.size - i)*sizeof(SequenceItem));
             break;
         }
     }
+    sequence.items[i] = new_item;
+    sequence.size++;
 }
 
 void SS_sequence_clear() {
-    memset(sequence_items, 0, sizeof(sequence_items));
+    memset(&sequence, 0, sizeof(sequence));
 }
 
 void SS_sequence_start() {
-    sequence_ongoing = true;
-    time_elapsed = 0;
-    item_number = 0;
 }
 
 void SS_sequence_end() {
-    sequence_ongoing = false;
-}
-
-void SS_sequence_SYSTICK() {
-    if(!sequence_ongoing) return;
-    time_elapsed++;
-    if(item_number >= MAX_SEQUENCE_ITEMS || sequence_items[item_number].func == 0) {
-        SS_sequence_end();
-        return;
-    }
-    while(sequence_items[item_number].time <= time_elapsed) {
-        sequence_items[item_number].func(sequence_items[item_number].value);
-        item_number++;
-        if(item_number >= MAX_SEQUENCE_ITEMS || sequence_items[item_number].func == 0) {
-            SS_sequence_end();
-            return;
-        }
-    }
 }

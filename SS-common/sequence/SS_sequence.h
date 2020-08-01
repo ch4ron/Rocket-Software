@@ -8,19 +8,24 @@
 #ifndef SS_SEQUENCE_H_
 #define SS_SEQUENCE_H_
 
-#include "stm32f4xx_hal.h"
+#include "stdint.h"
 
 #define MAX_SEQUENCE_ITEMS 25
 
 typedef struct {
-    void (*func)(uint32_t);
-    uint32_t value;
-    uint32_t time;
+    uint8_t id;
+    uint8_t operation;
+    int16_t value;
+    int16_t time;
 } SequenceItem;
 
-void SS_sequence_add(void (*func)(uint32_t), uint32_t value, uint32_t time);
+/* typedef struct { */
+/*     int16_t time; */
+/*     int16_t value; */
+/* } SequenceItemData; */
+
+void SS_sequence_add(uint8_t id, uint8_t operation, int16_t value, int16_t time);
 void SS_sequence_clear();
 void SS_sequence_start();
-void SS_sequence_SYSTICK();
 
 #endif /* SS_SEQUENCE_H_ */

@@ -31,7 +31,6 @@
 #endif
 
 #include "FreeRTOS.h"
-#include "SS_can.h" // FIXME: "SS_can.h" was included previously.
 #include "SS_com.h"
 #include "SS_com_debug.h"
 #include "SS_log.h"
