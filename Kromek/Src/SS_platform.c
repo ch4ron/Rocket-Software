@@ -9,6 +9,13 @@
 #include "SS_measurements.h"
 #include "SS_relays.h"
 #include "SS_grazyna.h"
+#include "flash/SS_flash.h"
+
+#ifdef SS_USE_FLASH
+#include "SS_s25fl.h"
+#include "SS_flash_caching.h"
+#include "SS_flash_ctrl.h"
+#endif
 #include "SS_adc.h"
 #include "SS_can.h"
 #include "SS_console.h"
@@ -19,8 +26,7 @@
 #include "spi.h"
 #include "usart.h"
 #include "quadspi.h"
-#include "SS_s25fl.h"
-#include "SS_flash.h"
+#include "usart.h"
 
 /*********** LED **********/
 

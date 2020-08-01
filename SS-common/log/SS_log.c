@@ -139,6 +139,24 @@ void SS_print_no_flush(const char *format, ...) {
     va_end(arg);
 }
 
+void SS_print_bytes(char *data, uint16_t size) {
+    if(log_huart == NULL) {
+        return;
+    }
+    BaseType_t higherPriorityTaskWoken = pdFALSE;
+
+    if(xSemaphoreTakeFromISR(log_buf_mutex, &higherPriorityTaskWoken) == pdTRUE) {
+        for(uint16_t i = 0; i < size; i++) {
+            /* TODO memcpy */
+            SS_log_buf_put(data[i]);
+        }
+        SS_log_buf_flush_fromISR(&higherPriorityTaskWoken);
+        xSemaphoreGiveFromISR(log_buf_mutex, &higherPriorityTaskWoken);
+    }
+    portYIELD_FROM_ISR(higherPriorityTaskWoken);
+
+}
+
 void SS_log_buf_put(char data) {
     /* TODO if memory starts being an issue, flush output automatically */
     if(SS_log_buf_get_size(&log_buf) - log_buf.capacity == 0) {

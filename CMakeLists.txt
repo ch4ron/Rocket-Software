@@ -122,6 +122,7 @@ add_subdirectory(Kromek)
 add_subdirectory(Staszek)
 add_subdirectory(Pauek)
 add_subdirectory(Test-Projects/USB-MSC)
+add_subdirectory(Bolek)
 
 set(TEST_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/test)
 set(TEST_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/SS-test)

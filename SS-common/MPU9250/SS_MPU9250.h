@@ -15,6 +15,7 @@
 #include "printf.h"
 #include "stdint.h"
 #include "stm32f4xx_hal.h"
+#include <stdbool.h>
 
 /* ==================================================================== */
 /* ============================= Macros =============================== */
@@ -107,6 +108,9 @@ MPU_STATUS SS_MPU_write_byte(MPU9250 *mpu9250, uint8_t RegAdr, uint8_t RegDat);
 MPU_STATUS SS_MPU_read_byte(MPU9250 *mpu9250, uint8_t RegAdr, uint8_t *RegDat);
 MPU_STATUS SS_MPU_write_check_byte(MPU9250 *mpu9250, uint8_t RegAdr, uint8_t RegDat);
 MPU_STATUS SS_MPU_read_multiple(MPU9250 *mpu9250, uint8_t RegAdr, uint8_t *RegDat, uint8_t nbr);
+
+MPU_STATUS SS_MPU_set_is_logging(bool is_logging_);
+bool SS_MPU_get_is_logging(void);
 
 void SS_MPU_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi);
 void SS_MPU_GPIO_EXTI_Callback(uint16_t GPIO_Pin);

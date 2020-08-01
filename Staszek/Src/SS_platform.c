@@ -12,22 +12,23 @@
 #include "SS_can.h"
 #include "can.h"
 #endif
-
-#ifdef SS_USE_ADS1258
-#include "SS_ADS1258.h"
-#include "SS_measurements.h"
-#endif
-
+#include "SS_common.h"
 #ifdef SS_USE_SERVOS
 #include "SS_servos.h"
 #endif
 #ifdef SS_USE_MPU9250
 #include "SS_MPU9250.h"
 #endif
-
+#ifdef SS_USE_FLASH
 #include "SS_s25fl.h"
-#include "SS_flash.h"
-#include "quadspi.h" 
+#include "SS_flash_caching.h"
+#include "SS_flash_ctrl.h"
+#endif
+#ifdef SS_USE_ADS1258
+#include "SS_ADS1258.h"
+#include "SS_measurements.h"
+#endif
+#include "quadspi.h"
 #include "tim.h"
 #include "SS_console.h"
 #include "usart.h"
@@ -147,17 +148,21 @@ void SS_platform_init() {
     SS_log_init(&huart4);
     SS_console_init(&huart4);
     //    SS_platform_adc_init();
+#ifdef SS_USE_SERVOS
     SS_platform_servos_init();
+#endif
 #ifdef SS_USE_ADS1258
     SS_platform_ADS1258_init();
 #endif
     /* SS_MS56_init(&ms5607, MS56_PRESS_4096, MS56_TEMP_4096); */
+#ifdef SS_USE_CAN
     SS_can_init(&hcan2, COM_STASZEK_ID);
-    HAL_Delay(100);
+#endif
 #ifdef SS_USE_MPU9250
     SS_platform_init_MPU();
 #endif
+#ifdef SS_USE_FLASH
     assert(SS_s25fl_init(FLASH_RESET_GPIO_Port, FLASH_RESET_Pin, 64*1024*1024, 256*1024, 512, true, 4, 1) == S25FL_STATUS_OK);
     SS_println("flash init: %d", SS_flash_init(&hqspi, FLASH_RESET_GPIO_Port, FLASH_RESET_Pin));
-    HAL_Delay(100);
+#endif
 }
