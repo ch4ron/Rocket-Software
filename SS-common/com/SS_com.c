@@ -252,6 +252,7 @@ void SS_com_add_payload_to_frame(ComFrame *frame, ComDataType type, void *payloa
         case UINT32:
         case INT32:
         case FLOAT:
+        case INT16x2:
             memcpy(&frame->payload, payload, 4);
             break;
         case UINT16:

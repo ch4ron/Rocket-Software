@@ -49,13 +49,6 @@ typedef enum {
     COM_ERROR
 } ComStatus;
 
-typedef enum {
-    COM_GROUP_RECEIVE,
-    COM_GROUP_CAN1,
-    COM_GROUP_CAN2,
-    COM_GROUP_GRAZYNA
-} ComGroup;
-
 /* ==================================================================== */
 /* ==================== Public function prototypes ==================== */
 /* ==================================================================== */

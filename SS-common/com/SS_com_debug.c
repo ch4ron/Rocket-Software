@@ -20,6 +20,8 @@
 #include "SS_grazyna.h"
 #endif
 
+#define SS_COM_DEBUG
+
 /* ==================================================================== */
 /* ========================= Private macros =========================== */
 /* ==================================================================== */
@@ -171,6 +173,8 @@ static char *SS_com_data_type_str(ComDataType type) {
             return "int8";
         case FLOAT:
             return "float";
+        case INT16x2:
+            return "int16x2";
         default:
             return COLOR_RED(err);
     }
@@ -178,8 +182,9 @@ static char *SS_com_data_type_str(ComDataType type) {
 
 static void SS_com_debug_print_payload(ComFrame *frame) {
     float f_val;
+    int16_t vals[2];
     if(frame->data_type == NO_DATA) return;
-    SS_print_no_flush("type: %-7s", SS_com_data_type_str(frame->data_type));
+    SS_print_no_flush("type: %-9s", SS_com_data_type_str(frame->data_type));
     SS_print_no_flush("data: ");
     switch(frame->data_type) {
         case NO_DATA:
@@ -197,6 +202,10 @@ static void SS_com_debug_print_payload(ComFrame *frame) {
         case FLOAT:
             memcpy(&f_val, &frame->payload, sizeof(float));
             SS_print_no_flush("%f", f_val);
+            break;
+        case INT16x2:
+            memcpy(vals, &frame->payload, sizeof(vals));
+            SS_print_no_flush("%d:%d", vals[0], vals[1]);
             break;
     }
 }
