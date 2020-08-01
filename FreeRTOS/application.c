@@ -1,6 +1,8 @@
 #include "FreeRTOS.h"
 #include "stm32f4xx_hal.h"
+#ifndef SS_USE_MOCK
 #include "SS_it.h"
+#endif
 
 /* External Idle and Timer task static memory allocation functions */
 extern void vApplicationGetIdleTaskMemory  (StaticTask_t **ppxIdleTaskTCBBuffer,  StackType_t **ppxIdleTaskStackBuffer,  uint32_t *pulIdleTaskStackSize);
