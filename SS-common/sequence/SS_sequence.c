@@ -11,18 +11,27 @@
 #include "SS_log.h"
 
 typedef struct {
+    ComDeviceID device;
+    uint8_t id;
+    uint8_t operation;
+    int16_t value;
+    int16_t time;
+} SequenceItem;
+
+typedef struct {
     uint8_t size;
     SequenceItem items[MAX_SEQUENCE_ITEMS];
 } Sequence;
 
 static Sequence sequence;
 
-void SS_sequence_add(uint8_t id, uint8_t operation, int16_t value, int16_t time) {
+void SS_sequence_add(ComDeviceID device, uint8_t id, uint8_t operation, int16_t value, int16_t time) {
     if(sequence.size >= MAX_SEQUENCE_ITEMS) {
         SS_error("Sequence is full, dropping");
         return;
     }
     SequenceItem new_item = {
+        .device = device,
         .id = id,
         .operation = operation, 
         .value = value, 

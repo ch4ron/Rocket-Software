@@ -9,6 +9,7 @@ target_include_directories(
   ${TARGET}
   PRIVATE
   ../
+  ../../com/
   ../../log/)
 
 target_link_libraries(${TARGET} hal_driver FreeRTOS ThrowTheSwitch)
