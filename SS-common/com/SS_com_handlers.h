@@ -26,6 +26,9 @@
 #ifdef SS_USE_SEQUENCE
 #include "SS_sequence.h"
 #endif
+#ifdef SS_USE_IGNITER
+#include "SS_igniter_com.h"
+#endif
 
 /* ==================================================================== */
 /* ======================== Private datatypes ========================= */
@@ -55,6 +58,9 @@ static ComHandler service_handlers[] = {
 #ifdef SS_USE_SEQUENCE
     {COM_SEQUENCE_ID, SS_sequence_com_service},
 #endif
+#ifdef SS_USE_IGNITER
+    {COM_IGNITER_ID, SS_igniter_com_service},
+#endif
 };
 
 static ComHandler request_handlers[] = {
@@ -70,6 +76,9 @@ static ComHandler request_handlers[] = {
 #ifdef SS_USE_ADS1258
     {COM_MEASUREMENT_ID, SS_ADS1258_com_request},
 #endif
+#ifdef SS_USE_IGNITER
+    {COM_IGNITER_ID, SS_igniter_com_request},
+#endif
 };
 
 #ifdef SS_USE_SEQUENCE
@@ -82,6 +91,9 @@ static ComHandler sequence_handlers[] = {
 #endif
 #ifdef SS_USE_DYNAMIXEL
     {COM_DYNAMIXEL_ID, SS_dynamixel_com_sequence_validate},
+#endif
+#ifdef SS_USE_IGNITER
+    {COM_IGNITER_ID, SS_igniter_com_sequence_validate},
 #endif
 };
 #endif

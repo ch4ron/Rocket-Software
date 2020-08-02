@@ -16,6 +16,9 @@
 #include "SS_flash_caching.h"
 #include "SS_flash_ctrl.h"
 #endif
+#ifdef SS_USE_IGNITER
+#include "SS_igniter.h"
+#endif
 #include "SS_adc.h"
 #include "SS_can.h"
 #include "SS_console.h"
@@ -175,6 +178,7 @@ Dynamixel dynamixel = {
 
 #endif
 
+
 /********** MAIN INIT *********/
 
 void SS_platform_init() {
@@ -186,7 +190,9 @@ void SS_platform_init() {
     SS_platform_relays_init();
     SS_platform_ADS1258_init();
     SS_can_init(&hcan1, COM_KROMEK_ID);
+    SS_relay_open(SS_relay_get(4));
     SS_grazyna_init(&huart2);
+    SS_igniter_init(RELAY2_GPIO_Port, RELAY2_Pin);
 #ifdef SS_USE_DYNAMIXEL
     SS_dynamixel_init(&dynamixel);
 #endif

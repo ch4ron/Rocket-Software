@@ -18,6 +18,9 @@
 #ifdef SS_USE_DYNAMIXEL
 #include "SS_dynamixel_com.h"
 #endif
+#ifdef SS_USE_IGNITER
+#include "SS_igniter_com.h"
+#endif
 
 /* ==================================================================== */
 /* ======================== Private datatypes ========================= */
@@ -45,5 +48,8 @@ static SequenceHandler sequence_handlers[] = {
 #endif
 #ifdef SS_USE_RELAYS
     {COM_RELAY_ID, SS_relays_sequence, SS_relays_sequence_finish},
+#endif
+#ifdef SS_USE_IGNITER
+    {COM_IGNITER_ID, SS_igniter_sequence, SS_igniter_sequence_finish},
 #endif
 };

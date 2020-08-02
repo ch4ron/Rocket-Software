@@ -57,7 +57,7 @@ static SequenceFinishFunction get_sequence_abort_function(ComDeviceID id);
 
 static Sequence sequence;
 static SemaphoreHandle_t sequence_mutex;
-static volatile bool abort;
+static volatile bool abort_sequence;
 static volatile bool close_on_finish;
 
 /* ==================================================================== */
@@ -150,13 +150,13 @@ static void SS_sequence_run(void) {
     for(uint8_t i = 0; i < sequence.size; i++) {
         SequenceItem item = sequence.items[i];
         int16_t delay = i == 0 ? item.time : item.time - sequence.items[i - 1].time;
-        if(abort) {
-            abort = false;
+        if(abort_sequence) {
+            abort_sequence = false;
             return;
         }
         vTaskDelay(pdMS_TO_TICKS(delay));
-        if(abort) {
-            abort = false;
+        if(abort_sequence) {
+            abort_sequence = false;
             return;
         }
         SequenceFunction function = get_sequence_function(item.device);
@@ -214,7 +214,7 @@ static void SS_sequence_clear(void) {
 
 static void SS_sequence_abort(void) {
     SS_debugln("Sequence aborted");
-    abort = true;
+    abort_sequence = true;
     SS_sequence_finish();
 }
 
