@@ -18,7 +18,7 @@
 #include "SS_measurements.h"
 #endif
 #ifdef SS_USE_RELAYS
-#include "SS_relays.h"
+#include "SS_relays_com.h"
 #endif
 #ifdef SS_USE_SERVOS
 #include "SS_servos_com.h"
@@ -91,7 +91,7 @@ static ComHandler service_handlers[] = {
     { COM_SERVO_ID, SS_servos_com_service},
 #endif
 #ifdef SS_USE_RELAYS
-    { COM_RELAY_ID, SS_relay_com_service},
+    { COM_RELAY_ID, SS_relays_com_service},
 #endif
 #ifdef SS_USE_DYNAMIXEL
     { COM_DYNAMIXEL_ID, SS_dynamixel_com_service},
@@ -122,7 +122,7 @@ static ComHandler sequence_handlers[] = {
     { COM_SERVO_ID, SS_servos_com_sequence_validate},
 #endif
 #ifdef SS_USE_RELAYS
-    /* { COM_RELAY_ID, SS_relays_com_sequence_validate}, */
+    { COM_RELAY_ID, SS_relays_com_sequence_validate},
 #endif
 #ifdef SS_USE_DYNAMIXEL
     { COM_DYNAMIXEL_ID, SS_dynamixel_com_sequence_validate},

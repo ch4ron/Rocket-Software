@@ -8,7 +8,9 @@ target_include_directories(
 
 target_sources(${TARGET} INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/SS_relays.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/SS_relays.c)
+        ${CMAKE_CURRENT_SOURCE_DIR}/SS_relays.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/SS_relays_com.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/SS_relays_com.c)
 
 target_test_sources(${TARGET} INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/SS_relays_tests.c)

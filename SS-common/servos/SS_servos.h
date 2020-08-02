@@ -13,7 +13,6 @@
 /* ==================================================================== */
 
 #include "SS_com.h"
-#include "SS_json_parser.h"
 #include "stm32f4xx_hal.h"
 #include "tim.h"
 
@@ -44,7 +43,6 @@ typedef struct {
     Supply *supply;
 #endif
     uint32_t timeout;
-    jsmntok_t *tok;
 } Servo;
 
 typedef struct {
