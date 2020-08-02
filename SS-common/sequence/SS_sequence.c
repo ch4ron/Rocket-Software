@@ -12,12 +12,13 @@
 /* ==================================================================== */
 
 #include "SS_sequence.h"
-#include "SS_com.h"
-#include "string.h"
-#include "stdbool.h"
-#include "SS_log.h"
+
 #include "FreeRTOS.h"
+#include "SS_com.h"
+#include "SS_log.h"
 #include "semphr.h"
+#include "stdbool.h"
+#include "string.h"
 #ifdef SS_USE_SERVOS
 #include "SS_servos_com.h"
 #endif
@@ -40,12 +41,10 @@ typedef struct {
     int16_t time;
 } SequenceItem;
 
-
 typedef struct {
     uint8_t size;
     SequenceItem items[MAX_SEQUENCE_ITEMS];
 } Sequence;
-
 
 typedef ComStatus (*SequenceFunction)(uint8_t id, uint8_t operation, int16_t value);
 
@@ -70,13 +69,13 @@ static SemaphoreHandle_t sequence_mutex;
 
 static SequenceHandler sequence_handlers[] = {
 #ifdef SS_USE_SERVOS
-    { COM_SERVO_ID, SS_servos_sequence },
+    {COM_SERVO_ID, SS_servos_sequence},
 #endif
 #ifdef SS_USE_DYNAMIXEL
-    { COM_DYNAMIXEL_ID, SS_dynamixel_sequence },
+    {COM_DYNAMIXEL_ID, SS_dynamixel_sequence},
 #endif
 #ifdef SS_USE_RELAYS
-    { COM_RELAY_ID, SS_relays_sequence },
+    {COM_RELAY_ID, SS_relays_sequence},
 #endif
 };
 
@@ -99,12 +98,11 @@ int8_t SS_sequence_add(ComDeviceID device, uint8_t id, uint8_t operation, int16_
         .id = id,
         .operation = operation,
         .value = value,
-        .time = time
-    };
+        .time = time};
     uint8_t i;
     for(i = 0; i < sequence.size; i++) {
         if(time < sequence.items[i].time) {
-            memmove(&sequence.items[i+1], &sequence.items[i], (sequence.size - i)*sizeof(SequenceItem));
+            memmove(&sequence.items[i + 1], &sequence.items[i], (sequence.size - i) * sizeof(SequenceItem));
             break;
         }
     }
@@ -189,8 +187,7 @@ static void SS_sequence_run(void) {
 static void SS_sequence_ack_item(SequenceItem item) {
     Com2xInt16 val = {
         .val = item.value,
-        .time = item.time
-    };
+        .time = item.time};
     uint32_t payload;
     memcpy(&payload, &val, sizeof(uint32_t));
     ComFrame sequence_frame = {

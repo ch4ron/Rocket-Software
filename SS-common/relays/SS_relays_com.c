@@ -14,9 +14,10 @@
 #ifdef SS_USE_COM
 
 #include "SS_relays_com.h"
+
+#include "SS_log.h"
 #include "SS_relays.h"
 #include "string.h"
-#include "SS_log.h"
 
 /* ==================================================================== */
 /* ========================= Public functions ========================= */

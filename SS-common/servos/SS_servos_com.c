@@ -12,9 +12,10 @@
 #ifdef SS_USE_COM
 
 #include "SS_servos_com.h"
+
+#include "SS_log.h"
 #include "SS_servos.h"
 #include "string.h"
-#include "SS_log.h"
 
 /* ==================================================================== */
 /* ========================= Public functions ========================= */

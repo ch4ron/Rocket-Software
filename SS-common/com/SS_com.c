@@ -49,7 +49,7 @@
 /* ==================================================================== */
 
 #define SS_COM_RX_QUEUE_SIZE 32
-#define SS_com_get_handler(handlers, device) _SS_com_get_handler(handlers, sizeof(handlers)/sizeof(handlers[0]), device)
+#define SS_com_get_handler(handlers, device) _SS_com_get_handler(handlers, sizeof(handlers) / sizeof(handlers[0]), device)
 
 /* ==================================================================== */
 /* ======================== Private datatypes ========================= */
@@ -60,8 +60,7 @@ typedef struct {
     ComFrame frame;
 } ComSender;
 
-
-typedef ComStatus (*ComFunction)(ComFrame*);
+typedef ComStatus (*ComFunction)(ComFrame *);
 
 typedef struct {
     ComDeviceID id;
@@ -88,44 +87,44 @@ static QueueHandle_t com_queue;
 
 static ComHandler service_handlers[] = {
 #ifdef SS_USE_SERVOS
-    { COM_SERVO_ID, SS_servos_com_service},
+    {COM_SERVO_ID, SS_servos_com_service},
 #endif
 #ifdef SS_USE_RELAYS
-    { COM_RELAY_ID, SS_relays_com_service},
+    {COM_RELAY_ID, SS_relays_com_service},
 #endif
 #ifdef SS_USE_DYNAMIXEL
-    { COM_DYNAMIXEL_ID, SS_dynamixel_com_service},
+    {COM_DYNAMIXEL_ID, SS_dynamixel_com_service},
 #endif
 #ifdef SS_USE_SEQUENCE
-    { COM_SEQUENCE_ID, SS_sequence_com_service},
+    {COM_SEQUENCE_ID, SS_sequence_com_service},
 #endif
 };
 
 static ComHandler request_handlers[] = {
 #ifdef SS_USE_SERVOS
-    { COM_SERVO_ID, SS_servos_com_request},
+    {COM_SERVO_ID, SS_servos_com_request},
 #endif
 #ifdef SS_USE_RELAYS
-    { COM_RELAY_ID, SS_relays_com_request},
+    {COM_RELAY_ID, SS_relays_com_request},
 #endif
 #ifdef SS_USE_DYNAMIXEL
-    { COM_DYNAMIXEL_ID, SS_dynamixel_com_request},
+    {COM_DYNAMIXEL_ID, SS_dynamixel_com_request},
 #endif
 #ifdef SS_USE_ADS1258
-    { COM_MEASUREMENT_ID, SS_ADS1258_com_request},
+    {COM_MEASUREMENT_ID, SS_ADS1258_com_request},
 #endif
 };
 
 #ifdef SS_USE_SEQUENCE
 static ComHandler sequence_handlers[] = {
 #ifdef SS_USE_SERVOS
-    { COM_SERVO_ID, SS_servos_com_sequence_validate},
+    {COM_SERVO_ID, SS_servos_com_sequence_validate},
 #endif
 #ifdef SS_USE_RELAYS
-    { COM_RELAY_ID, SS_relays_com_sequence_validate},
+    {COM_RELAY_ID, SS_relays_com_sequence_validate},
 #endif
 #ifdef SS_USE_DYNAMIXEL
-    { COM_DYNAMIXEL_ID, SS_dynamixel_com_sequence_validate},
+    {COM_DYNAMIXEL_ID, SS_dynamixel_com_sequence_validate},
 #endif
 };
 #endif

@@ -10,8 +10,9 @@
 /* ==================================================================== */
 
 #include "SS_servos.h"
-#include "string.h"
+
 #include "SS_log.h"
+#include "string.h"
 
 /* ==================================================================== */
 /* ========================= Private macros =========================== */
@@ -24,10 +25,10 @@
 /* ==================================================================== */
 
 ServosConfig servos_config = {
-        .MIN_PULSE_WIDTH = 1000,
-        .MAX_PULSE_WIDTH = 2000,
-        .SERVO_FREQUENCY = 300,
-        .SERVO_RANGE = 1000
+    .MIN_PULSE_WIDTH = 1000,
+    .MAX_PULSE_WIDTH = 2000,
+    .SERVO_FREQUENCY = 300,
+    .SERVO_RANGE = 1000
 };
 
 Servo *servo_pointers[MAX_SERVO_COUNT];
@@ -244,7 +245,6 @@ static void SS_servo_init(Servo *servo) {
     servo->closed_position = 0;
     SS_servo_close(servo);
 }
-
 
 /* width in us */
 static void SS_servo_set_pulse_width(Servo *servo, uint16_t width) {
