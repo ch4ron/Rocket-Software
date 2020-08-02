@@ -119,6 +119,11 @@ ComStatus SS_dynamixel_sequence(uint8_t id, uint8_t operation, int16_t value) {
     return COM_OK;
 }
 
+void SS_dynamixel_sequence_finish(uint8_t id) {
+    (void) id;
+    SS_dynamixel_close(&dynamixel);
+}
+
 #endif /* SS_USE_SEQUENCE */
 
 #endif /* SS_USE_COM */

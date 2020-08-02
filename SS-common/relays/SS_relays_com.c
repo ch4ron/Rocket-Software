@@ -88,6 +88,13 @@ ComStatus SS_relays_sequence(uint8_t id, uint8_t operation, int16_t value) {
     return COM_OK;
 }
 
+void SS_relays_sequence_finish(uint8_t id) {
+    Relay *relay = SS_relay_get(id);
+    if(relay) {
+        SS_relay_close(relay);
+    }
+}
+
 #endif /* SS_USE_SEQUENCE */
 
 #endif /* SS_USE_COM */

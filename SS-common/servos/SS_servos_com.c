@@ -128,6 +128,13 @@ ComStatus SS_servos_sequence(uint8_t id, uint8_t operation, int16_t value) {
     return COM_OK;
 }
 
+void SS_servos_sequence_finish(uint8_t id) {
+    Servo *servo = SS_servo_get(id);
+    if(servo) {
+        SS_servo_close(servo);
+    }
+}
+
 #endif /* SS_USE_SEQUENCE */
 
 #endif /* SS_USE_COM */

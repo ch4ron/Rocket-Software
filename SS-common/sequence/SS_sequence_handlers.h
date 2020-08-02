@@ -24,10 +24,12 @@
 /* ==================================================================== */
 
 typedef ComStatus (*SequenceFunction)(uint8_t id, uint8_t operation, int16_t value);
+typedef void (*SequenceFinishFunction)(uint8_t id);
 
 typedef struct {
     ComDeviceID device;
-    SequenceFunction func;
+    SequenceFunction run;
+    SequenceFinishFunction finish;
 } SequenceHandler;
 
 /* ==================================================================== */
@@ -36,12 +38,12 @@ typedef struct {
 
 static SequenceHandler sequence_handlers[] = {
 #ifdef SS_USE_SERVOS
-    {COM_SERVO_ID, SS_servos_sequence},
+    {COM_SERVO_ID, SS_servos_sequence, SS_servos_sequence_finish},
 #endif
 #ifdef SS_USE_DYNAMIXEL
-    {COM_DYNAMIXEL_ID, SS_dynamixel_sequence},
+    {COM_DYNAMIXEL_ID, SS_dynamixel_sequence, SS_dynamixel_sequence_finish},
 #endif
 #ifdef SS_USE_RELAYS
-    {COM_RELAY_ID, SS_relays_sequence},
+    {COM_RELAY_ID, SS_relays_sequence, SS_relays_sequence_finish},
 #endif
 };

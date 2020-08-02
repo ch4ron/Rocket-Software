@@ -42,8 +42,14 @@ typedef struct {
 /* =================== Private function prototypes ==================== */
 /* ==================================================================== */
 
+static void SS_sequence_start(bool close);
+static void SS_sequence_clear(void);
+static void SS_sequence_abort(void);
 static void SS_sequence_run(void);
 static void SS_sequence_ack_item(SequenceItem item);
+static void SS_sequence_finish(void);
+static SequenceFunction get_sequence_function(ComDeviceID id);
+static SequenceFinishFunction get_sequence_abort_function(ComDeviceID id);
 
 /* ==================================================================== */
 /* ========================= Global variables ========================= */
@@ -51,6 +57,8 @@ static void SS_sequence_ack_item(SequenceItem item);
 
 static Sequence sequence;
 static SemaphoreHandle_t sequence_mutex;
+static volatile bool abort;
+static volatile bool close_on_finish;
 
 /* ==================================================================== */
 /* ========================= Public functions ========================= */
@@ -84,19 +92,6 @@ int8_t SS_sequence_add(ComDeviceID device, uint8_t id, uint8_t operation, int16_
     return 0;
 }
 
-void SS_sequence_clear(void) {
-    memset(&sequence, 0, sizeof(sequence));
-    SS_debugln("Sequence cleared");
-}
-
-void SS_sequence_start(void) {
-    xSemaphoreGive(sequence_mutex);
-}
-
-void SS_sequence_abort(void) {
-    SS_debugln("Sequence aborted");
-}
-
 ComStatus SS_sequence_com_service(ComFrame *frame) {
     ComSequenceID msgID = frame->operation;
     switch(msgID) {
@@ -104,7 +99,7 @@ ComStatus SS_sequence_com_service(ComFrame *frame) {
             SS_sequence_clear();
             break;
         case COM_SEQUENCE_START:
-            SS_sequence_start();
+            SS_sequence_start(frame->payload);
             break;
         case COM_SEQUENCE_ABORT:
             SS_sequence_abort();
@@ -125,13 +120,22 @@ void SS_sequence_task(void *pvParameters) {
 }
 
 /* ==================================================================== */
-/* =================== Private function prototypes ==================== */
+/* ======================== Private functions ========================= */
 /* ==================================================================== */
 
 static SequenceFunction get_sequence_function(ComDeviceID id) {
     for(uint8_t i = 0; i < sizeof(sequence_handlers) / sizeof(sequence_handlers[0]); i++) {
         if(sequence_handlers[i].device == id) {
-            return sequence_handlers[i].func;
+            return sequence_handlers[i].run;
+        }
+    }
+    return NULL;
+}
+
+static SequenceFinishFunction get_sequence_abort_function(ComDeviceID id) {
+    for(uint8_t i = 0; i < sizeof(sequence_handlers) / sizeof(sequence_handlers[0]); i++) {
+        if(sequence_handlers[i].device == id) {
+            return sequence_handlers[i].finish;
         }
     }
     return NULL;
@@ -146,13 +150,24 @@ static void SS_sequence_run(void) {
     for(uint8_t i = 0; i < sequence.size; i++) {
         SequenceItem item = sequence.items[i];
         int16_t delay = i == 0 ? item.time : item.time - sequence.items[i - 1].time;
+        if(abort) {
+            abort = false;
+            return;
+        }
         vTaskDelay(pdMS_TO_TICKS(delay));
-        SequenceFunction function = get_sequence_function(item.id);
+        if(abort) {
+            abort = false;
+            return;
+        }
+        SequenceFunction function = get_sequence_function(item.device);
         if(function && function(item.id, item.operation, item.value) == COM_OK) {
             SS_sequence_ack_item(item);
         } else {
             /* TODO nack item */
         }
+    }
+    if(close_on_finish) {
+        SS_sequence_finish();
     }
     SS_debugln("Sequence finished");
 }
@@ -176,3 +191,30 @@ static void SS_sequence_ack_item(SequenceItem item) {
     };
     SS_com_transmit(&sequence_frame);
 }
+
+static void SS_sequence_finish(void) {
+    for(uint8_t i = 0; i < sequence.size; i++) {
+        SequenceItem item = sequence.items[i];
+        SequenceFinishFunction function = get_sequence_abort_function(item.device);
+        if(function != NULL) {
+            function(item.id);
+        }
+    }
+}
+
+static void SS_sequence_start(bool close) {
+    close_on_finish = close;
+    xSemaphoreGive(sequence_mutex);
+}
+
+static void SS_sequence_clear(void) {
+    memset(&sequence, 0, sizeof(sequence));
+    SS_debugln("Sequence cleared");
+}
+
+static void SS_sequence_abort(void) {
+    SS_debugln("Sequence aborted");
+    abort = true;
+    SS_sequence_finish();
+}
+

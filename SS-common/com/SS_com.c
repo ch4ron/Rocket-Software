@@ -161,14 +161,14 @@ ComStatus SS_com_handle_action(ComFrame *frame) {
 static ComStatus SS_com_handle_request(ComFrame *frame) {
     ComFunction function = SS_com_get_handler(request_handlers, frame->device);
     ComStatus res = function ? function(frame) : COM_ERROR;
-    frame->action = res ? COM_RESPONSE : COM_NACK;
+    frame->action = res == COM_OK ? COM_RESPONSE : COM_NACK;
     return res;
 }
 
 static ComStatus SS_com_handle_service(ComFrame *frame) {
     ComFunction function = SS_com_get_handler(service_handlers, frame->device);
     ComStatus res = function ? function(frame) : COM_ERROR;
-    frame->action = res ? COM_ACK : COM_NACK;
+    frame->action = res == COM_OK ? COM_ACK : COM_NACK;
     return res;
 }
 

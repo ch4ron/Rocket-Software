@@ -28,6 +28,7 @@ ComStatus SS_relays_com_service(ComFrame *frame);
 ComStatus SS_relays_com_request(ComFrame *frame);
 ComStatus SS_relays_com_sequence_validate(ComFrame *frame);
 ComStatus SS_relays_sequence(uint8_t id, uint8_t operation, int16_t value);
+void SS_relays_sequence_finish(uint8_t id);
 
 #endif
 
