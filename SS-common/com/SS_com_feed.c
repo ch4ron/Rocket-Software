@@ -52,6 +52,11 @@ void SS_com_feed_disable(void) {
 
 void SS_com_feed_task(void *pvParameters) {
     static uint8_t module = 0;
+    if(sizeof(modules) == 0) {
+        while(true) {
+            vTaskDelay(portMAX_DELAY);
+        }
+    }
     /* Feed functions should return 0 when they transmitted all values */
     while(true) {
         int8_t res = modules[module](&feed_frame);

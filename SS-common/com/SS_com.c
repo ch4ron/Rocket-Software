@@ -29,6 +29,9 @@
 #ifdef SS_USE_DYNAMIXEL
 #include "SS_dynamixel_com.h"
 #endif
+#ifdef SS_USE_SEQUENCE
+#include "SS_sequence.h"
+#endif
 
 #include "FreeRTOS.h"
 #include "SS_com.h"
@@ -45,7 +48,6 @@
 /* ========================= Private macros =========================== */
 /* ==================================================================== */
 
-#define SS_COM_QUEUE_SET_SIZE 6
 #define SS_COM_RX_QUEUE_SIZE 32
 
 /* ==================================================================== */
@@ -65,6 +67,7 @@ ComStatus SS_com_handle_action(ComFrame *frame);
 static ComStatus SS_com_handle_frame(ComFrame *frame);
 static ComStatus SS_com_handle_request(ComFrame *frame);
 static ComStatus SS_com_handle_service(ComFrame *frame);
+static ComStatus SS_com_handle_sequence(ComFrame *frame);
 
 /* ==================================================================== */
 /* ========================= Global variables ========================= */
@@ -72,7 +75,6 @@ static ComStatus SS_com_handle_service(ComFrame *frame);
 
 static ComBoardID board_id;
 static QueueHandle_t com_queue;
-static QueueSetHandle_t com_queue_set;
 
 /* ==================================================================== */
 /* ========================= Public functions ========================= */
@@ -93,8 +95,6 @@ void SS_com_init(ComBoardID board) {
     /* TODO add macros for priorities */
     com_queue = xQueueCreate(SS_COM_RX_QUEUE_SIZE, sizeof(ComFrame));
     assert(com_queue != NULL);
-    com_queue_set = xQueueCreateSet(SS_COM_QUEUE_SET_SIZE * SS_COM_TX_QUEUE_SIZE);
-    assert(com_queue_set != NULL);
 }
 
 void __attribute__((weak)) SS_com_transmit(ComFrame *frame) {
@@ -160,6 +160,10 @@ ComStatus SS_com_handle_action(ComFrame *frame) {
             return SS_com_handle_request(frame);
         case COM_SERVICE:
             return SS_com_handle_service(frame);
+#ifdef SS_USE_SEQUENCE
+        case COM_SEQUENCE:
+            return SS_com_handle_sequence(frame);
+#endif
         default:
             SS_error("Unsupported action: %d\r\n", frame->action);
     }
@@ -185,14 +189,6 @@ static ComStatus SS_com_handle_request(ComFrame *frame) {
             res = SS_ADS1258_com_request(frame);
             break;
 #endif
-        case COM_SUPPLY_ID:
-            break;
-        case COM_MEMORY_ID:
-            break;
-        case COM_IGNITER_ID:
-            break;
-        case COM_TENSOMETER_ID:
-            break;
 #ifdef SS_USE_DYNAMIXEL
         case COM_DYNAMIXEL_ID:
             res = SS_dynamixel_com_request(frame);
@@ -200,7 +196,7 @@ static ComStatus SS_com_handle_request(ComFrame *frame) {
 #endif
         default:
             res = COM_ERROR;
-            SS_error("Unsupported device: %d\r\n", frame->device);
+            SS_error("Request: unsupported device: %d\r\n", frame->device);
     }
     frame->action = COM_RESPONSE;
     return res;
@@ -220,22 +216,19 @@ static ComStatus SS_com_handle_service(ComFrame *frame) {
             res = SS_relay_com_service(frame);
             break;
 #endif
-        case COM_SUPPLY_ID:
-            break;
-        case COM_MEMORY_ID:
-            break;
-        case COM_IGNITER_ID:
-            break;
-        case COM_TENSOMETER_ID:
-            break;
 #ifdef SS_USE_DYNAMIXEL
         case COM_DYNAMIXEL_ID:
             res = SS_dynamixel_com_service(frame);
             break;
 #endif
+#ifdef SS_USE_SEQUENCE
+        case COM_SEQUENCE_ID:
+            res = SS_sequence_com_service(frame);
+            break;
+#endif
         default:
             res = COM_ERROR;
-            SS_error("Unsupported device: %d\r\n", frame->action);
+            SS_error("Service: unsupported device: %d\r\n", frame->action);
     }
     if(res == 0) {
         frame->action = COM_ACK;
@@ -244,6 +237,30 @@ static ComStatus SS_com_handle_service(ComFrame *frame) {
     }
     return res;
 }
+
+#ifdef SS_USE_SEQUENCE
+static ComStatus SS_com_handle_sequence(ComFrame *frame) {
+    ComDeviceID device = frame->device;
+    ComStatus res = COM_OK;
+    switch(device) {
+#ifdef SS_USE_SERVOS
+        case COM_SERVO_ID:
+            res = SS_servos_com_sequence_validate(frame);
+            break;
+#endif
+        default:
+            res = COM_ERROR;
+            SS_error("Sequence: unsupported device: %d\r\n", frame->action);
+    }
+    Com2xInt16 val;
+    memcpy(&val, &frame->payload, sizeof(uint32_t));
+    if(SS_sequence_add(frame->device, frame->id, frame->operation, val.val, val.time) != 0) {
+        res = COM_ERROR;
+    }
+    frame->action = res == 0 ? COM_ACK : COM_NACK;
+    return res;
+}
+#endif
 
 void SS_com_add_payload_to_frame(ComFrame *frame, ComDataType type, void *payload) {
     frame->data_type = type;

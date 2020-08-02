@@ -5,10 +5,18 @@
  *      Author: maciek
  */
 
+#define SS_DEBUG_ENABLED
+
 #include "SS_sequence.h"
+#include "SS_com.h"
 #include "string.h"
 #include "stdbool.h"
 #include "SS_log.h"
+#include "FreeRTOS.h"
+#include "semphr.h"
+#ifdef SS_USE_SERVOS
+#include "SS_servos.h"
+#endif
 
 typedef struct {
     ComDeviceID device;
@@ -24,17 +32,30 @@ typedef struct {
 } Sequence;
 
 static Sequence sequence;
+static SemaphoreHandle_t sequence_mutex;
 
-void SS_sequence_add(ComDeviceID device, uint8_t id, uint8_t operation, int16_t value, int16_t time) {
+void SS_sequence_init(void) {
+    sequence_mutex = xSemaphoreCreateBinary();
+    assert(sequence_mutex != NULL);
+}
+
+void SS_sequence_print(void) {
+    for(uint8_t i=0; i < sequence.size; i++) {
+        SequenceItem item = sequence.items[i];
+        SS_println("%d, %d, %d, %d\n", item.id, item.device, item.operation, item.value, item.time);
+    }
+}
+
+int8_t SS_sequence_add(ComDeviceID device, uint8_t id, uint8_t operation, int16_t value, int16_t time) {
     if(sequence.size >= MAX_SEQUENCE_ITEMS) {
         SS_error("Sequence is full, dropping");
-        return;
+        return -1;
     }
     SequenceItem new_item = {
         .device = device,
         .id = id,
-        .operation = operation, 
-        .value = value, 
+        .operation = operation,
+        .value = value,
         .time = time
     };
     uint8_t i;
@@ -46,14 +67,97 @@ void SS_sequence_add(ComDeviceID device, uint8_t id, uint8_t operation, int16_t 
     }
     sequence.items[i] = new_item;
     sequence.size++;
+    return 0;
 }
 
-void SS_sequence_clear() {
+void SS_sequence_clear(void) {
     memset(&sequence, 0, sizeof(sequence));
+    SS_debugln("Sequence cleared");
 }
 
-void SS_sequence_start() {
+void SS_sequence_send_item(SequenceItem item) {
+    Com2xInt16 val = {
+        .val = item.value,
+        .time = item.time
+    };
+    uint32_t payload;
+    memcpy(&payload, &val, sizeof(uint32_t));
+    ComFrame sequence_frame = {
+        .priority = COM_LOW_PRIORITY,
+        .action = COM_SEQUENCE,
+        .source = SS_com_get_board_id(),
+        .destination = COM_GRAZYNA_ID,
+        .data_type = INT16x2,
+        .id = item.id,
+        .device = item.device,
+        .operation = item.operation,
+        .payload = payload,
+    };
+    SS_com_transmit(&sequence_frame);
 }
 
-void SS_sequence_end() {
+void SS_sequence_run() {
+    if(sequence.size == 0) {
+        SS_error("Trying to run an empty sequence");
+        return;
+    }
+    SS_debugln("Sequence started");
+    for(uint8_t i = 0; i < sequence.size; i++) {
+        SequenceItem item = sequence.items[i];
+        int16_t delay = i == 0 ? item.time : item.time - sequence.items[i - 1].time;
+        SS_println("i: %d", i);
+        if(i > 0) {
+            SS_println("Time: %d, %d", item.time , sequence.items[i - 1].time);
+        } else {
+            SS_println("Time: %d", item.time );
+        }
+        SS_println("Delay %d", delay);
+        vTaskDelay(pdMS_TO_TICKS(delay));
+        switch(item.device) {
+#ifdef SS_USE_SERVOS
+            case COM_SERVO_ID:
+                SS_servos_sequence(item.id, item.operation, item.value, item.time);
+                break;
+#endif
+            default:
+                SS_error("Unknown sequence device");
+        }
+        SS_sequence_send_item(item);
+    }
+    SS_debugln("Sequence finished");
+}
+
+void SS_sequence_task(void *pvParameters) {
+    while(true) {
+        if(xSemaphoreTake(sequence_mutex, portMAX_DELAY) == pdTRUE) {
+            SS_sequence_run();
+        }
+    }
+}
+
+void SS_sequence_start(void) {
+    xSemaphoreGive(sequence_mutex);
+}
+
+void SS_sequence_abort(void) {
+    SS_debugln("Sequence aborted");
+}
+
+ComStatus SS_sequence_com_service(ComFrame *frame) {
+    ComSequenceID msgID = frame->operation;
+    switch(msgID) {
+        case COM_SEQUENCE_CLEAR:
+            SS_sequence_clear();
+            break;
+        case COM_SEQUENCE_START:
+            SS_sequence_start();
+            break;
+        case COM_SEQUENCE_ABORT:
+            SS_sequence_abort();
+            break;
+        default:
+            SS_error("Unhandled Com sequence service: %d\r\n", msgID);
+            return COM_ERROR;
+    }
+    return COM_OK;
 }

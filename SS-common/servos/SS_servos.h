@@ -82,8 +82,11 @@ void SS_servo_close(Servo *servo);
 void SS_servo_disable(Servo *servo);
 int8_t SS_servo_set_closed_position(Servo *servo, uint16_t position);
 int8_t SS_servo_set_opened_position(Servo *servo, uint16_t position);
+void SS_servos_sequence(uint8_t id, ComServoID operation, int16_t value, int16_t time);
 void SS_servos_SYSTICK(void);
+
 ComStatus SS_servos_com_service(ComFrame *frame);
+ComStatus SS_servos_com_sequence_validate(ComFrame *frame);
 ComStatus SS_servos_com_request(ComFrame *frame);
 void SS_servos_read_json(char *json, jsmntok_t **tok);
 

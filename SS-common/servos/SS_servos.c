@@ -38,6 +38,7 @@ Servo *servo_pointers[MAX_SERVO_COUNT];
 
 static int8_t SS_servos_check_id(uint8_t id);
 static int8_t SS_servo_check_initialized(Servo *servo);
+static int8_t SS_servo_check_position(Servo *servo, uint16_t position);
 static void SS_servo_deinit(Servo *servo);
 
 /* ==================================================================== */
@@ -102,12 +103,7 @@ uint16_t SS_servo_get_width(uint16_t position) {
 /* position range 0 - 1000 */
 int8_t SS_servo_set_position(Servo *servo, uint16_t position) {
     if(SS_servo_check_initialized(servo) != 0) return -1;
-    uint16_t min = servo->closed_position < servo->opened_position ? servo->closed_position : servo->opened_position;
-    uint16_t max = servo->closed_position > servo->opened_position ? servo->closed_position : servo->opened_position;
-    if(position > max || position < min) {
-        SS_error("Servo position out of range");
-        return -1;
-    }
+    if(SS_servo_check_position(servo, position) != 0) return -1;
 #ifdef SS_USE_SUPPLY
     if(servo->supply != NULL) {
         SS_enable_supply(servo->supply);
@@ -198,6 +194,44 @@ void SS_servos_SYSTICK() {
         }
     }
 #endif
+}
+
+ComStatus SS_servos_com_sequence_validate(ComFrame *frame) {
+    if(SS_servos_check_id(frame->id) != 0) return COM_ERROR;
+    Servo *servo = servo_pointers[frame->id];
+    Com2xInt16 value;
+    memcpy(&value, &frame->payload, sizeof(uint32_t));
+    switch(frame->operation) {
+        case COM_SERVO_OPEN:
+        case COM_SERVO_CLOSE:
+        case COM_SERVO_DISABLE:
+            return COM_OK;
+        case COM_SERVO_POSITION:
+            return SS_servo_check_position(servo, value.val) == 0 ? COM_OK : COM_ERROR;
+        default:
+            return COM_ERROR;
+    }
+}
+
+void SS_servos_sequence(uint8_t id, ComServoID operation, int16_t value, int16_t time) {
+    if(SS_servos_check_id(id) != 0) return;
+    Servo *servo = servo_pointers[id];
+    switch(operation) {
+        case COM_SERVO_OPEN:
+            SS_servo_open(servo);
+            break;
+        case COM_SERVO_CLOSE:
+            SS_servo_close(servo);
+            break;
+        case COM_SERVO_POSITION:
+            SS_servo_set_position(servo, value);
+            break;
+        case COM_SERVO_DISABLE:
+            SS_servo_disable(servo);
+            break;
+        default:
+            break;
+    }
 }
 
 ComStatus SS_servos_com_service(ComFrame *frame) {
@@ -315,6 +349,16 @@ static int8_t SS_servos_check_id(uint8_t id) {
 static int8_t SS_servo_check_initialized(Servo *servo) {
     if(servo == NULL) {
         SS_error("Servo not initialized");
+        return -1;
+    }
+    return 0;
+}
+
+static int8_t SS_servo_check_position(Servo *servo, uint16_t position) {
+    uint16_t min = servo->closed_position < servo->opened_position ? servo->closed_position : servo->opened_position;
+    uint16_t max = servo->closed_position > servo->opened_position ? servo->closed_position : servo->opened_position;
+    if(position > max || position < min) {
+        SS_error("Servo position out of range");
         return -1;
     }
     return 0;

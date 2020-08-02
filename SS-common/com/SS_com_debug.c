@@ -121,6 +121,8 @@ static char *SS_com_action_str(ComActionID action) {
             return "req";
         case COM_RESPONSE:
             return "res";
+        case COM_SEQUENCE:
+            return "seq";
         default:
             return COLOR_RED(err);
     }
@@ -148,6 +150,8 @@ static char *SS_com_device_str(ComDeviceID device) {
             return "mpu";
         case COM_DYNAMIXEL_ID:
             return "dynamixel";
+        case COM_SEQUENCE_ID:
+            return "seq";
         default:
             return COLOR_RED(err);
     }

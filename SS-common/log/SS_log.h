@@ -49,10 +49,10 @@ void _SS_print_fromISR(const char *format, ...);
 #endif
 
 #if defined(SS_DEBUG_ENABLED) && !defined(SS_DISABLE_PRINT)
-#define SS_debug(format, ...) _SS_print("DEBUG" format, ##__VA_ARGS__)
-#define SS_debugln(format, ...) _SS_print("DEBUG" format SS_PRINT_NEWLINE, ##__VA_ARGS__)
-#define SS_debug_fromISR(format, ...) _SS_print("DEBUG" format SS_PRINT_NEWLINE, ##__VA_ARGS__)
-#define SS_debugln_fromISR(format, ...) _SS_print("DEBUG" format SS_PRINT_NEWLINE, ##__VA_ARGS__)
+#define SS_debug(format, ...) _SS_print("DEBUG: " format, ##__VA_ARGS__)
+#define SS_debugln(format, ...) _SS_print("DEBUG: " format SS_PRINT_NEWLINE, ##__VA_ARGS__)
+#define SS_debug_fromISR(format, ...) _SS_print("DEBUG: " format SS_PRINT_NEWLINE, ##__VA_ARGS__)
+#define SS_debugln_fromISR(format, ...) _SS_print("DEBUG: " format SS_PRINT_NEWLINE, ##__VA_ARGS__)
 #else
 #define SS_debug(format, ...)
 #define SS_debugln(format, ...)
