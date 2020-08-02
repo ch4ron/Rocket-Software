@@ -16,18 +16,10 @@
 #include "FreeRTOS.h"
 #include "SS_com.h"
 #include "SS_log.h"
+#include "SS_sequence_handlers.h"
 #include "semphr.h"
 #include "stdbool.h"
 #include "string.h"
-#ifdef SS_USE_SERVOS
-#include "SS_servos_com.h"
-#endif
-#ifdef SS_USE_DYNAMIXEL
-#include "SS_dynamixel_com.h"
-#endif
-#ifdef SS_USE_RELAYS
-#include "SS_relays_com.h"
-#endif
 
 /* ==================================================================== */
 /* ======================== Private datatypes ========================= */
@@ -46,13 +38,6 @@ typedef struct {
     SequenceItem items[MAX_SEQUENCE_ITEMS];
 } Sequence;
 
-typedef ComStatus (*SequenceFunction)(uint8_t id, uint8_t operation, int16_t value);
-
-typedef struct {
-    ComDeviceID device;
-    SequenceFunction func;
-} SequenceHandler;
-
 /* ==================================================================== */
 /* =================== Private function prototypes ==================== */
 /* ==================================================================== */
@@ -66,18 +51,6 @@ static void SS_sequence_ack_item(SequenceItem item);
 
 static Sequence sequence;
 static SemaphoreHandle_t sequence_mutex;
-
-static SequenceHandler sequence_handlers[] = {
-#ifdef SS_USE_SERVOS
-    {COM_SERVO_ID, SS_servos_sequence},
-#endif
-#ifdef SS_USE_DYNAMIXEL
-    {COM_DYNAMIXEL_ID, SS_dynamixel_sequence},
-#endif
-#ifdef SS_USE_RELAYS
-    {COM_RELAY_ID, SS_relays_sequence},
-#endif
-};
 
 /* ==================================================================== */
 /* ========================= Public functions ========================= */
