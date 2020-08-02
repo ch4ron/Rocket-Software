@@ -40,12 +40,20 @@ typedef struct {
     SequenceItem items[MAX_SEQUENCE_ITEMS];
 } Sequence;
 
+
+typedef ComStatus (*SequenceFunction)(uint8_t id, uint8_t operation, int16_t value);
+
+typedef struct {
+    ComDeviceID device;
+    SequenceFunction func;
+} SequenceHandler;
+
 /* ==================================================================== */
 /* =================== Private function prototypes ==================== */
 /* ==================================================================== */
 
 static void SS_sequence_run(void);
-static void SS_sequence_send_item(SequenceItem item);
+static void SS_sequence_ack_item(SequenceItem item);
 
 /* ==================================================================== */
 /* ========================= Global variables ========================= */
@@ -53,6 +61,12 @@ static void SS_sequence_send_item(SequenceItem item);
 
 static Sequence sequence;
 static SemaphoreHandle_t sequence_mutex;
+
+static SequenceHandler sequence_handlers[] = {
+#ifdef SS_USE_SERVOS
+    { COM_SERVO_ID, SS_servos_sequence} 
+#endif
+};
 
 /* ==================================================================== */
 /* ========================= Public functions ========================= */
@@ -131,6 +145,15 @@ void SS_sequence_task(void *pvParameters) {
 /* =================== Private function prototypes ==================== */
 /* ==================================================================== */
 
+static SequenceFunction get_sequence_function(ComDeviceID id) {
+    for(uint8_t i = 0; i < sizeof(sequence_handlers) / sizeof(sequence_handlers[0]); i++) {
+        if(sequence_handlers[i].device == id) {
+            return sequence_handlers[i].func;
+        }
+    }
+    return NULL;
+}
+
 static void SS_sequence_run(void) {
     if(sequence.size == 0) {
         SS_error("Trying to run an empty sequence");
@@ -141,21 +164,17 @@ static void SS_sequence_run(void) {
         SequenceItem item = sequence.items[i];
         int16_t delay = i == 0 ? item.time : item.time - sequence.items[i - 1].time;
         vTaskDelay(pdMS_TO_TICKS(delay));
-        switch(item.device) {
-#ifdef SS_USE_SERVOS
-            case COM_SERVO_ID:
-                SS_servos_sequence(item.id, item.operation, item.value, item.time);
-                break;
-#endif
-            default:
-                SS_error("Unknown sequence device");
+        SequenceFunction function = get_sequence_function(item.id);
+        if(function && function(item.id, item.operation, item.value) == COM_OK) {
+            SS_sequence_ack_item(item);
+        } else {
+            /* TODO nack item */
         }
-        SS_sequence_send_item(item);
     }
     SS_debugln("Sequence finished");
 }
 
-static void SS_sequence_send_item(SequenceItem item) {
+static void SS_sequence_ack_item(SequenceItem item) {
     Com2xInt16 val = {
         .val = item.value,
         .time = item.time

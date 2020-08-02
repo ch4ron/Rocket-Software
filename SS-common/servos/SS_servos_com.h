@@ -31,6 +31,6 @@ typedef enum {
 ComStatus SS_servos_com_service(ComFrame *frame);
 ComStatus SS_servos_com_request(ComFrame *frame);
 ComStatus SS_servos_com_sequence_validate(ComFrame *frame);
-void SS_servos_sequence(uint8_t id, ComServoID operation, int16_t value, int16_t time);
+ComStatus SS_servos_sequence(uint8_t id, uint8_t operation, int16_t value);
 
 #endif

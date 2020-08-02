@@ -105,9 +105,9 @@ ComStatus SS_servos_com_sequence_validate(ComFrame *frame) {
     }
 }
 
-void SS_servos_sequence(uint8_t id, ComServoID operation, int16_t value, int16_t time) {
+ComStatus SS_servos_sequence(uint8_t id, uint8_t operation, int16_t value) {
     Servo *servo = SS_servo_get(id);
-    if(servo == NULL) return;
+    if(servo == NULL) return COM_ERROR;
     switch(operation) {
         case COM_SERVO_OPEN:
             SS_servo_open(servo);
@@ -122,8 +122,9 @@ void SS_servos_sequence(uint8_t id, ComServoID operation, int16_t value, int16_t
             SS_servo_disable(servo);
             break;
         default:
-            break;
+            return COM_ERROR;
     }
+    return COM_OK;
 }
 
 #endif /* SS_USE_SEQUENCE */

@@ -49,6 +49,7 @@
 /* ==================================================================== */
 
 #define SS_COM_RX_QUEUE_SIZE 32
+#define SS_com_get_handler(handlers, device) _SS_com_get_handler(handlers, sizeof(handlers)/sizeof(handlers[0]), device)
 
 /* ==================================================================== */
 /* ======================== Private datatypes ========================= */
@@ -59,6 +60,14 @@ typedef struct {
     ComFrame frame;
 } ComSender;
 
+
+typedef ComStatus (*ComFunction)(ComFrame*);
+
+typedef struct {
+    ComDeviceID id;
+    ComFunction func;
+} ComHandler;
+
 /* ==================================================================== */
 /* =================== Private function prototypes ==================== */
 /* ==================================================================== */
@@ -68,6 +77,7 @@ static ComStatus SS_com_handle_frame(ComFrame *frame);
 static ComStatus SS_com_handle_request(ComFrame *frame);
 static ComStatus SS_com_handle_service(ComFrame *frame);
 static ComStatus SS_com_handle_sequence(ComFrame *frame);
+static ComFunction _SS_com_get_handler(ComHandler *handlers, uint16_t size, ComDeviceID device);
 
 /* ==================================================================== */
 /* ========================= Global variables ========================= */
@@ -75,6 +85,50 @@ static ComStatus SS_com_handle_sequence(ComFrame *frame);
 
 static ComBoardID board_id;
 static QueueHandle_t com_queue;
+
+static ComHandler service_handlers[] = {
+#ifdef SS_USE_SERVOS
+    { COM_SERVO_ID, SS_servos_com_service},
+#endif
+#ifdef SS_USE_RELAYS
+    { COM_RELAY_ID, SS_relay_com_service},
+#endif
+#ifdef SS_USE_DYNAMIXEL
+    { COM_DYNAMIXEL_ID, SS_dynamixel_com_service},
+#endif
+#ifdef SS_USE_SEQUENCE
+    { COM_SEQUENCE_ID, SS_sequence_com_service},
+#endif
+};
+
+static ComHandler request_handlers[] = {
+#ifdef SS_USE_SERVOS
+    { COM_SERVO_ID, SS_servos_com_request},
+#endif
+#ifdef SS_USE_RELAYS
+    { COM_RELAY_ID, SS_relays_com_request},
+#endif
+#ifdef SS_USE_DYNAMIXEL
+    { COM_DYNAMIXEL_ID, SS_dynamixel_com_request},
+#endif
+#ifdef SS_USE_ADS1258
+    { COM_MEASUREMENT_ID, SS_ADS1258_com_request},
+#endif
+};
+
+#ifdef SS_USE_SEQUENCE
+static ComHandler sequence_handlers[] = {
+#ifdef SS_USE_SERVOS
+    { COM_SERVO_ID, SS_servos_com_sequence_validate},
+#endif
+#ifdef SS_USE_RELAYS
+    /* { COM_RELAY_ID, SS_relays_com_sequence_validate}, */
+#endif
+#ifdef SS_USE_DYNAMIXEL
+    /* { COM_DYNAMIXEL_ID, SS_dynamixel_com_sequence_validate}, */
+#endif
+};
+#endif
 
 /* ==================================================================== */
 /* ========================= Public functions ========================= */
@@ -171,87 +225,23 @@ ComStatus SS_com_handle_action(ComFrame *frame) {
 }
 
 static ComStatus SS_com_handle_request(ComFrame *frame) {
-    ComDeviceID device = frame->device;
-    ComStatus res = COM_OK;
-    switch(device) {
-#ifdef SS_USE_SERVOS
-        case COM_SERVO_ID:
-            res = SS_servos_com_request(frame);
-            break;
-#endif
-#ifdef SS_USE_RELAYS
-        case COM_RELAY_ID:
-            res = SS_relays_com_request(frame);
-            break;
-#endif
-#ifdef SS_USE_ADS1258
-        case COM_MEASUREMENT_ID:
-            res = SS_ADS1258_com_request(frame);
-            break;
-#endif
-#ifdef SS_USE_DYNAMIXEL
-        case COM_DYNAMIXEL_ID:
-            res = SS_dynamixel_com_request(frame);
-            break;
-#endif
-        default:
-            res = COM_ERROR;
-            SS_error("Request: unsupported device: %d\r\n", frame->device);
-    }
-    frame->action = COM_RESPONSE;
+    ComFunction function = SS_com_get_handler(request_handlers, frame->device);
+    ComStatus res = function ? function(frame) : COM_ERROR;
+    frame->action = res ? COM_RESPONSE : COM_NACK;
     return res;
 }
 
 static ComStatus SS_com_handle_service(ComFrame *frame) {
-    ComDeviceID device = frame->device;
-    ComStatus res = COM_OK;
-    switch(device) {
-#ifdef SS_USE_SERVOS
-        case COM_SERVO_ID:
-            res = SS_servos_com_service(frame);
-            break;
-#endif
-#ifdef SS_USE_RELAYS
-        case COM_RELAY_ID:
-            res = SS_relay_com_service(frame);
-            break;
-#endif
-#ifdef SS_USE_DYNAMIXEL
-        case COM_DYNAMIXEL_ID:
-            res = SS_dynamixel_com_service(frame);
-            break;
-#endif
-#ifdef SS_USE_SEQUENCE
-        case COM_SEQUENCE_ID:
-            res = SS_sequence_com_service(frame);
-            break;
-#endif
-        default:
-            res = COM_ERROR;
-            SS_error("Service: unsupported device: %d\r\n", frame->action);
-    }
-    if(res == 0) {
-        frame->action = COM_ACK;
-    } else {
-        frame->action = COM_NACK;
-    }
+    ComFunction function = SS_com_get_handler(service_handlers, frame->device);
+    ComStatus res = function ? function(frame) : COM_ERROR;
+    frame->action = res ? COM_ACK : COM_NACK;
     return res;
 }
 
 #ifdef SS_USE_SEQUENCE
 static ComStatus SS_com_handle_sequence(ComFrame *frame) {
-    ComDeviceID device = frame->device;
-    ComStatus res = COM_OK;
-    switch(device) {
-#ifdef SS_USE_SERVOS
-        case COM_SERVO_ID:
-            res = SS_servos_com_sequence_validate(frame);
-            break;
-#endif
-        default:
-            res = COM_ERROR;
-            SS_error("Sequence: unsupported device: %d\r\n", frame->action);
-    }
+    ComFunction function = SS_com_get_handler(sequence_handlers, frame->device);
+    ComStatus res = function ? function(frame) : COM_ERROR;
     Com2xInt16 val;
     memcpy(&val, &frame->payload, sizeof(uint32_t));
     if(SS_sequence_add(frame->device, frame->id, frame->operation, val.val, val.time) != 0) {
@@ -261,6 +251,16 @@ static ComStatus SS_com_handle_sequence(ComFrame *frame) {
     return res;
 }
 #endif
+
+static ComFunction _SS_com_get_handler(ComHandler *handlers, uint16_t size, ComDeviceID device) {
+    for(uint16_t i = 0; i < size; i++) {
+        ComHandler handler = handlers[i];
+        if(handler.id == device) {
+            return handler.func;
+        }
+    }
+    return NULL;
+}
 
 void SS_com_add_payload_to_frame(ComFrame *frame, ComDataType type, void *payload) {
     frame->data_type = type;
