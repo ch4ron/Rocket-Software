@@ -7,6 +7,10 @@
 
 #define SS_DEBUG_ENABLED
 
+/* ==================================================================== */
+/* ============================= Includes ============================= */
+/* ==================================================================== */
+
 #include "SS_sequence.h"
 #include "SS_com.h"
 #include "string.h"
@@ -18,6 +22,10 @@
 #include "SS_servos.h"
 #endif
 
+/* ==================================================================== */
+/* ======================== Private datatypes ========================= */
+/* ==================================================================== */
+
 typedef struct {
     ComDeviceID device;
     uint8_t id;
@@ -26,24 +34,33 @@ typedef struct {
     int16_t time;
 } SequenceItem;
 
+
 typedef struct {
     uint8_t size;
     SequenceItem items[MAX_SEQUENCE_ITEMS];
 } Sequence;
 
+/* ==================================================================== */
+/* =================== Private function prototypes ==================== */
+/* ==================================================================== */
+
+static void SS_sequence_run(void);
+static void SS_sequence_send_item(SequenceItem item);
+
+/* ==================================================================== */
+/* ========================= Global variables ========================= */
+/* ==================================================================== */
+
 static Sequence sequence;
 static SemaphoreHandle_t sequence_mutex;
+
+/* ==================================================================== */
+/* ========================= Public functions ========================= */
+/* ==================================================================== */
 
 void SS_sequence_init(void) {
     sequence_mutex = xSemaphoreCreateBinary();
     assert(sequence_mutex != NULL);
-}
-
-void SS_sequence_print(void) {
-    for(uint8_t i=0; i < sequence.size; i++) {
-        SequenceItem item = sequence.items[i];
-        SS_println("%d, %d, %d, %d\n", item.id, item.device, item.operation, item.value, item.time);
-    }
 }
 
 int8_t SS_sequence_add(ComDeviceID device, uint8_t id, uint8_t operation, int16_t value, int16_t time) {
@@ -75,66 +92,6 @@ void SS_sequence_clear(void) {
     SS_debugln("Sequence cleared");
 }
 
-void SS_sequence_send_item(SequenceItem item) {
-    Com2xInt16 val = {
-        .val = item.value,
-        .time = item.time
-    };
-    uint32_t payload;
-    memcpy(&payload, &val, sizeof(uint32_t));
-    ComFrame sequence_frame = {
-        .priority = COM_LOW_PRIORITY,
-        .action = COM_SEQUENCE,
-        .source = SS_com_get_board_id(),
-        .destination = COM_GRAZYNA_ID,
-        .data_type = INT16x2,
-        .id = item.id,
-        .device = item.device,
-        .operation = item.operation,
-        .payload = payload,
-    };
-    SS_com_transmit(&sequence_frame);
-}
-
-void SS_sequence_run() {
-    if(sequence.size == 0) {
-        SS_error("Trying to run an empty sequence");
-        return;
-    }
-    SS_debugln("Sequence started");
-    for(uint8_t i = 0; i < sequence.size; i++) {
-        SequenceItem item = sequence.items[i];
-        int16_t delay = i == 0 ? item.time : item.time - sequence.items[i - 1].time;
-        SS_println("i: %d", i);
-        if(i > 0) {
-            SS_println("Time: %d, %d", item.time , sequence.items[i - 1].time);
-        } else {
-            SS_println("Time: %d", item.time );
-        }
-        SS_println("Delay %d", delay);
-        vTaskDelay(pdMS_TO_TICKS(delay));
-        switch(item.device) {
-#ifdef SS_USE_SERVOS
-            case COM_SERVO_ID:
-                SS_servos_sequence(item.id, item.operation, item.value, item.time);
-                break;
-#endif
-            default:
-                SS_error("Unknown sequence device");
-        }
-        SS_sequence_send_item(item);
-    }
-    SS_debugln("Sequence finished");
-}
-
-void SS_sequence_task(void *pvParameters) {
-    while(true) {
-        if(xSemaphoreTake(sequence_mutex, portMAX_DELAY) == pdTRUE) {
-            SS_sequence_run();
-        }
-    }
-}
-
 void SS_sequence_start(void) {
     xSemaphoreGive(sequence_mutex);
 }
@@ -160,4 +117,61 @@ ComStatus SS_sequence_com_service(ComFrame *frame) {
             return COM_ERROR;
     }
     return COM_OK;
+}
+
+void SS_sequence_task(void *pvParameters) {
+    while(true) {
+        if(xSemaphoreTake(sequence_mutex, portMAX_DELAY) == pdTRUE) {
+            SS_sequence_run();
+        }
+    }
+}
+
+/* ==================================================================== */
+/* =================== Private function prototypes ==================== */
+/* ==================================================================== */
+
+static void SS_sequence_run(void) {
+    if(sequence.size == 0) {
+        SS_error("Trying to run an empty sequence");
+        return;
+    }
+    SS_debugln("Sequence started");
+    for(uint8_t i = 0; i < sequence.size; i++) {
+        SequenceItem item = sequence.items[i];
+        int16_t delay = i == 0 ? item.time : item.time - sequence.items[i - 1].time;
+        vTaskDelay(pdMS_TO_TICKS(delay));
+        switch(item.device) {
+#ifdef SS_USE_SERVOS
+            case COM_SERVO_ID:
+                SS_servos_sequence(item.id, item.operation, item.value, item.time);
+                break;
+#endif
+            default:
+                SS_error("Unknown sequence device");
+        }
+        SS_sequence_send_item(item);
+    }
+    SS_debugln("Sequence finished");
+}
+
+static void SS_sequence_send_item(SequenceItem item) {
+    Com2xInt16 val = {
+        .val = item.value,
+        .time = item.time
+    };
+    uint32_t payload;
+    memcpy(&payload, &val, sizeof(uint32_t));
+    ComFrame sequence_frame = {
+        .priority = COM_LOW_PRIORITY,
+        .action = COM_SEQUENCE,
+        .source = SS_com_get_board_id(),
+        .destination = COM_GRAZYNA_ID,
+        .data_type = INT16x2,
+        .id = item.id,
+        .device = item.device,
+        .operation = item.operation,
+        .payload = payload,
+    };
+    SS_com_transmit(&sequence_frame);
 }
