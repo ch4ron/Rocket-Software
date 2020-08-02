@@ -42,26 +42,28 @@ int8_t (*modules[])(ComFrame*) = {
 /* ========================= Public functions ========================= */
 /* ==================================================================== */
 
-void SS_com_feed_enable() {
+void SS_com_feed_enable(void) {
     vTaskResume(com_feed_task);
 }
 
-void SS_com_feed_disable() {
+void SS_com_feed_disable(void) {
     vTaskSuspend(com_feed_task);
 }
 
-void SS_com_feed_task() {
+void SS_com_feed_task(void *pvParameters) {
     static uint8_t module = 0;
     /* Feed functions should return 0 when they transmitted all values */
-    int8_t res = modules[module](&feed_frame);
-    if(res <= 0) {
-        module++;
+    while(true) {
+        int8_t res = modules[module](&feed_frame);
+        if(res <= 0) {
+            module++;
+        }
+        if(module == sizeof(modules) / sizeof(modules[0])) {
+            module = 0;
+        }
+        if(res >= 0) {
+            SS_com_transmit(&feed_frame);
+        }
+        vTaskDelay(pdMS_TO_TICKS(COM_FEED_PERIOD));
     }
-    if(module == sizeof(modules) / sizeof(modules[0])) {
-        module = 0;
-    }
-    if(res >= 0) {
-        SS_com_transmit(&feed_frame);
-    }
-    vTaskDelay(pdMS_TO_TICKS(COM_FEED_PERIOD));
 }
