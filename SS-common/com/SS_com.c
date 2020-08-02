@@ -52,8 +52,10 @@ ComStatus SS_com_handle_action(ComFrame *frame);
 static ComStatus SS_com_handle_frame(ComFrame *frame);
 static ComStatus SS_com_handle_request(ComFrame *frame);
 static ComStatus SS_com_handle_service(ComFrame *frame);
-static ComStatus SS_com_handle_sequence(ComFrame *frame);
 static ComFunction _SS_com_get_handler(ComHandler *handlers, uint16_t size, ComDeviceID device);
+#ifdef SS_USE_SEQUENCE
+static ComStatus SS_com_handle_sequence(ComFrame *frame);
+#endif
 
 /* ==================================================================== */
 /* ========================= Global variables ========================= */
