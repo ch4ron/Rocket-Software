@@ -75,7 +75,7 @@ Servo servos[] = {
         {.id = 7, .tim = &htim1, .channel = TIM_CHANNEL_1 }
 };
 
-void SS_platform_servos_init() {
+void SS_platform_servos_init(void) {
     SS_servos_init(servos, sizeof(servos) / sizeof(servos[0]));
 }
 #endif

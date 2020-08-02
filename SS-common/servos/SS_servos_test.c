@@ -5,15 +5,16 @@
  *      Author: maciek
  */
 
-#include "SS_servos.h"
+#include "SS_servos.c"
 
+#ifdef SS_USE_COM
+#include "SS_servos_com.h"
 #include "SS_com.h"
+#endif
 #include "string.h"
 #include "unity_fixture.h"
 
-extern Servo *servo_pointers[MAX_SERVO_COUNT];
-extern uint16_t SS_servo_get_width(uint16_t position);
-extern ServosConfig servos_config;
+extern void SS_platform_servos_init(void);
 extern ComStatus SS_com_handle_action(ComFrame *frame);
 
 ServosConfig tmp_config;

@@ -38,14 +38,169 @@ Servo *servo_pointers[MAX_SERVO_COUNT];
 
 static int8_t SS_servos_check_id(uint8_t id);
 static int8_t SS_servo_check_initialized(Servo *servo);
-static int8_t SS_servo_check_position(Servo *servo, uint16_t position);
+static void SS_servos_reinit(void);
 static void SS_servo_deinit(Servo *servo);
+static void SS_servo_init(Servo *servo);
+static void SS_servo_set_pulse_width(Servo *servo, uint16_t width);
+static uint16_t SS_servo_get_width(uint16_t position);
 
 /* ==================================================================== */
 /* ========================= Public functions ========================= */
 /* ==================================================================== */
 
-void SS_servo_init(Servo *servo) {
+/* position range 0 - 1000 */
+int8_t SS_servo_set_position(Servo *servo, uint16_t position) {
+    if(SS_servo_check_initialized(servo) != 0) return -1;
+    if(SS_servo_check_position(servo, position) != 0) return -1;
+#ifdef SS_USE_SUPPLY
+    if(servo->supply != NULL) {
+        SS_enable_supply(servo->supply);
+    }
+#endif
+    uint16_t width = SS_servo_get_width(position);
+    SS_servo_set_pulse_width(servo, width);
+    servo->position = position;
+#ifndef SERVOS_NO_TIMEOUT
+    servo->timeout = SERVO_TIMEOUT;
+#ifdef SS_USE_SUPPLY
+    if(servo->supply != NULL) {
+        SS_supply_set_timeout(servo->supply, SERVO_TIMEOUT);
+    }
+#endif
+#endif
+    return 0;
+}
+
+int8_t SS_servo_open(Servo *servo) {
+    return SS_servo_set_position(servo, servo->opened_position);
+}
+
+int8_t SS_servo_close(Servo *servo) {
+    return SS_servo_set_position(servo, servo->closed_position);
+}
+
+int8_t SS_servo_set_closed_position(Servo *servo, uint16_t position) {
+    if(SS_servo_check_initialized(servo) != 0) return -1;
+    if(position > servos_config.SERVO_RANGE) {
+        SS_error("Servo closed position out of range");
+        return -1;
+    }
+    servo->closed_position = position;
+    return 0;
+}
+
+int8_t SS_servo_set_opened_position(Servo *servo, uint16_t position) {
+    if(SS_servo_check_initialized(servo) != 0) return -1;
+    if(position > servos_config.SERVO_RANGE) {
+        SS_error("Servo opened position out of range");
+        return -1;
+    }
+    servo->opened_position = position;
+    return 0;
+}
+
+void SS_servos_init(Servo *servos_array, uint8_t count) {
+    for(uint8_t i = 0; i < count; i++) {
+        SS_servo_init(&servos_array[i]);
+    }
+}
+
+void SS_servos_deinit(void) {
+    for(uint8_t i = 0; i < MAX_SERVO_COUNT; i++) {
+        SS_servo_deinit(servo_pointers[i]);
+    }
+    memset(servo_pointers, 0, sizeof(servo_pointers));
+}
+
+int8_t SS_servo_disable(Servo *servo) {
+    if(SS_servo_check_initialized(servo) != 0) return -1;
+    *servo->pointer = 0;
+    return 0;
+}
+
+void SS_servos_set_range(uint32_t value) {
+    servos_config.SERVO_RANGE = value;
+    SS_servos_reinit();
+}
+
+uint32_t SS_servos_get_range(void) {
+    return servos_config.SERVO_RANGE;
+}
+
+Servo *SS_servo_get(uint8_t id) {
+    if(SS_servos_check_id(id) != 0) return NULL;
+    return servo_pointers[id];
+}
+
+int8_t SS_servo_check_position(Servo *servo, uint16_t position) {
+    if(SS_servo_check_initialized(servo) != 0) return -1;
+    uint16_t min = servo->closed_position < servo->opened_position ? servo->closed_position : servo->opened_position;
+    uint16_t max = servo->closed_position > servo->opened_position ? servo->closed_position : servo->opened_position;
+    if(position > max || position < min) {
+        SS_error("Servo position out of range");
+        return -1;
+    }
+    return 0;
+}
+
+/* TODO Change to a task */
+void SS_servo_SYSTICK(Servo *servo) {
+    if(servo->timeout == 1)
+        SS_servo_disable(servo);
+    if(servo->timeout > 0)
+        servo->timeout--;
+}
+
+void SS_servos_SYSTICK() {
+#ifndef SERVOS_NO_TIMEOUT
+    for(uint8_t i = 0; i < MAX_SERVO_COUNT; i++) {
+        if(servo_pointers[i] != NULL) {
+            SS_servo_SYSTICK(servo_pointers[i]);
+        }
+    }
+#endif
+}
+
+/* ==================================================================== */
+/* ======================== Private functions ========================= */
+/* ==================================================================== */
+
+static int8_t SS_servos_check_id(uint8_t id) {
+    if(id >= MAX_SERVO_COUNT) {
+        SS_error("Servo id: %d too high, max supported id: %d", id, MAX_SERVO_COUNT);
+        return -1;
+    }
+    if(servo_pointers[id] == NULL) {
+        SS_error("Servo id: %d not initialized", id);
+        return -1;
+    }
+    return 0;
+}
+
+static int8_t SS_servo_check_initialized(Servo *servo) {
+    if(servo == NULL) {
+        SS_error("Servo not initialized");
+        return -1;
+    }
+    return 0;
+}
+
+static void SS_servo_deinit(Servo *servo) {
+    if(servo == NULL) return;
+    HAL_TIM_PWM_Stop(servo->tim, servo->channel);
+    HAL_TIM_Base_Stop(servo->tim);
+    HAL_TIM_Base_DeInit(servo->tim);
+}
+
+static void SS_servos_reinit(void) {
+    for(uint8_t i = 0; i < MAX_SERVO_COUNT; i++) {
+        if(servo_pointers[i] != NULL) {
+            SS_servo_init(servo_pointers[i]);
+        }
+    }
+}
+
+static void SS_servo_init(Servo *servo) {
     if(servo_pointers[servo->id] != servo && servo_pointers[servo->id] != NULL) {
         SS_error("Duplicate servo id, %d", servo->id);
         return;
@@ -90,283 +245,14 @@ void SS_servo_init(Servo *servo) {
     SS_servo_close(servo);
 }
 
+
 /* width in us */
-void SS_servo_set_pulse_width(Servo *servo, uint16_t width) {
+static void SS_servo_set_pulse_width(Servo *servo, uint16_t width) {
     if(SS_servo_check_initialized(servo) != 0) return;
     *servo->pointer = width * servos_config.SERVO_FREQUENCY * SERVO_RESOLUTION / 1000000;
 }
 
-uint16_t SS_servo_get_width(uint16_t position) {
+static uint16_t SS_servo_get_width(uint16_t position) {
     return servos_config.MIN_PULSE_WIDTH + position * (servos_config.MAX_PULSE_WIDTH - servos_config.MIN_PULSE_WIDTH) / servos_config.SERVO_RANGE;
 }
 
-/* position range 0 - 1000 */
-int8_t SS_servo_set_position(Servo *servo, uint16_t position) {
-    if(SS_servo_check_initialized(servo) != 0) return -1;
-    if(SS_servo_check_position(servo, position) != 0) return -1;
-#ifdef SS_USE_SUPPLY
-    if(servo->supply != NULL) {
-        SS_enable_supply(servo->supply);
-    }
-#endif
-    uint16_t width = SS_servo_get_width(position);
-    SS_servo_set_pulse_width(servo, width);
-    servo->position = position;
-#ifndef SERVOS_NO_TIMEOUT
-    servo->timeout = SERVO_TIMEOUT;
-#ifdef SS_USE_SUPPLY
-    if(servo->supply != NULL) {
-        SS_supply_set_timeout(servo->supply, SERVO_TIMEOUT);
-    }
-#endif
-#endif
-    return 0;
-}
-
-void SS_servo_open(Servo *servo) {
-    if(SS_servo_check_initialized(servo) != 0) return;
-    SS_servo_set_position(servo, servo->opened_position);
-}
-
-void SS_servo_close(Servo *servo) {
-    if(SS_servo_check_initialized(servo) != 0) return;
-    SS_servo_set_position(servo, servo->closed_position);
-}
-
-void SS_servos_reinit() {
-    for(uint8_t i = 0; i < MAX_SERVO_COUNT; i++) {
-        if(servo_pointers[i] != NULL) {
-            SS_servo_init(servo_pointers[i]);
-        }
-    }
-}
-
-void SS_servos_init(Servo *servos_array, uint8_t count) {
-    for(uint8_t i = 0; i < count; i++) {
-        SS_servo_init(&servos_array[i]);
-    }
-}
-
-void SS_servos_deinit() {
-    for(uint8_t i = 0; i < MAX_SERVO_COUNT; i++) {
-        SS_servo_deinit(servo_pointers[i]);
-    }
-    memset(servo_pointers, 0, sizeof(servo_pointers));
-}
-
-void SS_servo_disable(Servo *servo) {
-    if(SS_servo_check_initialized(servo) != 0) return;
-    *servo->pointer = 0;
-}
-
-int8_t SS_servo_set_closed_position(Servo *servo, uint16_t position) {
-    if(SS_servo_check_initialized(servo) != 0) return -1;
-    if(position > servos_config.SERVO_RANGE) {
-        SS_error("Servo closed position out of range");
-        return -1;
-    }
-    servo->closed_position = position;
-    return 0;
-}
-
-int8_t SS_servo_set_opened_position(Servo *servo, uint16_t position) {
-    if(SS_servo_check_initialized(servo) != 0) return -1;
-    if(position > servos_config.SERVO_RANGE) {
-        SS_error("Servo opened position out of range");
-        return -1;
-    }
-    servo->opened_position = position;
-    return 0;
-}
-
-void SS_servo_SYSTICK(Servo *servo) {
-    if(servo->timeout == 1)
-        SS_servo_disable(servo);
-    if(servo->timeout > 0)
-        servo->timeout--;
-}
-
-void SS_servos_SYSTICK() {
-#ifndef SERVOS_NO_TIMEOUT
-    for(uint8_t i = 0; i < MAX_SERVO_COUNT; i++) {
-        if(servo_pointers[i] != NULL) {
-            SS_servo_SYSTICK(servo_pointers[i]);
-        }
-    }
-#endif
-}
-
-ComStatus SS_servos_com_sequence_validate(ComFrame *frame) {
-    if(SS_servos_check_id(frame->id) != 0) return COM_ERROR;
-    Servo *servo = servo_pointers[frame->id];
-    Com2xInt16 value;
-    memcpy(&value, &frame->payload, sizeof(uint32_t));
-    switch(frame->operation) {
-        case COM_SERVO_OPEN:
-        case COM_SERVO_CLOSE:
-        case COM_SERVO_DISABLE:
-            return COM_OK;
-        case COM_SERVO_POSITION:
-            return SS_servo_check_position(servo, value.val) == 0 ? COM_OK : COM_ERROR;
-        default:
-            return COM_ERROR;
-    }
-}
-
-void SS_servos_sequence(uint8_t id, ComServoID operation, int16_t value, int16_t time) {
-    if(SS_servos_check_id(id) != 0) return;
-    Servo *servo = servo_pointers[id];
-    switch(operation) {
-        case COM_SERVO_OPEN:
-            SS_servo_open(servo);
-            break;
-        case COM_SERVO_CLOSE:
-            SS_servo_close(servo);
-            break;
-        case COM_SERVO_POSITION:
-            SS_servo_set_position(servo, value);
-            break;
-        case COM_SERVO_DISABLE:
-            SS_servo_disable(servo);
-            break;
-        default:
-            break;
-    }
-}
-
-ComStatus SS_servos_com_service(ComFrame *frame) {
-    if(SS_servos_check_id(frame->id) != 0) return COM_ERROR;
-    ComServoID msgID = frame->operation;
-    Servo *servo = servo_pointers[frame->id];
-    uint32_t value = frame->payload;
-    switch(msgID) {
-        case COM_SERVO_OPEN:
-            SS_servo_open(servo);
-            break;
-        case COM_SERVO_CLOSE:
-            SS_servo_close(servo);
-            break;
-        case COM_SERVO_OPENED_POSITION:
-            if(SS_servo_set_opened_position(servo, value) != 0) {
-                return COM_ERROR;
-            }
-            break;
-        case COM_SERVO_CLOSED_POSITION:
-            if(SS_servo_set_closed_position(servo, value) != 0) {
-                return COM_ERROR;
-            }
-            break;
-        case COM_SERVO_POSITION:
-            if(SS_servo_set_position(servo, value) != 0) {
-                return COM_ERROR;
-            }
-            break;
-        case COM_SERVO_DISABLE:
-            SS_servo_disable(servo);
-            break;
-        case COM_SERVOS_RANGE:
-            servos_config.SERVO_RANGE = value;
-            SS_servos_reinit();
-            break;
-        default:
-            SS_error("Unhandled Grazyna servo service: %d\r\n", msgID);
-            return COM_ERROR;
-    }
-    return COM_OK;
-}
-
-ComStatus SS_servos_com_request(ComFrame *frame) {
-    if(SS_servos_check_id(frame->id) != 0) return COM_ERROR;
-    ComServoID msgID = frame->operation;
-    Servo *servo = servo_pointers[frame->id];
-    switch(msgID) {
-        case COM_SERVO_OPENED_POSITION:
-            SS_com_add_payload_to_frame(frame, UINT16, &servo->opened_position);
-            break;
-        case COM_SERVO_CLOSED_POSITION:
-            SS_com_add_payload_to_frame(frame, UINT16, &servo->closed_position);
-            break;
-        case COM_SERVO_POSITION:
-            SS_com_add_payload_to_frame(frame, UINT16, &servo->position);
-            break;
-        case COM_SERVOS_RANGE:
-            SS_com_add_payload_to_frame(frame, UINT16, &servos_config.SERVO_RANGE);
-            break;
-        default:
-            SS_error("Unhandled Grazyna servo request: %d\r\n", msgID);
-            return COM_ERROR;
-    }
-    return COM_OK;
-}
-
-void SS_servos_read_json(char *json, jsmntok_t **tok) {
-    for(uint8_t i = 0; i < servos_config.servo_count; i++) {
-        int id, opened_pos, closed_pos;
-        JsonData data[] = {
-                {
-                        .name = "id",
-                        .type = JSON_INT,
-                        .data = &id
-                },
-                {
-                        .name = "closedPos",
-                        .type = JSON_INT,
-                        .data = &closed_pos
-                },
-                {
-                        .name = "openedPos",
-                        .type = JSON_INT,
-                        .data = &opened_pos
-                },
-        };
-        SS_json_parse_data(data, sizeof(data)/sizeof(data[0]), json, tok[i]);
-        servo_pointers[id]->opened_position = opened_pos;
-        servo_pointers[id]->closed_position = closed_pos;
-        servo_pointers[id]->tok = tok[i];
-    }
-}
-
-/* ==================================================================== */
-/* ======================== Private functions ========================= */
-/* ==================================================================== */
-
-static int8_t SS_servos_check_id(uint8_t id) {
-    if(id >= MAX_SERVO_COUNT) {
-#ifndef SS_RUN_TESTS
-        SS_error("Servo id: %d too high, max supported id: %d", id, MAX_SERVO_COUNT);
-#endif
-        return -1;
-    }
-    if(servo_pointers[id] == NULL) {
-#ifndef SS_RUN_TESTS
-        SS_error("Servo id: %d not initialized", id);
-#endif
-        return -1;
-    }
-    return 0;
-}
-
-static int8_t SS_servo_check_initialized(Servo *servo) {
-    if(servo == NULL) {
-        SS_error("Servo not initialized");
-        return -1;
-    }
-    return 0;
-}
-
-static int8_t SS_servo_check_position(Servo *servo, uint16_t position) {
-    uint16_t min = servo->closed_position < servo->opened_position ? servo->closed_position : servo->opened_position;
-    uint16_t max = servo->closed_position > servo->opened_position ? servo->closed_position : servo->opened_position;
-    if(position > max || position < min) {
-        SS_error("Servo position out of range");
-        return -1;
-    }
-    return 0;
-}
-
-static void SS_servo_deinit(Servo *servo) {
-    if(servo == NULL) return;
-    HAL_TIM_PWM_Stop(servo->tim, servo->channel);
-    HAL_TIM_Base_Stop(servo->tim);
-    HAL_TIM_Base_DeInit(servo->tim);
-}

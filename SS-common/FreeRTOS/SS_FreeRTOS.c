@@ -34,6 +34,9 @@
 #ifdef SS_USE_GRAZYNA
 #include "SS_grazyna.h"
 #endif
+#ifdef SS_USE_SEQUENCE
+#include "SS_sequence.h"
+#endif
 
 /* ==================================================================== */
 /* =================== Private function prototypes ==================== */
@@ -105,6 +108,9 @@ static void SS_FreeRTOS_create_tasks(void) {
     res = xTaskCreate(SS_flash_log_task, "Flash Log Task", 256, NULL, 6, NULL);
     assert(res == pdTRUE);
 #endif /* SS_USE_FLASH */
+#ifdef SS_USE_SEQUENCE
+    res = xTaskCreate(SS_sequence_task, "Sequence Task", 256, NULL, 4, NULL);
+#endif
     res = xTaskCreate(SS_console_task, "Console Task", 256, NULL, 3, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
 }

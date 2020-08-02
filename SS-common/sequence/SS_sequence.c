@@ -19,7 +19,7 @@
 #include "FreeRTOS.h"
 #include "semphr.h"
 #ifdef SS_USE_SERVOS
-#include "SS_servos.h"
+#include "SS_servos_com.h"
 #endif
 
 /* ==================================================================== */

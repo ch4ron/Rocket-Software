@@ -65,7 +65,7 @@ Servo servos[] = {
     {.id = 7, .tim = &htim3, .channel = TIM_CHANNEL_1, .supply = &servos2_supply},
 };
 
-void SS_platform_servos_init() {
+void SS_platform_servos_init(void) {
     SS_servos_init(servos, sizeof(servos) / sizeof(servos[0]));
 }
 
@@ -190,7 +190,8 @@ void SS_platform_init() {
 #ifdef SS_USE_DYNAMIXEL
     SS_dynamixel_init(&dynamixel);
 #endif
+#ifdef SS_USE_FLASH
     assert(SS_s25fl_init(FLASH_RESET_GPIO_Port, FLASH_RESET_Pin, 64*1024*1024, 256*1024, 512, true, 4, 1) == S25FL_STATUS_OK);
     SS_println("flash init: %d", SS_flash_init(&hqspi, FLASH_RESET_GPIO_Port, FLASH_RESET_Pin));
-    HAL_Delay(100);
+#endif
 }

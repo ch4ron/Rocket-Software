@@ -150,16 +150,16 @@ void HAL_QSPI_RxCpltCallback(QSPI_HandleTypeDef *hqspi) {
 void HAL_SYSTICK_Callback() {
 /* TODO Remove Systick Callback and change it to a task */
 #ifdef SS_USE_SERVOS
-    SS_servos_SYSTICK();
+    /* SS_servos_SYSTICK(); */
 #endif
 #ifdef SS_USE_SUPPLY
-    SS_supply_SYSTICK();
+    /* SS_supply_SYSTICK(); */
 #endif
 #ifdef SS_USE_SEQUENCE
     /* SS_sequence_SYSTICK(); */
 #endif
 #ifdef SS_USE_MS5X
-    SS_MS56_SYSTICK_Callback();
+    /* SS_MS56_SYSTICK_Callback(); */
 #endif
 #ifdef SS_USE_FLASH
     //SS_flash_ctrl_time_increment_handler();
