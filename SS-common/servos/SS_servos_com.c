@@ -61,8 +61,6 @@ ComStatus SS_servos_com_service(ComFrame *frame) {
     return COM_OK;
 }
 
-#ifdef SS_USE_SEQUENCE
-
 ComStatus SS_servos_com_request(ComFrame *frame) {
     Servo *servo = SS_servo_get(frame->id);
     if(servo == NULL) return COM_ERROR;
@@ -88,6 +86,8 @@ ComStatus SS_servos_com_request(ComFrame *frame) {
     }
     return COM_OK;
 }
+
+#ifdef SS_USE_SEQUENCE
 
 ComStatus SS_servos_com_sequence_validate(ComFrame *frame) {
     Servo *servo = SS_servo_get(frame->id);

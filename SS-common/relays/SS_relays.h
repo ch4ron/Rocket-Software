@@ -44,7 +44,6 @@ extern Relay relays[9];
 
 void SS_relay_open(Relay *relay);
 void SS_relay_close(Relay *relay);
-void SS_relay_init(Relay *relay);
 void SS_relays_init(Relay *relay_array, uint8_t count);
 Relay *SS_relay_get(uint8_t id);
 

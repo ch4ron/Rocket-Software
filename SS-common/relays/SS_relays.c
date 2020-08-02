@@ -21,6 +21,7 @@
 /* ==================================================================== */
 
 static int8_t SS_relays_check_id(uint8_t id);
+static void SS_relay_init(Relay *relay);
 
 /* ==================================================================== */
 /* ========================= Global variables ========================= */
@@ -31,18 +32,6 @@ Relay *relay_pointers[MAX_RELAY_COUNT];
 /* ==================================================================== */
 /* ========================= Public functions ========================= */
 /* ==================================================================== */
-
-void SS_relay_init(Relay *relay) {
-    if(relay_pointers[relay->id] != relay && relay_pointers[relay->id] != NULL) {
-        SS_error("Duplicate servo id, %d", relay->id);
-        return;
-    }
-    if(relay->id >= MAX_RELAY_COUNT) {
-        SS_error("Servo id: %d too high, max supported id: %d", relay->id, MAX_RELAY_COUNT);
-        return;
-    }
-    relay_pointers[relay->id] = relay;
-}
 
 void SS_relays_init(Relay *relay_array, uint8_t count) {
     for(uint8_t i = 0; i < count; i++) {
@@ -81,3 +70,16 @@ static int8_t SS_relays_check_id(uint8_t id) {
     }
     return 0;
 }
+
+static void SS_relay_init(Relay *relay) {
+    if(relay_pointers[relay->id] != relay && relay_pointers[relay->id] != NULL) {
+        SS_error("Duplicate servo id, %d", relay->id);
+        return;
+    }
+    if(relay->id >= MAX_RELAY_COUNT) {
+        SS_error("Servo id: %d too high, max supported id: %d", relay->id, MAX_RELAY_COUNT);
+        return;
+    }
+    relay_pointers[relay->id] = relay;
+}
+
