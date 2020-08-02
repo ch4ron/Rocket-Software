@@ -20,6 +20,7 @@
 #include "SS_grazyna.h"
 #endif
 
+
 /* ==================================================================== */
 /* ========================= Private macros =========================== */
 /* ==================================================================== */
@@ -49,32 +50,32 @@
 /* =================== Private function prototypes ==================== */
 /* ==================================================================== */
 
-#ifdef SS_COM_DEBUG
+#ifdef SS_DEBUG_ENABLED
+
 static char *SS_com_board_str(ComBoardID board);
 static char *SS_com_action_str(ComActionID action);
 static char *SS_com_device_str(ComDeviceID device);
 static char *SS_com_data_type_str(ComDataType type);
 static void SS_com_debug_print_payload(ComFrame *frame);
-#endif
 static void SS_com_debug_print_frame(ComFrame *frame, char *title, char *color);
 
 /* ==================================================================== */
 /* ========================= Public functions ========================= */
 /* ==================================================================== */
 
-void SS_com_print_message_received(ComFrame *frame) {
+void _SS_com_print_message_received(ComFrame *frame) {
     char color[] = "\x01b[48;5;238m";
     char title[] = "Rec:";
     SS_com_debug_print_frame(frame, title, color);
 }
 
-void SS_com_print_message_sent(ComFrame *frame) {
+void _SS_com_print_message_sent(ComFrame *frame) {
     char color[] = "\x01b[48;5;234m";
     char title[] = "Sent:";
     SS_com_debug_print_frame(frame, title, color);
 }
 
-void SS_com_print_message_error(ComFrame *frame, char *error) {
+void _SS_com_print_message_error(ComFrame *frame, char *error) {
     char color[] = "\x01b[41m";
     SS_com_debug_print_frame(frame, error, color);
 }
@@ -83,7 +84,6 @@ void SS_com_print_message_error(ComFrame *frame, char *error) {
 /* ======================== Private functions ========================= */
 /* ==================================================================== */
 
-#ifdef SS_COM_DEBUG
 static char *SS_com_board_str(ComBoardID board) {
     switch(board) {
         case COM_GRAZYNA_ID:
@@ -121,6 +121,8 @@ static char *SS_com_action_str(ComActionID action) {
             return "req";
         case COM_RESPONSE:
             return "res";
+        case COM_SEQUENCE:
+            return "seq";
         default:
             return COLOR_RED(err);
     }
@@ -148,6 +150,8 @@ static char *SS_com_device_str(ComDeviceID device) {
             return "mpu";
         case COM_DYNAMIXEL_ID:
             return "dynamixel";
+        case COM_SEQUENCE_ID:
+            return "seq";
         default:
             return COLOR_RED(err);
     }
@@ -171,6 +175,8 @@ static char *SS_com_data_type_str(ComDataType type) {
             return "int8";
         case FLOAT:
             return "float";
+        case INT16x2:
+            return "int16x2";
         default:
             return COLOR_RED(err);
     }
@@ -178,8 +184,9 @@ static char *SS_com_data_type_str(ComDataType type) {
 
 static void SS_com_debug_print_payload(ComFrame *frame) {
     float f_val;
+    int16_t vals[2];
     if(frame->data_type == NO_DATA) return;
-    SS_print_no_flush("type: %-7s", SS_com_data_type_str(frame->data_type));
+    SS_print_no_flush("type: %-9s", SS_com_data_type_str(frame->data_type));
     SS_print_no_flush("data: ");
     switch(frame->data_type) {
         case NO_DATA:
@@ -198,13 +205,14 @@ static void SS_com_debug_print_payload(ComFrame *frame) {
             memcpy(&f_val, &frame->payload, sizeof(float));
             SS_print_no_flush("%f", f_val);
             break;
+        case INT16x2:
+            memcpy(vals, &frame->payload, sizeof(vals));
+            SS_print_no_flush("%d:%d", vals[0], vals[1]);
+            break;
     }
 }
 
-#endif
-
 static void SS_com_debug_print_frame(ComFrame *frame, char *title, char *color) {
-#ifdef SS_COM_DEBUG
     SS_print_no_flush_start();
     SS_print_no_flush("%s%-8", color, title);
     SS_print_no_flush("src: %-16s%s%s ", SS_com_board_str(frame->source), COLOR_RESET, color);
@@ -218,7 +226,6 @@ static void SS_com_debug_print_frame(ComFrame *frame, char *title, char *color) 
     SS_print_no_flush("\r\n");
     SS_log_buf_flush();
     SS_print_no_flush_end();
-#endif
 }
 
 #ifdef SS_COM_DEBUG_HEX
@@ -259,3 +266,5 @@ void SS_com_print_hex(ComFrame *frame) {
     }
 }
 #endif
+
+#endif // SS_DEBUG_ENABLED

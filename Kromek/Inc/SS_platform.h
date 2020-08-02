@@ -5,6 +5,7 @@
 #ifndef SS_PLATFORM_H
 #define SS_PLATFORM_H
 
+#include "SS_common.h"
 #include "SS_supply.h"
 
 /********** SUPPLY *********/

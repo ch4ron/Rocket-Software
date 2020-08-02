@@ -370,3 +370,4 @@ fabric.properties
 .clangd
 CMakeLists_template.txt
 */Drivers
+cubeprogrammer-bin

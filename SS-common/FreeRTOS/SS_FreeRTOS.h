@@ -5,6 +5,7 @@
 /* ==================== Public function prototypes ==================== */
 /* ==================================================================== */
 
+void SS_run_tests_task(void *pvParameters);
 void SS_FreeRTOS_init(void);
 
 #endif  // SS_COMMON_H

@@ -31,7 +31,9 @@ typedef enum {
     /* Action that needs to send back data, respond with RESPONSE */
     COM_REQUEST       = 0x05,
     /* Acknowledge message and send back data */
-    COM_RESPONSE      = 0x06
+    COM_RESPONSE      = 0x06,
+    /* Send a sequence element */
+    COM_SEQUENCE      = 0x07
 } ComActionID;
 
 typedef enum {
@@ -45,6 +47,7 @@ typedef enum {
     COM_BAROMETER_ID     = 0x07,
     COM_MPU9250_ID       = 0x08,
     COM_DYNAMIXEL_ID     = 0x09,
+    COM_SEQUENCE_ID      = 0x0A,
 } ComDeviceID;
 
 typedef enum {
@@ -60,14 +63,15 @@ typedef enum {
 } ComBoardID;
 
 typedef enum {
-    NO_DATA,
-    UINT32,
-    UINT16,
-    UINT8,
-    INT32,
-    INT16,
-    INT8,
-    FLOAT
+    NO_DATA = 0x00,
+    UINT32 = 0x01,
+    UINT16 = 0x02,
+    UINT8 = 0x03,
+    INT32 = 0x04,
+    INT16 = 0x05,
+    INT8 = 0x06,
+    FLOAT = 0x07,
+    INT16x2 = 0x08,
 } ComDataType;
 
 #endif /* SS_COM_IDS_H_ */

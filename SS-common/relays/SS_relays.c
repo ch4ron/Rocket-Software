@@ -21,6 +21,7 @@
 /* ==================================================================== */
 
 static int8_t SS_relays_check_id(uint8_t id);
+static void SS_relay_init(Relay *relay);
 
 /* ==================================================================== */
 /* ========================= Global variables ========================= */
@@ -31,18 +32,6 @@ Relay *relay_pointers[MAX_RELAY_COUNT];
 /* ==================================================================== */
 /* ========================= Public functions ========================= */
 /* ==================================================================== */
-
-void SS_relay_init(Relay *relay) {
-    if(relay_pointers[relay->id] != relay && relay_pointers[relay->id] != NULL) {
-        SS_error("Duplicate servo id, %d", relay->id);
-        return;
-    }
-    if(relay->id >= MAX_RELAY_COUNT) {
-        SS_error("Servo id: %d too high, max supported id: %d", relay->id, MAX_RELAY_COUNT);
-        return;
-    }
-    relay_pointers[relay->id] = relay;
-}
 
 void SS_relays_init(Relay *relay_array, uint8_t count) {
     for(uint8_t i = 0; i < count; i++) {
@@ -61,37 +50,9 @@ void SS_relay_close(Relay *relay) {
     relay->state = 0;
 }
 
-ComStatus SS_relay_com_service(ComFrame *frame) {
-    if(SS_relays_check_id(frame->id) != 0) return COM_ERROR;
-    ComRelayID msgID = frame->operation;
-    Relay *relay = relay_pointers[frame->id];
-    switch(msgID) {
-        case COM_RELAY_OPEN:
-            SS_relay_open(relay);
-            break;
-        case COM_RELAY_CLOSE:
-            SS_relay_close(relay);
-            break;
-        default:
-            SS_error("Unhandled Grazyna relay service: %d\r\n", msgID);
-            return COM_ERROR;
-    }
-    return COM_OK;
-}
-
-ComStatus SS_relays_com_request(ComFrame *frame) {
-    if(SS_relays_check_id(frame->id) != 0) return COM_ERROR;
-    ComRelayID msgID = frame->operation;
-    Relay *relay = relay_pointers[frame->id];
-    switch(msgID) {
-        case COM_RELAY_STATUS:
-            SS_com_add_payload_to_frame(frame, UINT8, &relay->state);
-            break;
-        default:
-            SS_error("Unhandled Grazyna relay request: %d\r\n", msgID);
-            return COM_ERROR;
-    }
-    return COM_OK;
+Relay *SS_relay_get(uint8_t id) {
+    if(SS_relays_check_id(id) != 0) return NULL;
+    return relay_pointers[id];
 }
 
 /* ==================================================================== */
@@ -109,3 +70,16 @@ static int8_t SS_relays_check_id(uint8_t id) {
     }
     return 0;
 }
+
+static void SS_relay_init(Relay *relay) {
+    if(relay_pointers[relay->id] != relay && relay_pointers[relay->id] != NULL) {
+        SS_error("Duplicate servo id, %d", relay->id);
+        return;
+    }
+    if(relay->id >= MAX_RELAY_COUNT) {
+        SS_error("Servo id: %d too high, max supported id: %d", relay->id, MAX_RELAY_COUNT);
+        return;
+    }
+    relay_pointers[relay->id] = relay;
+}
+

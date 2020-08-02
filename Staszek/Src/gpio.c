@@ -30,7 +30,12 @@
 
 /* USER CODE END 1 */
 
-/** Configure pins
+/** Configure pins as 
+        * Analog 
+        * Input 
+        * Output
+        * EVENT_OUT
+        * EXTI
      PC9   ------> S_TIM3_CH4
 */
 void MX_GPIO_Init(void)
@@ -40,6 +45,7 @@ void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOE_CLK_ENABLE();
+  __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
@@ -50,16 +56,15 @@ void MX_GPIO_Init(void)
                           |FLASH_CS_Pin|IND_LED_Pin|LOOP_LED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, ADC_CS_Pin|COM_GREEN_Pin|COM_BLUE_Pin|COM_RED_Pin 
-                          |BUZZER_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, ADC_CS_Pin|FLASH_RESET_Pin|COM_GREEN_Pin|COM_BLUE_Pin 
+                          |COM_RED_Pin|BUZZER_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, MEM_RED_Pin|MEM_BLUE_Pin|MEM_GREEN_Pin|CHECK_RESISTANCE_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, ISL_G0_Pin|ISL_G0_Z_Pin|ISL_G1_Pin|ISL_G1_Z_Pin 
-                          |POWER_INPUT4_Pin|POWER_INPUT1_Pin|POWER_INPUT2_Pin|POWER_INPUT3_Pin 
-                          |MEAS_RED_Pin|MEAS_BLUE_Pin|MEAS_GREEN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOD, ISL_G0_Pin|ISL_G0_Z_Pin|ISL_G1_Pin|POWER_INPUT2_Pin 
+                          |POWER_INPUT3_Pin|MEAS_RED_Pin|MEAS_BLUE_Pin|MEAS_GREEN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : PEPin PEPin */
   GPIO_InitStruct.Pin = MPU_INT_Pin|ADS_DRDY_Pin;
@@ -77,9 +82,9 @@ void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PCPin PCPin PCPin PCPin 
-                           PCPin */
-  GPIO_InitStruct.Pin = ADC_CS_Pin|COM_GREEN_Pin|COM_BLUE_Pin|COM_RED_Pin 
-                          |BUZZER_Pin;
+                           PCPin PCPin */
+  GPIO_InitStruct.Pin = ADC_CS_Pin|FLASH_RESET_Pin|COM_GREEN_Pin|COM_BLUE_Pin 
+                          |COM_RED_Pin|BUZZER_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -93,11 +98,9 @@ void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PDPin PDPin PDPin PDPin 
-                           PDPin PDPin PDPin PDPin 
-                           PDPin PDPin PDPin */
-  GPIO_InitStruct.Pin = ISL_G0_Pin|ISL_G0_Z_Pin|ISL_G1_Pin|ISL_G1_Z_Pin 
-                          |POWER_INPUT4_Pin|POWER_INPUT1_Pin|POWER_INPUT2_Pin|POWER_INPUT3_Pin 
-                          |MEAS_RED_Pin|MEAS_BLUE_Pin|MEAS_GREEN_Pin;
+                           PDPin PDPin PDPin PDPin */
+  GPIO_InitStruct.Pin = ISL_G0_Pin|ISL_G0_Z_Pin|ISL_G1_Pin|POWER_INPUT2_Pin 
+                          |POWER_INPUT3_Pin|MEAS_RED_Pin|MEAS_BLUE_Pin|MEAS_GREEN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

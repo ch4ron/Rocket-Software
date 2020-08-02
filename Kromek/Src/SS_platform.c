@@ -2,18 +2,33 @@
 // Created by maciek on 28.02.2020.
 //
 
-/* #include "SS_s25fl.h" */
 #include "SS_platform.h"
+#include "SS_relays.h"
+#include "SS_servos.h"
+#include "SS_ADS1258.h"
+#include "SS_measurements.h"
+#include "SS_relays.h"
+#include "SS_grazyna.h"
+#include "flash/SS_flash.h"
 
+#ifdef SS_USE_FLASH
+#include "SS_s25fl.h"
+#include "SS_flash_caching.h"
+#include "SS_flash_ctrl.h"
+#endif
+#ifdef SS_USE_IGNITER
+#include "SS_igniter.h"
+#endif
 #include "SS_adc.h"
 #include "SS_can.h"
-#include "SS_common.h"
 #include "SS_console.h"
 #include "SS_dynamixel.h"
 #include "SS_log.h"
 #include "adc.h"
 #include "can.h"
 #include "spi.h"
+#include "usart.h"
+#include "quadspi.h"
 #include "usart.h"
 
 /*********** LED **********/
@@ -53,7 +68,7 @@ Servo servos[] = {
     {.id = 7, .tim = &htim3, .channel = TIM_CHANNEL_1, .supply = &servos2_supply},
 };
 
-void SS_platform_servos_init() {
+void SS_platform_servos_init(void) {
     SS_servos_init(servos, sizeof(servos) / sizeof(servos[0]));
 }
 
@@ -163,6 +178,7 @@ Dynamixel dynamixel = {
 
 #endif
 
+
 /********** MAIN INIT *********/
 
 void SS_platform_init() {
@@ -174,9 +190,14 @@ void SS_platform_init() {
     SS_platform_relays_init();
     SS_platform_ADS1258_init();
     SS_can_init(&hcan1, COM_KROMEK_ID);
+    SS_relay_open(SS_relay_get(4));
     SS_grazyna_init(&huart2);
+    SS_igniter_init(RELAY2_GPIO_Port, RELAY2_Pin);
 #ifdef SS_USE_DYNAMIXEL
     SS_dynamixel_init(&dynamixel);
 #endif
-    /* SS_s25fl_init(); */
+#ifdef SS_USE_FLASH
+    assert(SS_s25fl_init(FLASH_RESET_GPIO_Port, FLASH_RESET_Pin, 64*1024*1024, 256*1024, 512, true, 4, 1) == S25FL_STATUS_OK);
+    SS_println("flash init: %d", SS_flash_init(&hqspi, FLASH_RESET_GPIO_Port, FLASH_RESET_Pin));
+#endif
 }

@@ -12,12 +12,14 @@
 #include "SS_console.h"
 
 #include "FreeRTOS.h"
-#include "SS_log.h"
 #include "assert.h"
 #include "portmacro.h"
 #include "semphr.h"
 #include "string.h"
 #include "task.h"
+
+#include "SS_log.h"
+#include "SS_FreeRTOS.h"
 
 /* ==================================================================== */
 /* ======================== Private datatypes ========================= */
@@ -36,6 +38,7 @@ typedef struct {
 static void SS_console_print_help(char *args);
 static void SS_print_tasks_info(char *args);
 static void SS_print_runtime_stats(char *args);
+static void SS_console_run_all_tests(char *args);
 static void SS_handle_console_input(char *buf);
 
 /* ==================================================================== */
@@ -48,6 +51,9 @@ static SemaphoreHandle_t rx_sem;
 static volatile uint8_t idx;
 
 ConsoleCommand commands[] = {
+#if defined(SS_RUN_TESTS) && defined(SS_RUN_TESTS_FROM_CONSOLE)
+    {"test", "Run tests", SS_console_run_all_tests},
+#endif /* defined(SS_RUN_TESTS) && defined(SS_RUN_TESTS_FROM_CONSOLE) */
     {"tasks", "Print task info", SS_print_tasks_info},
     {"stats", "Print task info", SS_print_runtime_stats},
     {"help", "Print help", SS_console_print_help},
@@ -125,6 +131,11 @@ static void SS_print_runtime_stats(char *args) {
     SS_println("Runtime stats:");
     SS_print("%s", task_info);
     vPortFree(task_info);
+}
+
+static void SS_console_run_all_tests(char *args) {
+    BaseType_t res = xTaskCreate(SS_run_tests_task, "Tests task", 512, NULL, 4, (TaskHandle_t *) NULL);
+    assert(res == pdTRUE);
 }
 
 static void SS_console_print_help(char *args) {
