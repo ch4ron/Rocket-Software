@@ -125,7 +125,7 @@ static ComHandler sequence_handlers[] = {
     /* { COM_RELAY_ID, SS_relays_com_sequence_validate}, */
 #endif
 #ifdef SS_USE_DYNAMIXEL
-    /* { COM_DYNAMIXEL_ID, SS_dynamixel_com_sequence_validate}, */
+    { COM_DYNAMIXEL_ID, SS_dynamixel_com_sequence_validate},
 #endif
 };
 #endif

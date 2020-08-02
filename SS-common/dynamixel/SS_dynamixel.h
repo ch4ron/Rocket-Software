@@ -248,6 +248,7 @@ DynamixelStatus SS_dynamixel_enable_torque(Dynamixel *servo);
 DynamixelStatus SS_dynamixel_disable_torque(Dynamixel *servo);
 DynamixelStatus SS_dynamixel_enable_led(Dynamixel *servo);
 DynamixelStatus SS_dynamixel_disable_led(Dynamixel *servo);
+DynamixelStatus SS_dynamixel_check_position(Dynamixel *servo, int32_t position);
 DynamixelStatus SS_dynamixel_set_goal_position(Dynamixel *servo, int32_t position);
 DynamixelStatus SS_dynamixel_set_velocity(Dynamixel *servo, uint32_t velocity);
 DynamixelStatus SS_dynamixel_set_velocity_limit(Dynamixel *servo, uint32_t limit);

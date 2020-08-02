@@ -21,6 +21,9 @@
 #ifdef SS_USE_SERVOS
 #include "SS_servos_com.h"
 #endif
+#ifdef SS_USE_DYNAMIXEL
+#include "SS_dynamixel_com.h"
+#endif
 
 /* ==================================================================== */
 /* ======================== Private datatypes ========================= */
@@ -64,7 +67,10 @@ static SemaphoreHandle_t sequence_mutex;
 
 static SequenceHandler sequence_handlers[] = {
 #ifdef SS_USE_SERVOS
-    { COM_SERVO_ID, SS_servos_sequence} 
+    { COM_SERVO_ID, SS_servos_sequence },
+#endif
+#ifdef SS_USE_SERVOS
+    { COM_DYNAMIXEL_ID, SS_dynamixel_sequence },
 #endif
 };
 

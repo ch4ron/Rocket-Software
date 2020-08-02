@@ -29,5 +29,7 @@ typedef enum {
 
 ComStatus SS_dynamixel_com_service(ComFrame *frame);
 ComStatus SS_dynamixel_com_request(ComFrame *frame);
+ComStatus SS_dynamixel_com_sequence_validate(ComFrame *frame);
+ComStatus SS_dynamixel_sequence(uint8_t id, uint8_t operation, int16_t value);
 
 #endif
