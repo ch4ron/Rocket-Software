@@ -102,10 +102,10 @@ static void SS_FreeRTOS_create_tasks(void) {
 #endif /* SS_USE_GRAZYNA */
 #endif /* SS_USE_COM */
 #ifdef SS_USE_FLASH
-    res = xTaskCreate(SS_flash_log_task, "Flash Log Task", 256, NULL, 6, NULL);
+    res = xTaskCreate(SS_flash_log_task, "Flash Log Task", 1024, NULL, 6, NULL);
     assert(res == pdTRUE);
 #endif /* SS_USE_FLASH */
-    res = xTaskCreate(SS_console_task, "Console Task", 256, NULL, 3, (TaskHandle_t *) NULL);
+    res = xTaskCreate(SS_console_task, "Console Task", 512, NULL, 3, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
 }
 

@@ -13,9 +13,6 @@ static uint8_t read_buffer[FLASH_PAGE_BUF_SIZE];
 static uint8_t prog_buffer[FLASH_PAGE_BUF_SIZE];
 static uint8_t lookahead_buffer[FLASH_PAGE_BUF_SIZE];
 
-// XXX.
-#include "SS_log.h"
-
 FlashStatus SS_flash_lfs_init(void)
 {
     uint32_t memory_size = SS_s25fl_get_memory_size();

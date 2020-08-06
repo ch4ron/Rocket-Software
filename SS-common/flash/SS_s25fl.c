@@ -378,6 +378,12 @@ static S25flStatus unlocked_erase_sector(uint32_t sector)
         return status;
     }
 
+    // Wait until erasing ends.
+    status = autopoll(STATUS_REG1_WIP, 0x00);
+    if (status != S25FL_STATUS_OK) {
+        return status;
+    }
+
     return S25FL_STATUS_OK;
 }
 

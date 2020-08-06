@@ -7,6 +7,7 @@
 
 #include "SS_flash_log.h"
 #include "SS_flash_lfs.h"
+#include "SS_s25fl.h"
 #include "FreeRTOS.h"
 #include "semphr.h"
 #include <string.h>
@@ -31,8 +32,14 @@ static uint8_t text_queue_storage[TEXT_QUEUE_LEN * sizeof(char)];
 static QueueHandle_t vars_queue;
 static QueueHandle_t text_queue;
 
+
 static lfs_file_t vars_file;
+static struct lfs_file_config vars_cfg;
+static uint8_t vars_buf[FLASH_PAGE_BUF_SIZE];
+
 static lfs_file_t text_file;
+static struct lfs_file_config text_cfg;
+static uint8_t text_buf[FLASH_PAGE_BUF_SIZE];
 
 FlashStatus SS_flash_log_init(void)
 {
@@ -80,8 +87,6 @@ FlashStatus SS_flash_log_start(void)
 {
     lfs_t *lfs = SS_flash_lfs_get();
 
-    static struct lfs_file_config vars_cfg;
-    static uint8_t vars_buf[FLASH_PAGE_BUF_SIZE];
     vars_cfg.buffer = vars_buf;
     vars_cfg.attr_count = 0;
 
@@ -90,8 +95,6 @@ FlashStatus SS_flash_log_start(void)
         return FLASH_STATUS_ERR;
     }
 
-    static struct lfs_file_config text_cfg;
-    static uint8_t text_buf[FLASH_PAGE_BUF_SIZE];
     text_cfg.buffer = text_buf;
     text_cfg.attr_count = 0;
 
@@ -159,17 +162,30 @@ void SS_flash_log_task(void *pvParameters)
     lfs_t *lfs = SS_flash_lfs_get();
     Var var;
     char c;
+    uint32_t sent_vars_bytes = 0, sent_text_bytes = 0;
 
     while (true) {
         if (xQueueReceive(vars_queue, &var, pdMS_TO_TICKS(1))) {
             lfs_file_write(lfs, &vars_file, &var.id, sizeof(var.id));
             lfs_file_write(lfs, &vars_file, var.data, var.size);
+
+            sent_vars_bytes += sizeof(var.id) + var.size;
+            if (sent_vars_bytes >= SS_s25fl_get_page_size()) {
+                lfs_file_close(lfs, &vars_file);
+                lfs_file_opencfg(lfs, &vars_file, "text.txt", LFS_O_WRONLY | LFS_O_CREAT | LFS_O_APPEND, &text_cfg);
+                sent_vars_bytes = 0;
+            }
         }
 
         if (xQueueReceive(text_queue, &c, pdMS_TO_TICKS(1))) {
             lfs_file_write(lfs, &text_file, &c, sizeof(c));
-            char str[2] = {c, '\0'};
-            SS_print("%s", str);
+
+            ++sent_text_bytes;
+            if (sent_text_bytes >= SS_s25fl_get_page_size()) {
+                lfs_file_close(lfs, &text_file);
+                lfs_file_opencfg(lfs, &text_file, "text.txt", LFS_O_WRONLY | LFS_O_CREAT | LFS_O_APPEND, &text_cfg);
+                sent_text_bytes = 0; 
+            }
         }
     }
 }
