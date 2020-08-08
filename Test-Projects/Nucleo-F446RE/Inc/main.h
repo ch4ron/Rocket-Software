@@ -78,8 +78,12 @@ void Error_Handler(void);
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
 #define TCK_GPIO_Port GPIOA
-#define SWO_Pin GPIO_PIN_3
-#define SWO_GPIO_Port GPIOB
+#define LD1_Pin GPIO_PIN_3
+#define LD1_GPIO_Port GPIOB
+#define LD3_Pin GPIO_PIN_4
+#define LD3_GPIO_Port GPIOB
+#define LD4_Pin GPIO_PIN_5
+#define LD4_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

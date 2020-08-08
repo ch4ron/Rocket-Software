@@ -20,7 +20,7 @@ target_include_directories(${PROJECT_NAME}.elf PRIVATE
 add_compile_definitions(SS_USE_SERVOS)
 add_compile_definitions(SS_USE_COM)
 add_compile_definitions(SS_USE_GRAZYNA)
-add_compile_definitions(SS_GRAZYNA_USE_DMA)
+# add_compile_definitions(SS_GRAZYNA_USE_DMA)
 add_compile_definitions(SS_USE_RELAYS)
 add_compile_definitions(SS_USE_SEQUENCE)
 add_compile_definitions(SS_USE_IGNITER)

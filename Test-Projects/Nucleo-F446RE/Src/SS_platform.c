@@ -10,15 +10,21 @@
 #endif
 #include "SS_igniter.h"
 #include "usart.h"
+#ifdef SS_USE_COM
 #include "SS_com.h"
+#endif
 #include "SS_console.h"
 #include "SS_log.h"
 
 /*********** LED **********/
 
+void SS_platform_set_com_led(bool r, bool g, bool b) {
+    HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, b);
+}
 
 void SS_platform_toggle_loop_led() {
-    HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+    /* HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin); */
+    HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
 }
 
 /********** SERVOS *********/
@@ -52,13 +58,18 @@ static void SS_platform_relays_init() {
 /********** MAIN INIT *********/
 
 void SS_platform_init() {
-    SS_log_init(&huart5);
-    SS_console_init(&huart5);
     SS_platform_servos_init();
     SS_platform_relays_init();
+#ifdef SS_USE_COM
     SS_com_init(COM_KROMEK_ID);
+#endif
 #ifdef SS_USE_GRAZYNA
     SS_grazyna_init(&huart2);
+    SS_log_init(&huart1);
+    SS_console_init(&huart1);
+#else
+    SS_log_init(&huart2);
+    SS_console_init(&huart2);
 #endif
     SS_igniter_init(RELAY2_GPIO_Port, RELAY2_Pin);
 }
