@@ -33,6 +33,7 @@ TEST_GROUP_RUNNER(s25fl)
 	RUN_TEST_CASE(s25fl, write_read_bytes_dma_wait);
 	RUN_TEST_CASE(s25fl, write_read_page);
 	RUN_TEST_CASE(s25fl, write_read_page_dma);
+    // TODO: Add `write_read_page_dma_wait` test case.
 }
 
 TEST_SETUP(s25fl)
@@ -47,7 +48,7 @@ TEST(s25fl, read_id)
 {
     uint16_t id;
     TEST_ASSERT_EQUAL_INT(S25FL_STATUS_OK, SS_s25fl_read_id(&id));
-    TEST_ASSERT_EQUAL_HEX16(0x0160, id);
+    TEST_ASSERT_EQUAL_HEX16(0x0102, id);
 }
 
 /*TEST(s25fl, read_rems_id)

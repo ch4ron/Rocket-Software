@@ -10,6 +10,7 @@
 #include "semphr.h"
 
 #define TIMEOUT_ms pdMS_TO_TICKS(300)
+#define ERASE_TIMEOUT_ms pdMS_TO_TICKS(3000)
 #define ERASE_ALL_TIMEOUT_ms pdMS_TO_TICKS(500000)
 
 typedef enum
@@ -172,7 +173,7 @@ static S25flStatus unlock_mutex(S25flStatus status);
 // Unprotected by semaphore.
 static S25flStatus send_command(QSPI_CommandTypeDef cmd);
 static S25flStatus enable_write(void);
-static S25flStatus autopoll(uint8_t reg1_mask, uint8_t reg1_match);
+static S25flStatus autopoll(uint8_t reg1_mask, uint8_t reg1_match, uint32_t timeout);
 
 // Protected by semaphore.
 
@@ -379,7 +380,9 @@ static S25flStatus unlocked_erase_sector(uint32_t sector)
     }
 
     // Wait until erasing ends.
-    status = autopoll(STATUS_REG1_WIP, 0x00);
+    // It has to be done here instead of the next function,
+    // because other routines use different timeouts for autopolling.
+    status = autopoll(STATUS_REG1_WIP, 0x00, ERASE_TIMEOUT_ms);
     if (status != S25FL_STATUS_OK) {
         return status;
     }
@@ -619,7 +622,7 @@ static S25flStatus unlock_mutex(S25flStatus status)
 
 static S25flStatus send_command(QSPI_CommandTypeDef cmd)
 {
-    S25flStatus status = autopoll(STATUS_REG1_WIP, 0x00);
+    S25flStatus status = autopoll(STATUS_REG1_WIP, 0x00, TIMEOUT_ms);
     if (status != S25FL_STATUS_OK) {
         return status;
     }
@@ -639,10 +642,10 @@ static S25flStatus enable_write(void)
         return status;
     }
 
-    return autopoll(STATUS_REG1_WEL | STATUS_REG1_WIP, STATUS_REG1_WEL);
+    return autopoll(STATUS_REG1_WEL | STATUS_REG1_WIP, STATUS_REG1_WEL, TIMEOUT_ms);
 }
 
-static S25flStatus autopoll(uint8_t reg1_mask, uint8_t reg1_match)
+static S25flStatus autopoll(uint8_t reg1_mask, uint8_t reg1_match, uint32_t timeout)
 {
     QSPI_CommandTypeDef cmd = default_cmd;
     cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
@@ -658,7 +661,7 @@ static S25flStatus autopoll(uint8_t reg1_mask, uint8_t reg1_match)
     config.Interval = 0x10;
     config.AutomaticStop = QSPI_AUTOMATIC_STOP_ENABLE;
 
-    HAL_StatusTypeDef hal_status = HAL_QSPI_AutoPolling(&hqspi, &cmd, &config, TIMEOUT_ms);
+    HAL_StatusTypeDef hal_status = HAL_QSPI_AutoPolling(&hqspi, &cmd, &config, timeout);
     if (hal_status != HAL_OK) {
         return translate_hal_status(hal_status);
     }
