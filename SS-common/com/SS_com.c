@@ -97,7 +97,11 @@ void __attribute__((weak)) SS_com_transmit(ComFrame *frame) {
 #endif
     }
 #else
+#ifdef SS_USE_CAN
     SS_can_transmit(frame);
+#else
+#error You can't use com module without grazyna or can
+#endif
 #endif
 }
 
