@@ -407,6 +407,16 @@ S25flStatus SS_s25fl_write_bytes_dma(uint32_t addr, const uint8_t *data, uint32_
     return cmd_write_dma(cmd, data);
 }
 
+S25flStatus SS_s25fl_write_bytes_dma_wait(uint32_t addr, const uint8_t *data, uint32_t size)
+{
+    S25flStatus status = SS_s25fl_write_bytes_dma(addr, data, size);
+    if (status != S25FL_STATUS_OK) {
+        return status;
+    }
+
+    return SS_s25fl_wait_until_ready();
+}
+
 S25flStatus SS_s25fl_write_page(uint32_t page, uint8_t *data)
 {
     return SS_s25fl_write_bytes(page*page_size, data, page_size);
@@ -415,6 +425,11 @@ S25flStatus SS_s25fl_write_page(uint32_t page, uint8_t *data)
 S25flStatus SS_s25fl_write_page_dma(uint32_t page, uint8_t *data)
 {
     return SS_s25fl_write_bytes_dma(page*page_size, data, page_size);
+}
+
+S25flStatus SS_s25fl_write_page_dma_wait(uint32_t page, uint8_t *data)
+{
+    return SS_s25fl_write_bytes_dma_wait(page*page_size, data, page_size);
 }
 
 S25flStatus SS_s25fl_read_bytes(uint32_t addr, uint8_t *data, uint32_t size)
@@ -431,8 +446,7 @@ S25flStatus SS_s25fl_read_bytes_dma(uint32_t addr, uint8_t *data, uint32_t size)
 
 S25flStatus SS_s25fl_read_bytes_dma_wait(uint32_t addr, uint8_t *data, uint32_t size)
 {
-    QSPI_CommandTypeDef cmd = create_read_cmd(addr, size);
-    S25flStatus status = cmd_read_dma(cmd, data);
+    S25flStatus status = SS_s25fl_read_bytes_dma(addr, data, size);
     if (status != S25FL_STATUS_OK) {
         return status;
     }

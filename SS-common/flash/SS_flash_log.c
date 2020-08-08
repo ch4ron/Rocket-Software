@@ -32,7 +32,6 @@ static uint8_t text_queue_storage[TEXT_QUEUE_LEN * sizeof(char)];
 static QueueHandle_t vars_queue;
 static QueueHandle_t text_queue;
 
-
 static lfs_file_t vars_file;
 static struct lfs_file_config vars_cfg;
 static uint8_t vars_buf[FLASH_PAGE_BUF_SIZE];
@@ -109,16 +108,13 @@ FlashStatus SS_flash_log_start(void)
 FlashStatus SS_flash_log_stop(void)
 {
     lfs_t *lfs = SS_flash_lfs_get();
-    Var var;
-    char c;
 
-    while (xQueueReceive(vars_queue, &var, pdMS_TO_TICKS(1)) == pdTRUE) {
-        lfs_file_write(lfs, &vars_file, &var.id, sizeof(var.id));
-        lfs_file_write(lfs, &vars_file, var.data, var.size);
+    while (uxQueueSpacesAvailable(text_queue) < TEXT_QUEUE_LEN) {
+        vTaskDelay(pdMS_TO_TICKS(1));
     }
 
-    while (xQueueReceive(text_queue, &c, pdMS_TO_TICKS(1)) == pdTRUE) {
-        lfs_file_write(lfs, &text_file, &c, sizeof(c));
+    while (uxQueueSpacesAvailable(vars_queue) < VARS_QUEUE_LEN) {
+        vTaskDelay(pdMS_TO_TICKS(1));
     }
 
     if (lfs_file_close(lfs, &vars_file)) {

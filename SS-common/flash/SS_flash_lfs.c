@@ -75,8 +75,7 @@ static int read(const struct lfs_config *c, lfs_block_t block, lfs_off_t off, vo
 static int prog(const struct lfs_config *c, lfs_block_t block, lfs_off_t off, const void *buffer, lfs_size_t size)
 {
     SS_s25fl_write_bytes(block*SS_s25fl_get_sector_size()+off, buffer, size);
-    //SS_s25fl_write_bytes_dma(block*SS_s25fl_get_sector_size()+off, buffer, size);
-    //SS_s25fl_wait_until_ready();
+    //SS_s25fl_write_bytes_dma_wait(block*SS_s25fl_get_sector_size()+off, buffer, size);
     return 0;
 }
 
