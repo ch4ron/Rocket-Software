@@ -84,6 +84,8 @@ FlashStatus SS_flash_log_erase(void)
 
 FlashStatus SS_flash_log_start(void)
 {
+    SS_flash_lfs_start();
+
     lfs_t *lfs = SS_flash_lfs_get();
 
     vars_cfg.buffer = vars_buf;

@@ -120,10 +120,10 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 #ifdef HAL_QSPI_MODULE_ENABLED
 void HAL_QSPI_CmdCpltCallback(QSPI_HandleTypeDef *hqspi) {
 #ifdef SS_USE_FLASH
-    bool higher_priority_task_woken = false;
+    /*bool higher_priority_task_woken = false;
 
     SS_s25fl_qspi_cmdcplt_handler(hqspi, &higher_priority_task_woken);
-    portYIELD_FROM_ISR(higher_priority_task_woken);
+    portYIELD_FROM_ISR(higher_priority_task_woken);*/
 #endif
 }
 
