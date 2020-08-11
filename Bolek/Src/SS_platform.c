@@ -111,7 +111,7 @@ void SS_platform_init() {
     SS_log_init(&huart2);
     SS_console_init(&huart2);
     SS_platform_init_MPU();
-    SS_platform_MS56_init()
+    //SS_platform_MS56_init()
 
 
 #ifdef SS_USE_FLASH

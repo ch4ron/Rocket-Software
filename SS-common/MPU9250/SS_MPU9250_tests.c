@@ -345,23 +345,23 @@ TEST(MPU, get_gyro_data) {
     TEST_ASSERT_INT_WITHIN(200, 0, mpu9250->gyro_raw_x);
 }
 TEST(MPU, get_data_DMA) {
-    /* int16_t data_container; */
+    int16_t data_container;
 
-    /* SS_MPU_set_accel_scale(mpu9250, MPU_ACCEL_SCALE_2); */
-    /* HAL_NVIC_EnableIRQ(MPU1_INT_EXTI_IRQn); */
-    /* HAL_NVIC_EnableIRQ(MPU2_INT_EXTI_IRQn); */
+     SS_MPU_set_accel_scale(mpu9250, MPU_ACCEL_SCALE_2);
+     HAL_NVIC_EnableIRQ(MPU_INT_EXTI_IRQn);
 
-    /* data_container = mpu9250->accel_raw_z; */
-    /* function_response = SS_MPU_get_data_DMA(mpu9250); */
-    /* TEST_ASSERT_EQUAL(MPU_OK, function_response); */
-    /* while(mpu9250->accel_raw_z == data_container) */
-    /*     ;                                                       //Check if DMA is maned by Interrupts */
-    /* TEST_ASSERT_INT_WITHIN(1000, 16000, mpu9250->accel_raw_z);  // check if Accel in static position measure properly */
-    /* TEST_ASSERT_INT_WITHIN(1000, 0, mpu9250->accel_raw_y); */
-    /* TEST_ASSERT_INT_WITHIN(1000, 0, mpu9250->accel_raw_x); */
 
-    /* HAL_NVIC_DisableIRQ(MPU1_INT_EXTI_IRQn); */
-    /* HAL_NVIC_DisableIRQ(MPU2_INT_EXTI_IRQn); */
+     data_container = mpu9250->accel_raw_z;
+     function_response = SS_MPU_get_data_DMA(mpu9250);
+     TEST_ASSERT_EQUAL(MPU_OK, function_response);
+     while(mpu9250->accel_raw_z == data_container)
+         ;                                                       //Check if DMA is maned by Interrupts */
+     TEST_ASSERT_INT_WITHIN(1000, 16000, mpu9250->accel_raw_z);  // check if Accel in static position measure properly
+     TEST_ASSERT_INT_WITHIN(1000, 0, mpu9250->accel_raw_y);
+     TEST_ASSERT_INT_WITHIN(1000, 0, mpu9250->accel_raw_x);
+
+     HAL_NVIC_DisableIRQ(MPU_INT_EXTI_IRQn);
+
 }
 
 TEST(MPU, MPU_set_clk) {
