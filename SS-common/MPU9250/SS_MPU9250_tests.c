@@ -30,8 +30,7 @@ TEST_GROUP_RUNNER(MPU) {
             continue;
         }
         SS_MPU_calibration_read();
-        /* RUN_TEST_CASE(MPU, init); */
-
+        /* RUN_TEST_CASE(MPU, init); */ // There is no reason to use it since test reinit exists
         RUN_TEST_CASE(MPU, set_accel_scale);
         RUN_TEST_CASE(MPU, get_accel_data);
         RUN_TEST_CASE(MPU, get_gyro_data);
@@ -51,12 +50,12 @@ TEST_GROUP_RUNNER(MPU) {
         RUN_TEST_CASE(MPU, MPU_self_test);
         RUN_TEST_CASE(MPU, math_scaled_gyro);
         RUN_TEST_CASE(MPU, math_scaled_accel);
-        /* RUN_TEST_CASE(MPU, get_fifo_counter); */
-        /* RUN_TEST_CASE(MPU, get_fifo_data); */
-        /* RUN_TEST_CASE(MPU, set_fifo_data); */
+        /*RUN_TEST_CASE(MPU, get_fifo_counter);*/ // There did not exist any of those functions
+        /*RUN_TEST_CASE(MPU, get_fifo_data);   */
+        /*RUN_TEST_CASE(MPU, set_fifo_data);   */
         RUN_TEST_CASE(MPU, INT_enable);
         RUN_TEST_CASE(MPU, sleep);
-        /* RUN_TEST_CASE(MPU, calibrate); */
+        RUN_TEST_CASE(MPU, calibrate);
         RUN_TEST_CASE(MPU, set_calibration);
         RUN_TEST_CASE(MPU, accel_write_calibration);
         RUN_TEST_CASE(MPU, gyro_write_calibration);
@@ -414,15 +413,15 @@ TEST(MPU, math_scaled_accel) {
     TEST_ASSERT_EQUAL(MPU_OK, function_response);
 }
 /* TEST(MPU, get_fifo_counter) { */
-/*     function_response = SS_MPU_get_fifo_counter(mpu9250); */
+/*   function_response = SS_MPU_get_fifo_counter(mpu9250); */
 /*     TEST_ASSERT_EQUAL(MPU_OK, function_response); */
 /* } */
 /* TEST(MPU, get_fifo_data) { */
-/*     function_response = SS_MPU_get_fifo_data(mpu9250); */
+   /* function_response = SS_MPU_get_fifo_data(mpu9250); */
 /*     TEST_ASSERT_EQUAL(MPU_OK, function_response); */
 /* } */
 /* TEST(MPU, set_fifo_data) { */
-/*     function_response = SS_MPU_set_fifo_data(mpu9250); */
+   /*function_response = SS_MPU_set_fifo_data(mpu9250);
 /*     TEST_ASSERT_EQUAL(MPU_OK, function_response); */
 /* } */
 
