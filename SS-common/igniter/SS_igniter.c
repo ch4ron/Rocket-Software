@@ -11,7 +11,6 @@
 
 
 #include "SS_platform.h"
-#include "SS_supply.h"
 #include "SS_igniter.h"
 #include "FreeRTOS.h"
 #include "timers.h"
