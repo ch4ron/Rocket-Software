@@ -47,7 +47,7 @@ TEST(flash_log, log_vars)
     static lfs_file_t vars_file;
     static struct lfs_file_config vars_cfg;
     static uint8_t vars_buf[FLASH_PAGE_BUF_SIZE];
-    open_file(&vars_file, &vars_cfg, vars_buf, "vars.bin", LFS_O_RDONLY);
+    TEST_ASSERT_EQUAL_INT(LFS_ERR_OK, open_file(&vars_file, &vars_cfg, vars_buf, "vars.bin", LFS_O_RDONLY));
 
     lfs_t *lfs = SS_flash_lfs_get();
     lfs_soff_t prev_size = lfs_file_size(lfs, &vars_file);
@@ -67,7 +67,7 @@ TEST(flash_log, log_vars)
     TEST_ASSERT_EQUAL_INT(FLASH_STATUS_OK, SS_flash_log_var(id3, data3, sizeof(data3)));
     TEST_ASSERT_EQUAL_INT(FLASH_STATUS_OK, SS_flash_log_stop());
 
-    open_file(&vars_file, &vars_cfg, vars_buf, "vars.bin", LFS_O_RDONLY);
+    TEST_ASSERT_EQUAL_INT(LFS_ERR_OK, open_file(&vars_file, &vars_cfg, vars_buf, "vars.bin", LFS_O_RDONLY));
 
     TEST_ASSERT_EQUAL_INT(1, lfs_file_read(lfs, &vars_file, data, 1));
     TEST_ASSERT_EQUAL_INT(0, memcmp(data, &id1, 1));
@@ -135,7 +135,7 @@ TEST(flash_log, reset_log_vars)
     static lfs_file_t vars_file;
     static struct lfs_file_config vars_cfg;
     static uint8_t vars_buf[FLASH_PAGE_BUF_SIZE];
-    open_file(&vars_file, &vars_cfg, vars_buf, "vars.bin", LFS_O_RDONLY);
+    TEST_ASSERT_EQUAL_INT(LFS_ERR_OK, open_file(&vars_file, &vars_cfg, vars_buf, "vars.bin", LFS_O_RDONLY));
 
     lfs_t *lfs = SS_flash_lfs_get();
     lfs_soff_t prev_size = lfs_file_size(lfs, &vars_file);
@@ -166,7 +166,7 @@ TEST(flash_log, reset_log_vars)
     // Simulate reset.
     TEST_ASSERT_EQUAL_INT(FLASH_STATUS_OK, SS_flash_lfs_init());
 
-    open_file(&vars_file, &vars_cfg, vars_buf, "vars.bin", LFS_O_RDONLY);
+    TEST_ASSERT_EQUAL_INT(LFS_ERR_OK, open_file(&vars_file, &vars_cfg, vars_buf, "vars.bin", LFS_O_RDONLY));
 
     TEST_ASSERT_EQUAL_INT(1, lfs_file_read(lfs, &vars_file, data, 1));
     TEST_ASSERT_EQUAL_INT(0, memcmp(data, &id1, 1));
@@ -202,7 +202,7 @@ TEST(flash_log, reset_log_text)
     static lfs_file_t text_file;
     static struct lfs_file_config text_cfg;
     static uint8_t text_buf[FLASH_PAGE_BUF_SIZE];
-    open_file(&text_file, &text_cfg, text_buf, "text.txt", LFS_O_RDONLY);
+    TEST_ASSERT_EQUAL_INT(LFS_ERR_OK, open_file(&text_file, &text_cfg, text_buf, "text.txt", LFS_O_RDONLY));
 
     lfs_t *lfs = SS_flash_lfs_get();
     lfs_soff_t prev_size = lfs_file_size(lfs, &text_file);
@@ -226,7 +226,7 @@ TEST(flash_log, reset_log_text)
     // Simulate reset.
     TEST_ASSERT_EQUAL_INT(FLASH_STATUS_OK, SS_flash_lfs_init());
     
-    open_file(&text_file, &text_cfg, text_buf, "text.txt", LFS_O_RDONLY);
+    TEST_ASSERT_EQUAL_INT(LFS_ERR_OK, open_file(&text_file, &text_cfg, text_buf, "text.txt", LFS_O_RDONLY));
 
     TEST_ASSERT_GREATER_OR_EQUAL(0, lfs_file_seek(lfs, &text_file, prev_size, LFS_SEEK_SET));
 
