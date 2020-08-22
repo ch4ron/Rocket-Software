@@ -33,6 +33,8 @@ TEST_GROUP_RUNNER(s25fl)
 	RUN_TEST_CASE(s25fl, write_read_bytes_dma_wait);
 	RUN_TEST_CASE(s25fl, write_read_page);
 	RUN_TEST_CASE(s25fl, write_read_page_dma);
+	RUN_TEST_CASE(s25fl, write_read_page_dma_wait);
+    // TODO: Add `write_read_page_dma_wait` test case.
 }
 
 TEST_SETUP(s25fl)
@@ -47,7 +49,7 @@ TEST(s25fl, read_id)
 {
     uint16_t id;
     TEST_ASSERT_EQUAL_INT(S25FL_STATUS_OK, SS_s25fl_read_id(&id));
-    TEST_ASSERT_EQUAL_HEX16(0x0160, id);
+    TEST_ASSERT_EQUAL_HEX16(0x0102, id);
 }
 
 /*TEST(s25fl, read_rems_id)
@@ -233,6 +235,26 @@ TEST(s25fl, write_read_page_dma)
 	TEST_ASSERT_EQUAL_INT(S25FL_STATUS_OK, SS_s25fl_read_page_dma(9, read_data));
 	TEST_ASSERT_EQUAL_INT(S25FL_STATUS_BUSY, SS_s25fl_get_status());
     TEST_ASSERT_EQUAL_INT(S25FL_STATUS_OK, SS_s25fl_wait_until_ready());
+    TEST_ASSERT_EQUAL_INT(S25FL_STATUS_OK, SS_s25fl_get_status());
+
+	for (uint32_t i = 0; i < page_size; ++i) {
+		TEST_ASSERT_EQUAL_HEX8(write_data[i], read_data[i]);
+	}
+}
+
+TEST(s25fl, write_read_page_dma_wait)
+{
+	static uint8_t write_data[FLASH_PAGE_BUF_SIZE];
+	for (uint32_t i = 0; i < page_size; ++i) {
+		write_data[i] = i;
+	}
+
+	static uint8_t read_data[FLASH_PAGE_BUF_SIZE];
+
+	TEST_ASSERT_EQUAL_INT(S25FL_STATUS_OK, SS_s25fl_write_page_dma_wait(9, write_data));
+	TEST_ASSERT_EQUAL_INT(S25FL_STATUS_OK, SS_s25fl_get_status());
+
+	TEST_ASSERT_EQUAL_INT(S25FL_STATUS_OK, SS_s25fl_read_page_dma_wait(9, read_data));
     TEST_ASSERT_EQUAL_INT(S25FL_STATUS_OK, SS_s25fl_get_status());
 
 	for (uint32_t i = 0; i < page_size; ++i) {

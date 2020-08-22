@@ -81,7 +81,7 @@ static void vLEDFlashTask(void *pvParameters) {
 static void SS_FreeRTOS_create_tasks(void) {
     BaseType_t res;
 #if defined(SS_RUN_TESTS) && !defined(SS_RUN_TESTS_FROM_CONSOLE)
-    res = xTaskCreate(SS_run_tests_task, "Tests task", 512, NULL, 4, (TaskHandle_t *) NULL);
+    res = xTaskCreate(SS_run_tests_task, "Tests Task", 512, NULL, 4, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
 #endif /* defined(SS_RUN_TESTS) && !defined(SS_RUN_TESTS_FROM_CONSOLE) */
     res = xTaskCreate(vLEDFlashTask, "LED Task", 64, NULL, 2, (TaskHandle_t *) NULL);
@@ -100,12 +100,12 @@ static void SS_FreeRTOS_create_tasks(void) {
 #ifdef SS_USE_GRAZYNA
     res = xTaskCreate(SS_grazyna_tx_handler_task, "Grazyna Tx Task", 64, NULL, 5, NULL);
     assert(res == pdTRUE);
-    res = xTaskCreate(SS_com_feed_task, "Feed task", 256, NULL, 5, (TaskHandle_t *) &com_feed_task);
+    res = xTaskCreate(SS_com_feed_task, "Feed Task", 256, NULL, 5, (TaskHandle_t *) &com_feed_task);
     assert(res == pdTRUE);
 #endif /* SS_USE_GRAZYNA */
 #endif /* SS_USE_COM */
 #ifdef SS_USE_FLASH
-    res = xTaskCreate(SS_flash_log_task, "Flash Log Task", 256, NULL, 6, NULL);
+    res = xTaskCreate(SS_flash_log_task, "Flash Log Task", 1024, NULL, 4, NULL);
     assert(res == pdTRUE);
 #endif /* SS_USE_FLASH */
 #ifdef SS_USE_SEQUENCE

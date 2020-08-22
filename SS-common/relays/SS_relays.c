@@ -11,10 +11,11 @@
 
 #include "SS_relays.h"
 
-#include "SS_com.h"
 #include "SS_log.h"
 #include "SS_platform.h"
+#ifdef SS_USE_SUPPLY
 #include "SS_supply.h"
+#endif
 
 /* ==================================================================== */
 /* =================== Private function prototypes ==================== */
@@ -40,7 +41,9 @@ void SS_relays_init(Relay *relay_array, uint8_t count) {
 }
 
 void SS_relay_open(Relay *relay) {
+#ifdef SS_USE_SUPLY
     SS_enable_supply(&relay_supply);
+#endif
     HAL_GPIO_WritePin(relay->GPIO_Port, relay->Pin, GPIO_PIN_SET);
     relay->state = 1;
 }
