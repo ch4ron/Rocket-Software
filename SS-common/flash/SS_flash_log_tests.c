@@ -22,11 +22,11 @@ TEST_GROUP(flash_log);
 TEST_GROUP_RUNNER(flash_log)
 {
     page_size = SS_s25fl_get_page_size();
-    SS_flash_lfs_format_and_remount();
+    assert(SS_flash_lfs_format_and_remount() != FLASH_STATUS_ERR);
 
     // Create the log files before starting tests.
-    SS_flash_log_start();
-    SS_flash_log_stop();
+    assert(SS_flash_log_start() != FLASH_STATUS_ERR);
+    assert(SS_flash_log_stop() != FLASH_STATUS_ERR);
 
     RUN_TEST_CASE(flash_log, log_vars);
     RUN_TEST_CASE(flash_log, log_text);

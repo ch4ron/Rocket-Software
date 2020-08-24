@@ -23,4 +23,11 @@ FlashStatus SS_flash_log_text(const char *str);
 
 void SS_flash_log_task(void *pvParameters);
 
-#endif // SS_FLASH_LOG_H
+#ifdef DEBUG
+#include "FreeRTOS.h"
+#include "semphr.h"
+
+SemaphoreHandle_t SS_flash_debug_get_mutex(void);
+#endif /* DEBUG */
+
+#endif /* SS_FLASH_LOG_H */

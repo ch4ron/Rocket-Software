@@ -8,9 +8,9 @@
 #include "SS_flash_log.h"
 #include "SS_flash_lfs.h"
 #include "SS_s25fl.h"
+#include "SS_usb.h"
 #include "FreeRTOS.h"
 #include "semphr.h"
-#include <string.h>
 
 #define VARS_QUEUE_LEN 1024
 #define TEXT_QUEUE_LEN 1024
@@ -84,23 +84,28 @@ FlashStatus SS_flash_log_erase(void)
 
 FlashStatus SS_flash_log_start(void)
 {
-    SS_flash_lfs_start();
+    UsbStatus usb_status = SS_usb_stop();
+    if (usb_status != USB_STATUS_OK && usb_status != USB_STATUS_DISABLED) {
+        return FLASH_STATUS_ERR;
+    }
+
+    if (SS_flash_lfs_start() != FLASH_STATUS_OK) {
+        return FLASH_STATUS_ERR;
+    }
 
     lfs_t *lfs = SS_flash_lfs_get();
 
     vars_cfg.buffer = vars_buf;
     vars_cfg.attr_count = 0;
 
-    int err = lfs_file_opencfg(lfs, &vars_file, "vars.bin", LFS_O_WRONLY | LFS_O_CREAT | LFS_O_APPEND, &vars_cfg);
-    if (err) {
+    if (lfs_file_opencfg(lfs, &vars_file, "vars.bin", LFS_O_WRONLY | LFS_O_CREAT | LFS_O_APPEND, &vars_cfg)) {
         return FLASH_STATUS_ERR;
     }
 
     text_cfg.buffer = text_buf;
     text_cfg.attr_count = 0;
 
-    err = lfs_file_opencfg(lfs, &text_file, "text.txt", LFS_O_WRONLY | LFS_O_CREAT | LFS_O_APPEND, &text_cfg);
-    if (err) {
+    if (lfs_file_opencfg(lfs, &text_file, "text.txt", LFS_O_WRONLY | LFS_O_CREAT | LFS_O_APPEND, &text_cfg)) {
         return FLASH_STATUS_ERR;
     }
     
@@ -124,6 +129,10 @@ FlashStatus SS_flash_log_stop(void)
     }
 
     if (lfs_file_close(lfs, &text_file)) {
+        return FLASH_STATUS_ERR;
+    }
+
+    if (SS_usb_start() != USB_STATUS_OK) {
         return FLASH_STATUS_ERR;
     }
 

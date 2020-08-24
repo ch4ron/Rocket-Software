@@ -22,6 +22,9 @@
 #ifdef SS_USE_FLASH
 #include "SS_flash_log.h"
 #endif /* SS_USE_FLASH */
+#ifdef SS_USE_USB
+#include "SS_usb.h"
+#endif /* SS_USE_FLASH */
 #ifdef SS_RUN_TESTS
 #include "SS_tests.h"
 #endif /* SS_RUN_TESTS */

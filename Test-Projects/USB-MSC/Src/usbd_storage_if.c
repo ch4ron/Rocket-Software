@@ -24,7 +24,6 @@
 
 /* USER CODE BEGIN INCLUDE */
 #include "SS_usb.h"
-#include "SS_flash.h"
 /* USER CODE END INCLUDE */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -236,9 +235,7 @@ int8_t STORAGE_Read_FS(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t bl
 {
   /* USER CODE BEGIN 6 */
 	UNUSED(lun);
-//#ifdef DEBUG
-	//fprintf(stderr, "R %d %d\r\n", blk_addr, blk_len);
-//#endif
+
 	if (!SS_usb_get_is_enabled()) {
 		return USBD_FAIL;
 	}
@@ -247,6 +244,13 @@ int8_t STORAGE_Read_FS(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t bl
 		//fprintf(stderr, "Reading %ld pages from 0x%lX failed.\r\n", blk_len, blk_addr);
 		return USBD_FAIL;
 	}*/
+
+    // Placeholder.
+    Fatmap *fm = SS_usb_get_fatmap();
+
+    if (SS_fatmap_read(fm, blk_addr/PAGES_PER_BLOCK, 0, buf, blk_len*FATMAP_PAGE_SIZE) != FATMAP_STATUS_OK) {
+        return USBD_FAIL;
+    }
 
 	return USBD_OK;
   /* USER CODE END 6 */
@@ -264,9 +268,6 @@ int8_t STORAGE_Write_FS(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t b
 
 	// XXX: Fail if USB not enabled?
 
-//#ifdef DEBUG
-	//fprintf(stderr, "W %d %d\r\n", blk_addr, blk_len);
-//#endif
 	/*FlashCtrlStatus status = SS_flash_caching_read_pages(blk_addr/PAGES_PER_BLOCK, blk_len*PAGES_PER_BLOCK, buf);
 	if (status != FLASH_CTRL_STATUS_OK && status != FLASH_CTRL_STATUS_WRITE_PROTECTED) {
 		fprintf(stderr, "Writing %ld pages from 0x%lX failed.\r\n", blk_len, blk_addr);
