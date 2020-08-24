@@ -164,6 +164,7 @@ TEST(flash_log, reset_log_vars)
     vTaskDelay(pdMS_TO_TICKS(2000));
 
     // Simulate reset.
+    // Useless at the moment.
     TEST_ASSERT_EQUAL_INT(FLASH_STATUS_OK, SS_flash_lfs_init());
 
     TEST_ASSERT_EQUAL_INT(LFS_ERR_OK, open_file(&vars_file, &vars_cfg, vars_buf, "vars.bin", LFS_O_RDONLY));

@@ -179,7 +179,7 @@ void SS_flash_log_task(void *pvParameters)
             sent_vars_bytes += sizeof(var.id) + var.size;
             if (sent_vars_bytes >= SS_s25fl_get_page_size()) {
                 lfs_file_close(lfs, &vars_file);
-                lfs_file_opencfg(lfs, &vars_file, "text.txt", LFS_O_WRONLY | LFS_O_CREAT | LFS_O_APPEND, &text_cfg);
+                lfs_file_opencfg(lfs, &vars_file, "vars.bin", LFS_O_WRONLY | LFS_O_CREAT | LFS_O_APPEND, &text_cfg);
                 sent_vars_bytes = 0;
             }
         }
