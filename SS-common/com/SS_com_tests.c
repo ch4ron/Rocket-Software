@@ -5,7 +5,6 @@
  *      Author: maciek
  */
 
-#include <fifo/SS_fifo.h>
 #include "unity_fixture.h"
 #include "SS_com.h"
 #include "string.h"

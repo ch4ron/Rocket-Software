@@ -7,6 +7,7 @@
 
 #include "MockSS_com.h"
 #include "MockSS_grazyna_hal.h"
+#include "Mockqueue.h"
 #include "SS_grazyna.c"
 #include "stdio.h"
 #include "string.h"
@@ -37,10 +38,11 @@ TEST_TEAR_DOWN(grazyna) {}
 /* ==================================================================== */
 
 TEST(grazyna, init) {
+    xQueueGenericCreate_IgnoreAndReturn((QueueHandle_t) 200);
+    xQueueGenericSend_IgnoreAndReturn(pdTRUE);
     SS_grazyna_receive_hal_Expect((uint8_t *) &grazyna.rx_buff, 1);
     SS_grazyna_init_hal_Expect(NULL);
     QueueHandle_t queue = {0};
-    SS_com_add_sender_ExpectAndReturn(queue);
     SS_grazyna_init(NULL);
     TEST_ASSERT_TRUE(grazyna.enabled);
 }

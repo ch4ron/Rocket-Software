@@ -6,7 +6,6 @@
  */
 
 #include "SS_dynamixel.h"
-#include "SS_fifo.h"
 #include "SS_platform.h"
 #include "SS_supply.h"
 #include "unity_fixture.h"
@@ -16,7 +15,7 @@ static DynamixelStatus res;
 TEST_GROUP(dynamixel);
 
 TEST_GROUP_RUNNER(dynamixel) {
-    SS_enable_supply(&kozackie_servo_supply);
+    SS_enable_supply(dynamixel.supply);
     vTaskDelay(1000);
     RUN_TEST_CASE(dynamixel, open);
     RUN_TEST_CASE(dynamixel, close);
@@ -59,7 +58,9 @@ TEST_GROUP_RUNNER(dynamixel) {
 }
 
 TEST_SETUP(dynamixel) {
-    SS_enable_supply(&kozackie_servo_supply);
+    if(dynamixel.supply != NULL) {
+        SS_enable_supply(dynamixel.supply);
+    }
 }
 
 TEST_TEAR_DOWN(dynamixel) {

@@ -98,6 +98,15 @@ DynamixelStatus SS_dynamixel_disable_led(Dynamixel *servo) {
     return SS_dynamixel_write(servo, DYNAMIXEL_LED, &buf, 1);
 }
 
+DynamixelStatus SS_dynamixel_check_position(Dynamixel *servo, int32_t position) {
+    int32_t max_pos = (servo->opened_position > servo->closed_position) ? servo->opened_position : servo->closed_position;
+    int32_t min_pos = (servo->opened_position < servo->closed_position) ? servo->opened_position : servo->closed_position;
+    if(position > max_pos || position < min_pos) {
+        return DYNAMIXEL_RESULT_FAIL;
+    }
+    return DYNAMIXEL_RESULT_OK;
+}
+
 DynamixelStatus SS_dynamixel_set_goal_position(Dynamixel *servo, int32_t position) {
     SS_dynamixel_enable_torque(servo);
     int32_t max_pos = (servo->opened_position > servo->closed_position) ? servo->opened_position : servo->closed_position;
@@ -197,7 +206,11 @@ DynamixelStatus SS_dynamixel_ping(Dynamixel *servo) {
 static void SS_dynamixel_packet_to_buf(InstructionPacket *packet, uint8_t *params, DynamixelMessage *buff) {
     memcpy(buff->packet, packet, sizeof(InstructionPacket));
     uint16_t params_size = packet->length - 3;
-    memcpy(buff->packet + sizeof(InstructionPacket), params, params_size);
+    if(params != NULL) {
+        memcpy(buff->packet + sizeof(InstructionPacket), params, params_size);
+    } else {
+        memset(buff->packet + sizeof(InstructionPacket), 0, params_size);
+    }
     uint16_t crc = SS_dynamixel_calculate_crc(0, (uint8_t *) buff->packet, sizeof(InstructionPacket) + params_size);
     memcpy(buff->packet + sizeof(InstructionPacket) + params_size, &crc, 2);
     buff->packet_size = sizeof(InstructionPacket) + params_size + 2;

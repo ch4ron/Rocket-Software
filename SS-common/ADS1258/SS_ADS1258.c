@@ -102,7 +102,7 @@ void SS_ADS1258_adcStartupRoutine(uint8_t muxdif, uint8_t muxsg0, uint8_t muxsg1
     /* PWDN pin connected to vcc */
 
     /* (OPTIONAL) Start ADC conversions with HW pin control  */
-    HAL_GPIO_WritePin(ADS_START_GPIO_Port, ADS_START_Pin, SET);
+    HAL_GPIO_WritePin(ADS_START_GPIO_Port, ADS_START_Pin, GPIO_PIN_SET);
 
     /* (REQUIRED) tWAKE delay */
     HAL_Delay(5);
@@ -278,7 +278,7 @@ void SS_ADS1258_startConversions(void) {
     // PWDN connected to VCC
 
     /* Begin continuous conversions */
-    HAL_GPIO_WritePin(ADS_START_GPIO_Port, ADS_START_Pin, SET);
+    HAL_GPIO_WritePin(ADS_START_GPIO_Port, ADS_START_Pin, GPIO_PIN_SET);
 }
 
 void SS_ADS1258_startMeasurements(void) {
@@ -455,12 +455,12 @@ void SS_ADS1258_restoreRegisterDefaults(void) {
 }
 
 void SS_ADS1258_toggleRESET(void) {
-    HAL_GPIO_WritePin(ADS_RESET_GPIO_Port, ADS_RESET_Pin, RESET);
+    HAL_GPIO_WritePin(ADS_RESET_GPIO_Port, ADS_RESET_Pin, GPIO_PIN_RESET);
 
     // Minimum nRESET width: 2 tCLKs
     HAL_Delay(5);
 
-    HAL_GPIO_WritePin(ADS_RESET_GPIO_Port, ADS_RESET_Pin, SET);
+    HAL_GPIO_WritePin(ADS_RESET_GPIO_Port, ADS_RESET_Pin, GPIO_PIN_SET);
 }
 
 void SS_ADS1258_EXTI_Callback(uint16_t GPIO_Pin) {
