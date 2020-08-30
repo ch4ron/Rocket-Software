@@ -1,9 +1,3 @@
-/*
- * PITOT_FUNC_H_.h
- *
- *  Created on: 18.04.2019
- *      Author: Andrzej
- */
 #ifndef PITOT_FUNC_H_
 #define PITOT_FUNC_H_
 
@@ -23,7 +17,7 @@ void ADC_check_bat_voltage(void);
 #define BAT_LOW_LED_ON HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin,GPIO_PIN_SET)
 #define BAT_LOW_LED_OFF HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin,GPIO_PIN_RESET)
 
-volatile uint8_t Log_trig_flag;
+
 
 #define MAX_TIMEOUT 200
 

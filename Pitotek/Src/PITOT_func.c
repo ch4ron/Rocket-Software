@@ -23,7 +23,7 @@ volatile uint8_t Log_trig_flag = 0;
 uint8_t PITOT_sensor_data_arr [4];
 
 //----------------------- ADC>
-void ADC_init_measurement(void)
+void  ADC_init_measurement(void)
 {
 	HAL_ADC_Start_DMA(&hadc1,ADC_val_buff, 1);
 }
@@ -69,15 +69,7 @@ void UART_send_debug_string (char * string_to_send)
 	char debug_tx_char_buff [500];
 
 	debug_tx_length = sprintf(debug_tx_char_buff, "%s",string_to_send);
-    HAL_UART_Transmit(&huart4,(uint8_t *)debug_tx_char_buff,debug_tx_length, MAX_TIMEOUT);
-}
-
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-	if(htim->Instance == TIM2) // 100 ms
-	{
-		Log_trig_flag = 1;
-	}
+        HAL_UART_Transmit(&huart4,(uint8_t *)debug_tx_char_buff,debug_tx_length, MAX_TIMEOUT);
 }
 
 //----------------------- PITOT_DIFFERENTIAL_PRESSURE_SENSOR-->

@@ -12,22 +12,28 @@
 #include "dma.h"
 #include "fatfs.h"
 #include "i2c.h"
-#include "quadspi.h"
 #include "sdio.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
-#include "usb_device.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "SS_MS5607.h"
+
 #include "SD_card_func.h"
 #include "PITOT_func.h"
 #include <string.h>
 #include <stdio.h>
 
+#include "SS_common.h"
+#include "SS_platform.h"
+#include "SS_log.h"
+#include "FreeRTOS.h"
+#include "SS_init.h"
+#include "SS_FreeRTOS.h"
+#include "task.h"
 
 /* USER CODE END Includes */
 
@@ -54,6 +60,9 @@
 
 /* USER CODE BEGIN PV */
 
+extern volatile uint8_t Log_trig_flag;
+extern char SD_current_file_path[50];
+
 char Data_log_line_single [250];
 uint16_t Data_log_line_length_single;
 
@@ -61,17 +70,21 @@ char Data_log_line [LOGS_BUFF_SIZE][250];
 uint16_t Data_log_line_length [LOGS_BUFF_SIZE];
 uint8_t Data_log_line_cnt=0;
 
+//SemaphoreHandle_t xSemaphore = NULL;
+
+FRESULT file_op_res;
+UINT BytesWritten;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-
+void main_loop_task(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
 /* USER CODE END 0 */
 
 /**
@@ -105,30 +118,38 @@ int main(void)
   MX_DMA_Init();
   MX_ADC1_Init();
   MX_I2C1_Init();
-  MX_QUADSPI_Init();
   MX_SDIO_SD_Init();
   MX_SPI1_Init();
   MX_UART4_Init();
-  MX_USB_DEVICE_Init();
   MX_FATFS_Init();
   MX_TIM2_Init();
+  MX_TIM14_Init();
   /* USER CODE BEGIN 2 */
 
-  HAL_Delay(100);
+  SS_platform_init();
+  //xTaskCreate(toggle_led, "Blinky", 256, NULL, 2, NULL);
+  xTaskCreate(main_loop_task, "Main loop", 2048, NULL, 20, NULL);
+  //xTaskCreate(SS_console_task, "Console Task", 256, NULL, 3, (TaskHandle_t *) NULL);
 
-  SD_CARD_init ();
-  f_mount(0,SDPath,1);
+  //xSemaphore = xSemaphoreCreate();
 
-  FRESULT file_op_res;
-  UINT BytesWritten;
+    HAL_Delay(100);
 
-  ADC_init_measurement();
+    SD_CARD_init ();
+    f_mount(0,SDPath,1);
 
-  HAL_TIM_Base_Start_IT(&htim2); // 50 ms for logs
+    ADC_init_measurement();
 
-  SS_MS56_init(&ms5607, MS56_PRESS_4096, MS56_TEMP_4096);
-  SS_MS56_read_convert(&ms5607);
-  SS_MS56_set_ref_press(&ms5607);
+    HAL_TIM_Base_Start_IT(&htim2); // 50 ms for logs
+
+    SS_MS56_init(&ms5607, MS56_PRESS_4096, MS56_TEMP_4096);
+    SS_MS56_read_convert(&ms5607);
+    SS_MS56_set_ref_press(&ms5607);
+
+    SS_print("Scheduler started\r\n");
+    vTaskStartScheduler();
+  //SS_FreeRTOS_init();
+
 
   /* USER CODE END 2 */
 
@@ -136,63 +157,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-			if(Log_trig_flag == 1)
-			{
-				HAL_GPIO_TogglePin(LED3_GPIO_Port, LED3_Pin);  // main loop led
-
-				SS_MS56_read_convert(&ms5607);
-				SS_MS56_get_altitude(&ms5607);
-				ADC_save_result_2_buff();
-				ADC_check_bat_voltage(); // Check if bat is lower than 3.2V
-				PITOT_pull_I2C_data();
-
-				Data_log_line_length_single = sprintf(Data_log_line_single, "%ld,%.2f,%ld,%ld,%ld,%f,%.2f\r\n",HAL_GetTick(),ADC_get_VBAT_mean(),ms5607.press,ms5607.altitude,ms5607.temp,PITOT_get_pressure_diff_psi(),PITOT_get_temp());
-				HAL_UART_Transmit(&huart4,(uint8_t *)Data_log_line_single,Data_log_line_length_single,MAX_TIMEOUT);
-
-				//------------->
-
-				strcpy(&Data_log_line [Data_log_line_cnt][0],Data_log_line_single);
-				Data_log_line_length [Data_log_line_cnt] = Data_log_line_length_single;
-
-				Log_trig_flag = 0;
-
-				if ( Data_log_line_cnt >= LOGS_BUFF_SIZE-1)
-				{
-					SD_CARD_WRITE_LED_ON;
-
-					file_op_res = f_mount(&SDFatFS,SDPath, 1);
-					SD_CARD_send_file_debug(file_op_res,MOUNT);
-
-					file_op_res = f_open(&SDFile,SD_current_file_path, FA_WRITE |FA_OPEN_APPEND);
-					SD_CARD_send_file_debug(file_op_res,OPEN);
-
-
-					for(uint8_t line_num=0; line_num <= LOGS_BUFF_SIZE-1; line_num++)
-					{
-						file_op_res = f_write(&SDFile,&Data_log_line[line_num][0],Data_log_line_length[line_num],&BytesWritten);
-						SD_CARD_send_file_debug(file_op_res,WRITE);
-					}
-
-					file_op_res = f_close(&SDFile);
-					SD_CARD_send_file_debug(file_op_res,CLOSE);
-
-					file_op_res = f_mount(0,SDPath,1);
-					SD_CARD_send_file_debug(file_op_res,UNMOUNT);
-
-					UART_send_debug_string ("\r\n");
-
-					Data_log_line_cnt = 0;
-
-					SD_CARD_WRITE_LED_OFF;
-				}
-				else
-				{
-					Data_log_line_cnt++;
-				}
-				//-------------<
-
-			}
-
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -253,7 +217,94 @@ void SystemClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 
+void main_loop_task(void)
+{
+    while(1)
+    {
+        if(Log_trig_flag == 1)
+        {
+            HAL_GPIO_TogglePin(LED3_GPIO_Port, LED3_Pin);  // main loop led
+            SS_MS56_read_convert(&ms5607);
+            SS_MS56_get_altitude(&ms5607);
+            ADC_save_result_2_buff();
+            ADC_check_bat_voltage();  // Check if bat is lower than 3.2V
+            PITOT_pull_I2C_data();
+
+            Data_log_line_length_single = sprintf(Data_log_line_single, "%ld,%.2f,%ld,%ld,%ld,%f,%.2f\r\n", HAL_GetTick(), ADC_get_VBAT_mean(), ms5607.press, ms5607.altitude, ms5607.temp, PITOT_get_pressure_diff_psi(), PITOT_get_temp());
+            HAL_UART_Transmit(&huart4, (uint8_t *) Data_log_line_single, Data_log_line_length_single, MAX_TIMEOUT);
+
+            //------------->
+
+            strcpy(&Data_log_line[Data_log_line_cnt][0], Data_log_line_single);
+            Data_log_line_length[Data_log_line_cnt] = Data_log_line_length_single;
+
+            Log_trig_flag = 0;
+
+            if(Data_log_line_cnt >= LOGS_BUFF_SIZE - 1)
+            {
+                SD_CARD_WRITE_LED_ON;
+
+                file_op_res = f_mount(&SDFatFS, SDPath, 1);
+                SD_CARD_send_file_debug(file_op_res, MOUNT);
+
+                file_op_res = f_open(&SDFile, SD_current_file_path, FA_WRITE | FA_OPEN_APPEND);
+                SD_CARD_send_file_debug(file_op_res, OPEN);
+
+                for(uint8_t line_num = 0; line_num <= LOGS_BUFF_SIZE - 1; line_num++)
+                {
+                    file_op_res = f_write(&SDFile, &Data_log_line[line_num][0], Data_log_line_length[line_num], &BytesWritten);
+                    SD_CARD_send_file_debug(file_op_res, WRITE);
+                }
+
+                file_op_res = f_close(&SDFile);
+                SD_CARD_send_file_debug(file_op_res, CLOSE);
+
+                file_op_res = f_mount(0, SDPath, 1);
+                SD_CARD_send_file_debug(file_op_res, UNMOUNT);
+
+                UART_send_debug_string("\r\n");
+
+                Data_log_line_cnt = 0;
+
+                SD_CARD_WRITE_LED_OFF;
+            }
+            else
+            {
+                Data_log_line_cnt++;
+            }
+            //-------------<
+        }
+    }
+}
+
 /* USER CODE END 4 */
+
+ /**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM13 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* USER CODE BEGIN Callback 0 */
+  if(htim->Instance == TIM2) // 100 ms
+  {
+      Log_trig_flag = 1;
+  }
+  /* USER CODE END Callback 0 */
+  if (htim->Instance == TIM13) {
+    HAL_IncTick();
+  }
+  /* USER CODE BEGIN Callback 1 */
+//    if (htim->Instance == TIM14) {
+//        SS_FreeRTOS_25khz_timer_callback();
+//    }
+
+  /* USER CODE END Callback 1 */
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.

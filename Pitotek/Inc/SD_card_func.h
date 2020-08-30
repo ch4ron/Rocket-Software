@@ -20,7 +20,4 @@ typedef enum SD_file_type_of_op {INIT,MOUNT,READ,WRITE,CLOSE,OPEN,UNMOUNT} SD_fi
 void SD_CARD_init (void);
 void SD_CARD_send_file_debug (FRESULT file_op_result,SD_file_type_of_op operation);
 
-char SD_current_file_path[50];
-
-
 #endif /* SD_CARD_FUNC_H_ */

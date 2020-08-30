@@ -83,7 +83,7 @@ void xPortSysTickHandler(void);
 #define configUSE_QUEUE_SETS 1
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
 
-#define configGENERATE_RUN_TIME_STATS 1
+#define configGENERATE_RUN_TIME_STATS 0
 #define configUSE_STATS_FORMATTING_FUNCTIONS 2
 
 /* USER CODE BEGIN MESSAGE_BUFFER_LENGTH_TYPE */
@@ -159,8 +159,8 @@ header file. */
 extern void vConfigureTimerForRunTimeStats(void);
 extern volatile uint32_t counter25khz;
 
-#define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS() vConfigureTimerForRunTimeStats()
-#define portGET_RUN_TIME_COUNTER_VALUE() counter25khz
+//#define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS() vConfigureTimerForRunTimeStats()
+//#define portGET_RUN_TIME_COUNTER_VALUE() counter25khz
 
 /* Definitions that map the FreeRTOS port interrupt handlers to their CMSIS
 standard names. */

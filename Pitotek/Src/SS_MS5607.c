@@ -532,7 +532,7 @@ void HAL_SYSTICK_Callback(void)
   * @note   It is hardware interrupt.
   * @retval None
   */
-void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
+void SS_MS56_TxCpltCallback(SPI_HandleTypeDef *hspi)
 {
 	if(hspi == &HSPI_MS56)
 	{
@@ -571,7 +571,7 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
   * @note   It is hardware interrupt.
   * @retval None
   */
-void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
+void SS_MS56_RxCpltCallback(SPI_HandleTypeDef *hspi)
 {
 	if(hspi == &HSPI_MS56)
 	{
