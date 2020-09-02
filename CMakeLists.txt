@@ -125,7 +125,7 @@ add_subdirectory(Test-Projects/USB-MSC)
 add_subdirectory(Test-Projects/Nucleo-F446RE)
 add_subdirectory(Bolek)
 add_subdirectory(Pitotek)
-#add_subdirectory(Arek)
+add_subdirectory(Arek)
 
 set(TEST_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/test)
 set(TEST_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/SS-test)

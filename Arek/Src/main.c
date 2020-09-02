@@ -1,17 +1,25 @@
 /* USER CODE BEGIN Header */
-// LED0 - BAT_LOW
-// LED1 - SD_ERROR
-// LED2 - SD_WRITE
-// LED3 - LOG_LOOP
-
+/**
+  ******************************************************************************
+  * @file           : main.c
+  * @brief          : Main program body
+  ******************************************************************************
+  * @attention
+  *
+  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+  * All rights reserved.</center></h2>
+  *
+  * This software component is licensed by ST under BSD 3-Clause license,
+  * the "License"; You may not use this file except in compliance with the
+  * License. You may obtain a copy of the License at:
+  *                        opensource.org/licenses/BSD-3-Clause
+  *
+  ******************************************************************************
+  */
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "adc.h"
-#include "fatfs.h"
-#include "i2c.h"
-#include "sdio.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
@@ -19,12 +27,13 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "SS_MS5607.h"
 
-#include "SD_card_func.h"
-#include "PITOT_func.h"
-#include <string.h>
-#include <stdio.h>
+#include "config.h"
+//#include "afsk.h"
+#include "aprs.h"
+#include "si446x.h"
+#include "gps.h"
+#include "uart_debug.h"
 
 #include "SS_common.h"
 #include "SS_platform.h"
@@ -43,11 +52,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define SD_CARD_WRITE_LED_ON  HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin,GPIO_PIN_SET)
-#define SD_CARD_WRITE_LED_OFF  HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin,GPIO_PIN_RESET)
-
-#define LOGS_BUFF_SIZE 20 // save to SD card once every second
-
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -58,19 +62,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-extern char SD_current_file_path[50];
+GPS_NAV_PVT_Data_t GPS_Data_struct;
 
-char Data_log_line_single [250];
-uint16_t Data_log_line_length_single;
-
-char Data_log_line [LOGS_BUFF_SIZE][250];
-uint16_t Data_log_line_length [LOGS_BUFF_SIZE];
-uint8_t Data_log_line_cnt=0;
-
-FRESULT file_op_res;
-UINT BytesWritten;
-
-volatile uint8_t Log_trig_flag = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -81,6 +74,7 @@ void main_loop_task(void * pvParameters);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
 /* USER CODE END 0 */
 
 /**
@@ -111,36 +105,35 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_ADC1_Init();
-  MX_I2C1_Init();
-  MX_SDIO_SD_Init();
   MX_SPI1_Init();
-  MX_UART4_Init();
-  MX_FATFS_Init();
   MX_TIM2_Init();
+  MX_USART2_UART_Init();
+  MX_TIM1_Init();
+  MX_TIM3_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-
+  
   SS_platform_init();
   xTaskCreate(&main_loop_task, "Main loop", 2048, NULL, 20, NULL);
-  //xTaskCreate(SS_console_task, "Console Task", 256, NULL, 3, (TaskHandle_t *) NULL);
 
-  //xSemaphore = xSemaphoreCreate();
+  HAL_Delay(1);
+  SI446X_init();
+  HAL_Delay(500);
+  SI446X_carrier_wave_off();
+  HAL_Delay(10);
+  SI446X_PIN_shutdown_EXT_PA();
+  GPS_init();
 
-    HAL_Delay(100);
+//    	// Key the radio
+//      SI446X_PIN_power_up_EXT_PA();
+//      HAL_Delay(1);
+//      SI446X_carrier_wave_on();
+//  	// Start transmission
+//      AFSK_timers_start();
+//      TIM1->ARR = 208; // 1200 TONE NRZI INIT
 
-    SD_CARD_init ();
-    f_mount(0,SDPath,1);
-
-    HAL_TIM_Base_Start_IT(&htim2); // 50 ms for logs
-
-    SS_MS56_init(&ms5607, MS56_PRESS_4096, MS56_TEMP_4096);
-    SS_MS56_read_convert(&ms5607);
-    SS_MS56_set_ref_press(&ms5607);
-
-    SS_print("Scheduler started\r\n");
-    vTaskStartScheduler();
-  //SS_FreeRTOS_init();
-
+  SS_print("Scheduler started\r\n");
+  vTaskStartScheduler();
 
   /* USER CODE END 2 */
 
@@ -163,7 +156,6 @@ void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
 
   /** Configure the main internal regulator output voltage 
   */
@@ -175,10 +167,10 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLM = 16;
-  RCC_OscInitStruct.PLL.PLLN = 192;
+  RCC_OscInitStruct.PLL.PLLM = 8;
+  RCC_OscInitStruct.PLL.PLLN = 64;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 4;
+  RCC_OscInitStruct.PLL.PLLQ = 2;
   RCC_OscInitStruct.PLL.PLLR = 2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
@@ -189,86 +181,44 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV2;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_SDIO|RCC_PERIPHCLK_CLK48;
-  PeriphClkInitStruct.Clk48ClockSelection = RCC_CLK48CLKSOURCE_PLLQ;
-  PeriphClkInitStruct.SdioClockSelection = RCC_SDIOCLKSOURCE_CLK48;
-  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
   {
     Error_Handler();
   }
 }
 
 /* USER CODE BEGIN 4 */
-
 void main_loop_task(void * pvParameters)
 {
     while(1)
     {
+        // ------------------ TEST SEQUENCE
+//	  TIM1->ARR ^= (416 ^ 208);
+//	  HAL_Delay(2000);
+        // ------------------
+        vTaskDelay(TX_PACKET_FREQUENCY);
+        HAL_GPIO_TogglePin(LED_LOOP_GPIO_Port, LED_LOOP_Pin);
 
-        if(Log_trig_flag == 1)
+        GPS_poll_nav_pvt_msg(&GPS_Data_struct);
+        APRS_send();
+
+        if (GPS_get_nav_pvt_flags(&GPS_Data_struct,GPS_PVT_flags_gnssFixOK_bm) == TRUE)
         {
-            HAL_GPIO_TogglePin(LED3_GPIO_Port, LED3_Pin);  // main loop led
-            SS_MS56_read_convert(&ms5607);
-            SS_MS56_get_altitude(&ms5607);
-            ADC_save_result_2_buff();
-            ADC_check_bat_voltage();  // Check if bat is lower than 3.2V
-            PITOT_pull_I2C_data();
-
-            Data_log_line_length_single = sprintf(Data_log_line_single, "%ld,%.2f,%ld,%ld,%ld,%f,%.2f\r\n", HAL_GetTick(), ADC_get_VBAT_mean(), ms5607.press, ms5607.altitude, ms5607.temp, PITOT_get_pressure_diff_psi(), PITOT_get_temp());
-            HAL_UART_Transmit(&huart4, (uint8_t *) Data_log_line_single, Data_log_line_length_single, MAX_TIMEOUT);
-
-            //------------->
-
-            strcpy(&Data_log_line[Data_log_line_cnt][0], Data_log_line_single);
-            Data_log_line_length[Data_log_line_cnt] = Data_log_line_length_single;
-
-            Log_trig_flag = 0;
-
-            if(Data_log_line_cnt >= LOGS_BUFF_SIZE - 1)
-            {
-                SD_CARD_WRITE_LED_ON;
-
-                file_op_res = f_mount(&SDFatFS, SDPath, 1);
-                SD_CARD_send_file_debug(file_op_res, MOUNT);
-
-                file_op_res = f_open(&SDFile, SD_current_file_path, FA_WRITE | FA_OPEN_APPEND);
-                SD_CARD_send_file_debug(file_op_res, OPEN);
-
-                for(uint8_t line_num = 0; line_num <= LOGS_BUFF_SIZE - 1; line_num++)
-                {
-                    file_op_res = f_write(&SDFile, &Data_log_line[line_num][0], Data_log_line_length[line_num], &BytesWritten);
-                    SD_CARD_send_file_debug(file_op_res, WRITE);
-                }
-
-                file_op_res = f_close(&SDFile);
-                SD_CARD_send_file_debug(file_op_res, CLOSE);
-
-                file_op_res = f_mount(0, SDPath, 1);
-                SD_CARD_send_file_debug(file_op_res, UNMOUNT);
-
-                UART_send_debug_string("\r\n");
-
-                Data_log_line_cnt = 0;
-
-                SD_CARD_WRITE_LED_OFF;
-            }
-            else
-            {
-                Data_log_line_cnt++;
-            }
-            //-------------<
+            __print_debug_to_UART("FIX OK !\r\n");
         }
+        else
+        {
+            __print_debug_to_UART("FIX NOT ACQUIRED !\r\n"); // Wysłac APRS,em AGH SS ROCKET - GPS NO FIX
+        }
+
+        DEBUG_tx_length = sprintf(DEBUG_tx_buff,"---Y:%d,M:%d,D:%d,hh:%d,mm:%d,ss:%d,numofsat:%d,lat:%d,long:%d,height:%d\r\n",GPS_Data_struct.year,GPS_Data_struct.month,GPS_Data_struct.day,GPS_Data_struct.hour,GPS_Data_struct.min,GPS_Data_struct.sec,GPS_Data_struct.num_of_sat,GPS_Data_struct.latitude,GPS_Data_struct.longitude,GPS_Data_struct.height_sea_lvl);
+        HAL_UART_Transmit(&UART_DEBUG_STRUCT,(uint8_t *)DEBUG_tx_buff,DEBUG_tx_length, 100);
     }
 }
-
 /* USER CODE END 4 */
 
  /**
@@ -282,18 +232,13 @@ void main_loop_task(void * pvParameters)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* USER CODE BEGIN Callback 0 */
-  if(htim->Instance == TIM2) // 100 ms
-  {
-      Log_trig_flag = 1;
-  }
+  AFSK_TIM_INTERUPT_HANDLER(htim);
   /* USER CODE END Callback 0 */
   if (htim->Instance == TIM13) {
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
-//    if (htim->Instance == TIM14) {
-//        SS_FreeRTOS_25khz_timer_callback();
-//    }
+
   /* USER CODE END Callback 1 */
 }
 
