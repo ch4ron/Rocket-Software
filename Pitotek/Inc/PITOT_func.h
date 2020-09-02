@@ -9,15 +9,12 @@
 //------------------------------------------ADC>
 #define ADC_V_MEAN_SAMPLES 10
 
-void ADC_init_measurement(void);
 float ADC_get_VBAT_mean(void);
 void ADC_check_bat_voltage(void);
 //------------------------------------------ADC<
 
 #define BAT_LOW_LED_ON HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin,GPIO_PIN_SET)
 #define BAT_LOW_LED_OFF HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin,GPIO_PIN_RESET)
-
-
 
 #define MAX_TIMEOUT 200
 

@@ -487,45 +487,45 @@ uint8_t SS_MS56_DMA_wait(uint8_t press_or_temp_OSR)
   * @brief  This function handles SysTick interrupt.
   * @retval None
   */
-void HAL_SYSTICK_Callback(void)
-{
-    static uint8_t counter = 0;
-    /* Wait for MS5607 conversion.  */
-	if(ms5607.sequence_flag == 2)
-	{
-		counter++;
-		if(counter == SS_MS56_DMA_wait(ms5607.pressOSR))
-		{
-			counter = 0;
-			SS_MS56_DMA_adc_read_TX();
-		}
-	}
-	/* This allows to automatically starts temperature conversion just after press conversion and leave
-	 * all previous interruptions.  */
-	if(ms5607.sequence_flag == 4)
-	{
-		counter++;
-		if(counter == 1)
-		{
-			counter = 0;
-			ms5607.sequence_flag = 0;
-			SS_MS56_DMA_convertion_temp_start(&ms5607);
-		}
-	}
-	/* Check if there is sequence_start request and if there is conversion_ongoing flag.
-	 * Fulfilled condition causes start of DMA conversion sequence.  */
-	if(sequence_start == 1 && conversion_ongoing == 0)
-	{
-		conversion_ongoing = 1;
-		sequence_start = 0;
-		SS_MS56_DMA_convertion_press_start(&ms5607);
-	}
-	/* Wait for conversion. It works only when using SS_MS56_read_convert_non_polling function  */
-	if(ms5607.stage == 1 || ms5607.stage == 3)
-	{
-		SS_MS56_decrement_wait_ready(&ms5607);
-	}
-}
+//void SS_MS56_HAL_SYSTICK_Callback(void)
+//{
+//    static uint8_t counter = 0;
+//    /* Wait for MS5607 conversion.  */
+//	if(ms5607.sequence_flag == 2)
+//	{
+//		counter++;
+//		if(counter == SS_MS56_DMA_wait(ms5607.pressOSR))
+//		{
+//			counter = 0;
+//			SS_MS56_DMA_adc_read_TX();
+//		}
+//	}
+//	/* This allows to automatically starts temperature conversion just after press conversion and leave
+//	 * all previous interruptions.  */
+//	if(ms5607.sequence_flag == 4)
+//	{
+//		counter++;
+//		if(counter == 1)
+//		{
+//			counter = 0;
+//			ms5607.sequence_flag = 0;
+//			SS_MS56_DMA_convertion_temp_start(&ms5607);
+//		}
+//	}
+//	/* Check if there is sequence_start request and if there is conversion_ongoing flag.
+//	 * Fulfilled condition causes start of DMA conversion sequence.  */
+//	if(sequence_start == 1 && conversion_ongoing == 0)
+//	{
+//		conversion_ongoing = 1;
+//		sequence_start = 0;
+//		SS_MS56_DMA_convertion_press_start(&ms5607);
+//	}
+//	/* Wait for conversion. It works only when using SS_MS56_read_convert_non_polling function  */
+//	if(ms5607.stage == 1 || ms5607.stage == 3)
+//	{
+//		SS_MS56_decrement_wait_ready(&ms5607);
+//	}
+//}
 
 /**
   * @brief  This function handles after SPI transmission interrupt.

@@ -11,6 +11,8 @@ Boards In repositioy
 - Czapla - Communication and GPS module
 - Radek - Recovery module
 - Pauek - Power management board
+- Ptitotek - Pitot SMU (Speed Measurement Unit)
+- Arek - APRS Transciever
 
 Building
 --------

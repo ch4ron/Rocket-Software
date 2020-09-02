@@ -12,22 +12,11 @@ const float SupplyVoltage = 3.3; // [Volts]
 const float ADCResolution = 4095.0;
 const float Bat_voltage_div_ratio = 2.02;
 
-uint16_t ADC_val_buff [1];
-
 volatile uint16_t ADC_VBAT_avg_buf [ADC_V_MEAN_SAMPLES];
 volatile uint16_t ADC_avg_buf_cnt = 0;
 //-------------------------
-
-volatile uint8_t Log_trig_flag = 0;
-
 uint8_t PITOT_sensor_data_arr [4];
-
 //----------------------- ADC>
-void  ADC_init_measurement(void)
-{
-	HAL_ADC_Start_DMA(&hadc1,ADC_val_buff, 1);
-}
-
 float ADC_get_VBAT_mean(void)
 {
 	float mean_value = 0;
@@ -52,7 +41,8 @@ void ADC_check_bat_voltage(void)
 
 void ADC_save_result_2_buff(void)
 {
-	ADC_VBAT_avg_buf[ADC_avg_buf_cnt] = ADC_val_buff[0];
+        HAL_ADC_Start(&hadc1);
+	ADC_VBAT_avg_buf[ADC_avg_buf_cnt] = HAL_ADC_GetValue(&hadc1);
 	ADC_avg_buf_cnt++;
 
 	if(ADC_avg_buf_cnt >= ADC_V_MEAN_SAMPLES)
@@ -116,7 +106,3 @@ float PITOT_get_temp(void)
 
 	return temperature_deg_c/100.0;
 }
-
-
-
-

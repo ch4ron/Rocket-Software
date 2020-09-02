@@ -5,14 +5,15 @@ set(MCU STM32F446RE)
 
 project(pitotek C ASM)
 
-file(GLOB_RECURSE SOURCES "Inc/*.*" "Middlewares/*.*" "Src/*.*" "startup/*.*") # dodac foldery
+file(GLOB_RECURSE SOURCES "Inc/*.*" "Middlewares/*.*" "Src/*.*" "Startup/*.*") # dodac foldery
 
 add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
 
 target_include_directories(${PROJECT_NAME}.elf PRIVATE Inc Middlewares/Third_Party/FatFs/src) # dodac foldery
 
 ## DEFINE YOUR LIBRARIES HERE
-##add_compile_definitions(SS_USE_DYNAMIXEL)
+add_compile_definitions(configGENERATE_RUN_TIME_STATS=0) # disable RTOS runtime stats
+
 #add_compile_definitions(SS_USE_SERVOS)
 #add_compile_definitions(SS_USE_COM)
 #add_compile_definitions(SS_USE_ADS1258)

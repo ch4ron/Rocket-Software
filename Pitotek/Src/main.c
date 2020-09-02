@@ -9,7 +9,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "adc.h"
-#include "dma.h"
 #include "fatfs.h"
 #include "i2c.h"
 #include "sdio.h"
@@ -59,8 +58,6 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
-extern volatile uint8_t Log_trig_flag;
 extern char SD_current_file_path[50];
 
 char Data_log_line_single [250];
@@ -70,17 +67,16 @@ char Data_log_line [LOGS_BUFF_SIZE][250];
 uint16_t Data_log_line_length [LOGS_BUFF_SIZE];
 uint8_t Data_log_line_cnt=0;
 
-//SemaphoreHandle_t xSemaphore = NULL;
-
 FRESULT file_op_res;
 UINT BytesWritten;
 
+volatile uint8_t Log_trig_flag = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-void main_loop_task(void);
+void main_loop_task(void * pvParameters);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -115,7 +111,6 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_DMA_Init();
   MX_ADC1_Init();
   MX_I2C1_Init();
   MX_SDIO_SD_Init();
@@ -123,12 +118,10 @@ int main(void)
   MX_UART4_Init();
   MX_FATFS_Init();
   MX_TIM2_Init();
-  MX_TIM14_Init();
   /* USER CODE BEGIN 2 */
 
   SS_platform_init();
-  //xTaskCreate(toggle_led, "Blinky", 256, NULL, 2, NULL);
-  xTaskCreate(main_loop_task, "Main loop", 2048, NULL, 20, NULL);
+  xTaskCreate(&main_loop_task, "Main loop", 2048, NULL, 20, NULL);
   //xTaskCreate(SS_console_task, "Console Task", 256, NULL, 3, (TaskHandle_t *) NULL);
 
   //xSemaphore = xSemaphoreCreate();
@@ -137,8 +130,6 @@ int main(void)
 
     SD_CARD_init ();
     f_mount(0,SDPath,1);
-
-    ADC_init_measurement();
 
     HAL_TIM_Base_Start_IT(&htim2); // 50 ms for logs
 
@@ -217,10 +208,13 @@ void SystemClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 
-void main_loop_task(void)
+void main_loop_task(void * pvParameters)
 {
+    HAL_GPIO_TogglePin(LED3_GPIO_Port, LED3_Pin);
+    vTaskDelay(500);
     while(1)
     {
+
         if(Log_trig_flag == 1)
         {
             HAL_GPIO_TogglePin(LED3_GPIO_Port, LED3_Pin);  // main loop led
@@ -302,7 +296,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 //    if (htim->Instance == TIM14) {
 //        SS_FreeRTOS_25khz_timer_callback();
 //    }
-
   /* USER CODE END Callback 1 */
 }
 
