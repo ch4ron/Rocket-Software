@@ -17,8 +17,10 @@ FlashStatus SS_flash_log_init(void);
 FlashStatus SS_flash_log_erase(void);
 FlashStatus SS_flash_log_start(void);
 FlashStatus SS_flash_log_stop(void);
+FlashStatus SS_flash_log_toggle(bool *logging);
 
 FlashStatus SS_flash_log_var(uint8_t id, uint8_t *data, uint32_t size);
+FlashStatus SS_flash_log_bytes(const char *str, uint16_t size);
 FlashStatus SS_flash_log_text(const char *str);
 
 void SS_flash_log_task(void *pvParameters);

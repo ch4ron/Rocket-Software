@@ -40,6 +40,7 @@ static void SS_print_tasks_info(char *args);
 static void SS_print_runtime_stats(char *args);
 static void SS_console_run_all_tests(char *args);
 static void SS_handle_console_input(char *buf);
+static void _SS_flash_log_toggle(char *buf);
 
 /* ==================================================================== */
 /* ======================== Private variables ========================= */
@@ -55,7 +56,10 @@ ConsoleCommand commands[] = {
     {"test", "Run tests", SS_console_run_all_tests},
 #endif /* defined(SS_RUN_TESTS) && defined(SS_RUN_TESTS_FROM_CONSOLE) */
     {"tasks", "Print task info", SS_print_tasks_info},
-    {"stats", "Print task info", SS_print_runtime_stats},
+    {"stats", "Print task runtime stats", SS_print_runtime_stats},
+#ifdef SS_USE_FLASH
+    {"log", "Start / Stop logging to flash", _SS_flash_log_toggle},
+#endif
     {"help", "Print help", SS_console_print_help},
 };
 
@@ -137,6 +141,21 @@ static void SS_console_run_all_tests(char *args) {
     BaseType_t res = xTaskCreate(SS_run_tests_task, "Tests task", 512, NULL, 4, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
 }
+
+#ifdef SS_USE_FLASH
+#include "SS_flash_log.h"
+
+static void _SS_flash_log_toggle(char *args) {
+    bool is_logging;
+    SS_flash_log_toggle(&is_logging);
+    if(is_logging) {
+        SS_println("Logging started");
+    } else {
+        SS_println("Logging stopped");
+    }
+}
+
+#endif
 
 static void SS_console_print_help(char *args) {
     SS_println("Available commands:");
