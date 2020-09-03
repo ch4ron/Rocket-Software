@@ -142,10 +142,8 @@ static char *SS_com_device_str(ComDeviceID device) {
             return "memory";
         case COM_IGNITER_ID:
             return "igniter";
-        case COM_TENSOMETER_ID:
-            return "tens";
-        case COM_BAROMETER_ID:
-            return "baro";
+        case COM_FLASH_ID:
+            return "flash";
         case COM_MPU9250_ID:
             return "mpu";
         case COM_DYNAMIXEL_ID:
