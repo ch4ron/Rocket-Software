@@ -15,6 +15,7 @@
 #include "SS_s25fl.h"
 #include "SS_flash_caching.h"
 #include "SS_flash_ctrl.h"
+#include "SS_flash_log.h"
 #endif
 #include "SS_adc.h"
 #include "SS_can.h"
@@ -191,6 +192,6 @@ void SS_platform_init() {
     SS_dynamixel_init(&dynamixel);
 #endif
     assert(SS_s25fl_init(FLASH_RESET_GPIO_Port, FLASH_RESET_Pin, 64*1024*1024, 256*1024, 512, true, 4, 1) == S25FL_STATUS_OK);
-    SS_println("flash init: %d", SS_flash_init(&hqspi, FLASH_RESET_GPIO_Port, FLASH_RESET_Pin));
+    assert(SS_flash_init(&hqspi, FLASH_RESET_GPIO_Port, FLASH_RESET_Pin) == FLASH_STATUS_OK);
     HAL_Delay(100);
 }
