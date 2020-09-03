@@ -1,9 +1,6 @@
 //
 // Created by maciek on 26.02.2020.
 //
-#ifdef SS_USE_MS5X
-#include "SS_MS5X.h"
-#endif
 #ifdef SS_USE_ADC
 #include "SS_adc.h"
 #endif
