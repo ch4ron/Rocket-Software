@@ -49,6 +49,7 @@ typedef struct {
     GPIO_TypeDef *CS_Port;
     uint16_t CS_Pin;
     uint16_t INT_Pin;
+    IRQn_Type IRQn;
     uint8_t id;
     uint8_t gyro_id;
     uint8_t accel_id;

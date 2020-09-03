@@ -74,7 +74,7 @@ MPU_STATUS SS_MPU_init(MPU9250 *mpu9250) {
     }
     SS_MPU_set_is_logging(false);
     MPU_STATUS result = MPU_OK;
-    HAL_NVIC_DisableIRQ(MPU_INT_EXTI_IRQn);
+    HAL_NVIC_DisableIRQ(mpu9250->IRQn);
     result |= SS_AK8963_reset(mpu9250);
     HAL_Delay(50);
     result |= SS_MPU_reset(mpu9250);
@@ -104,7 +104,7 @@ MPU_STATUS SS_MPU_init(MPU9250 *mpu9250) {
             break;
     }
     mpu_pointers[mpu9250->id] = mpu9250;
-    HAL_NVIC_EnableIRQ(MPU_INT_EXTI_IRQn);
+    HAL_NVIC_EnableIRQ(mpu9250->IRQn);
     return result;
 }
 

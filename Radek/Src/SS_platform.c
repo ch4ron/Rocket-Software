@@ -99,9 +99,10 @@ static MPU9250 mpu = {
     .gyro_id = 10,
     .accel_id = 11,
     .mgnt_id = 12,
-    .CS_Port = MPU1_CS_GPIO_Port,
-    .CS_Pin = MPU1_CS_Pin,
-    .INT_Pin = MPU1_INT_Pin,
+    .CS_Port = MPU2_CS_GPIO_Port,
+    .CS_Pin = MPU2_CS_Pin,
+    .INT_Pin = MPU2_INT_Pin,
+    .IRQn = EXTI9_5_IRQn,
     .hspi = &hspi1,
     .accel_scale = MPU_ACCEL_SCALE_2,
     .gyro_scale = MPU_GYRO_SCALE_250,
@@ -116,15 +117,15 @@ static MPU9250 mpu = {
 };
 
 static void SS_platform_init_MPU(void) {
+    HAL_GPIO_WritePin(MPU1_CS_GPIO_Port, MPU1_CS_Pin, GPIO_PIN_SET);
     MPU_STATUS result = MPU_OK;
-    /* HAL_NVIC_DisableIRQ(MPU_INT_EXTI_IRQn); */
     /* HAL_Delay(50); */
     /* result |= SS_AK8963_set_calibration_values(&mpu, 38, 217, 92, 1.040606, 1.018278, 0.946424); */
     result |= SS_MPU_init(&mpu);
+    assert(result == MPU_OK);
     /* result |= SS_MPU_init(&mpu2); */
     /* int32_t bias1[] = {-15, -11, 72, 230, 300, 537}; */
     /* result |= SS_MPU_set_calibration(&mpu1, bias1); */
-    /* HAL_NVIC_EnableIRQ(MPU_INT_EXTI_IRQn); */
 }
 
 /********** MAIN INIT *********/
@@ -132,18 +133,15 @@ static void SS_platform_init_MPU(void) {
 void SS_platform_init() {
     SS_log_init(&huart1);
     SS_console_init(&huart1);
-    SS_platform_init_MPU();
 //    SS_MS5X_init(&ms5607, 0, MS56_CS_GPIO_Port, MS56_CS_Pin, MS56_PRESS_4096, MS56_TEMP_4096);
 //    SS_MS5X_init(&ms5803, 1, MS58_CS_GPIO_Port, MS58_CS_Pin, MS56_PRESS_4096, MS56_TEMP_4096);
 
-#ifdef SS_USE_ADS1258
-    SS_platform_ADS1258_init();
-#endif
 #ifdef SS_USE_S25FL
     SS_s25fl_init();
 #endif
+    SS_platform_init_MPU();
 //    SS_can_init(&hcan2, COM_STASZEK_ID);
 //    HAL_Delay(100);
 //    SS_platform_init_MPU();
-//    HAL_Delay(100);
+    HAL_Delay(100);
 }

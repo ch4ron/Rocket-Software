@@ -116,6 +116,7 @@ static MPU9250 mpu = {
     .CS_Port = MPU_CS_GPIO_Port,
     .CS_Pin = MPU_CS_Pin,
     .INT_Pin = MPU_INT_Pin,
+    .IRQn = MPU_INT_EXTI_IRQn,
     .hspi = &hspi4,
     .accel_scale = MPU_ACCEL_SCALE_2,
     .gyro_scale = MPU_GYRO_SCALE_250,
