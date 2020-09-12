@@ -43,6 +43,7 @@
 /* ==================================================================== */
 
 static void vLEDFlashTask(void *pvParameters);
+static void logging_test_task(void *pvParameters);
 static void SS_FreeRTOS_create_tasks(void);
 
 /* ==================================================================== */
@@ -73,8 +74,9 @@ void SS_run_tests_task(void *pvParameters) {
 
 static void vLEDFlashTask(void *pvParameters) {
     while(1) {
-        vTaskDelay(500);
+        vTaskDelay(pdMS_TO_TICKS(500));
         SS_platform_toggle_loop_led();
+        
     }
 }
 

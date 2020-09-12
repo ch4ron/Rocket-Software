@@ -39,7 +39,7 @@ static uint8_t vars_buf[FLASH_PAGE_BUF_SIZE];
 static lfs_file_t text_file;
 static struct lfs_file_config text_cfg;
 static uint8_t text_buf[FLASH_PAGE_BUF_SIZE];
-static bool is_logging;
+static bool is_logging = false;
 
 FlashStatus SS_flash_log_init(void)
 {
@@ -109,13 +109,14 @@ FlashStatus SS_flash_log_start(void)
     if (lfs_file_opencfg(lfs, &text_file, "text.txt", LFS_O_WRONLY | LFS_O_CREAT | LFS_O_APPEND, &text_cfg)) {
         return FLASH_STATUS_ERR;
     }
+
     is_logging = true;
-    
     return FLASH_STATUS_OK;
 }
 
 FlashStatus SS_flash_log_stop(void)
 {
+    is_logging = false;
     lfs_t *lfs = SS_flash_lfs_get();
 
     while (uxQueueSpacesAvailable(text_queue) < TEXT_QUEUE_LEN) {
@@ -138,23 +139,15 @@ FlashStatus SS_flash_log_stop(void)
         return FLASH_STATUS_ERR;
     }
 
-    is_logging = false;
     return FLASH_STATUS_OK;
-}
-
-FlashStatus SS_flash_log_toggle(bool *logging) {
-    *logging = !is_logging;
-    if(is_logging) {
-        return SS_flash_log_stop();
-    }
-    return SS_flash_log_start();
 }
 
 FlashStatus SS_flash_log_var(uint8_t id, uint8_t *data, uint32_t size)
 {
-    if(!is_logging) {
-        return FLASH_STATUS_ERR;
+    if (!is_logging) {
+        return FLASH_STATUS_DISABLED;
     }
+
     Var var;
     var.id = id;
     var.size = size;
@@ -167,10 +160,12 @@ FlashStatus SS_flash_log_var(uint8_t id, uint8_t *data, uint32_t size)
     return FLASH_STATUS_OK;
 }
 
-FlashStatus SS_flash_log_bytes(const char *str, uint16_t size) {
-    if(!is_logging) {
-        return FLASH_STATUS_ERR;
+FlashStatus SS_flash_log_bytes(const char *str, uint16_t size)
+{
+    if (!is_logging) {
+        return FLASH_STATUS_DISABLED;
     }
+
     for (uint32_t i = 0; i < size; ++i) {
         if (!xQueueSend(text_queue, &str[i], pdMS_TO_TICKS(1))) {
             return FLASH_STATUS_BUSY;
@@ -182,9 +177,10 @@ FlashStatus SS_flash_log_bytes(const char *str, uint16_t size) {
 
 FlashStatus SS_flash_log_text(const char *str)
 {
-    if(!SS_flash_lfs_is_mounted()) {
-        return FLASH_STATUS_ERR;
+    if (!is_logging) {
+        return FLASH_STATUS_DISABLED;
     }
+
     for (uint32_t i = 0; str[i] != '\0'; ++i) {
         if (!xQueueSend(text_queue, &str[i], pdMS_TO_TICKS(1))) {
             return FLASH_STATUS_BUSY;
@@ -194,12 +190,16 @@ FlashStatus SS_flash_log_text(const char *str)
     return FLASH_STATUS_OK;
 }
 
+bool SS_flash_log_get_is_logging(void)
+{
+    return is_logging;
+}
+
 void SS_flash_log_task(void *pvParameters)
 {
-    assert(SS_flash_lfs_start() != FLASH_STATUS_ERR);
     lfs_t *lfs = SS_flash_lfs_get();
-    Var var;
-    char c;
+    static Var var;
+    static char c;
     uint32_t sent_vars_bytes = 0, sent_text_bytes = 0;
 
     while (true) {

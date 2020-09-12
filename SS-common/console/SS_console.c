@@ -146,12 +146,12 @@ static void SS_console_run_all_tests(char *args) {
 #include "SS_flash_log.h"
 
 static void _SS_flash_log_toggle(char *args) {
-    bool is_logging;
-    SS_flash_log_toggle(&is_logging);
-    if(is_logging) {
-        SS_println("Logging started");
-    } else {
+    if (SS_flash_log_get_is_logging()) {
+        assert(SS_flash_log_stop() == FLASH_STATUS_OK);
         SS_println("Logging stopped");
+    } else {
+        assert(SS_flash_log_start() == FLASH_STATUS_OK);
+        SS_println("Logging started");
     }
 }
 

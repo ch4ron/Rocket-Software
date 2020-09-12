@@ -286,15 +286,12 @@ static FatmapStatus read_data_region(Fatmap *fm, uint32_t page, uint32_t off, ui
     } else if (page >= get_dir_table_page(fm)+1
     && page < get_dir_table_page(fm)+1 + vars_file_len) {
         uint32_t off = (page-(get_dir_table_page(fm)+1)) * FATMAP_PAGE_SIZE;
-        SS_print_fromISR("a: vars_file_size: %d\n", lfs_file_size(lfs, &vars_file));
-        SS_print_fromISR("a: off: %d\n", off);
 
         if (lfs_file_seek(lfs, &vars_file, off, LFS_SEEK_SET) < 0) {
             return FATMAP_STATUS_ERR;
         }
 
         uint32_t read_size = lfs_file_read(lfs, &vars_file, data, size);
-        SS_print_fromISR("a: read_size: %d\n", read_size);
         if (read_size < 0) {
             return FATMAP_STATUS_ERR;
         }
@@ -303,15 +300,12 @@ static FatmapStatus read_data_region(Fatmap *fm, uint32_t page, uint32_t off, ui
     } else if (page >= get_dir_table_page(fm)+1 + vars_file_len
     && page < get_dir_table_page(fm)+1 + vars_file_len + text_file_len) {
         uint32_t off = (page-(get_dir_table_page(fm)+1 + vars_file_len)) * FATMAP_PAGE_SIZE;
-        SS_print_fromISR("b: text_file_size: %d\n", lfs_file_size(lfs, &text_file));
-        SS_print_fromISR("b: off: %d\n", off);
 
         if (lfs_file_seek(lfs, &text_file, off, LFS_SEEK_SET) < 0) {
             return FATMAP_STATUS_ERR;
         }
 
         uint32_t read_size = lfs_file_read(lfs, &text_file, data, size);
-        SS_print_fromISR("b: read_size: %d\n", read_size);
         if (read_size < 0) {
             return FATMAP_STATUS_ERR;
         }
