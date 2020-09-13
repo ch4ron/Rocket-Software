@@ -347,6 +347,11 @@ static S25flStatus unlocked_erase_all(void)
         return status;
     }
 
+    status = autopoll(STATUS_REG1_WIP, 0x00, ERASE_ALL_TIMEOUT_ms);
+    if (status != S25FL_STATUS_OK) {
+        return status;
+    }
+
     return S25FL_STATUS_OK;
 }
 
@@ -676,6 +681,7 @@ static S25flStatus autopoll(uint8_t reg1_mask, uint8_t reg1_match, uint32_t time
     config.AutomaticStop = QSPI_AUTOMATIC_STOP_ENABLE;
 
     HAL_StatusTypeDef hal_status = HAL_QSPI_AutoPolling(&hqspi, &cmd, &config, timeout);
+
     if (hal_status != HAL_OK) {
         return translate_hal_status(hal_status);
     }
