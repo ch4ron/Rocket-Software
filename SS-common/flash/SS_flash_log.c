@@ -175,6 +175,22 @@ FlashStatus SS_flash_log_bytes(const char *str, uint16_t size)
     return FLASH_STATUS_OK;
 }
 
+void SS_flash_log_var_fromISR(uint8_t id, uint8_t *data, uint32_t size)
+{
+    if (!is_logging) {
+        return;
+    }
+
+    Var var;
+    var.id = id;
+    var.size = size;
+    memcpy(var.data, data, size);
+
+    BaseType_t pxHigherPriorityTaskWoken = pdFALSE;
+    xQueueSendFromISR(vars_queue, &var, &pxHigherPriorityTaskWoken);
+    portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);
+}
+
 FlashStatus SS_flash_log_text(const char *str)
 {
     if (!is_logging) {
@@ -203,27 +219,27 @@ void SS_flash_log_task(void *pvParameters)
     uint32_t sent_vars_bytes = 0, sent_text_bytes = 0;
 
     while (true) {
-        if (xQueueReceive(vars_queue, &var, pdMS_TO_TICKS(1))) {
+        if (xQueueReceive(vars_queue, &var, pdMS_TO_TICKS(portMAX_DELAY))) {
             lfs_file_write(lfs, &vars_file, &var.id, sizeof(var.id));
             lfs_file_write(lfs, &vars_file, var.data, var.size);
 
             sent_vars_bytes += sizeof(var.id) + var.size;
-            if (sent_vars_bytes >= SS_s25fl_get_page_size()) {
-                lfs_file_close(lfs, &vars_file);
-                lfs_file_opencfg(lfs, &vars_file, "vars.bin", LFS_O_WRONLY | LFS_O_CREAT | LFS_O_APPEND, &text_cfg);
+            if (sent_vars_bytes >= SS_s25fl_get_sector_size()) {
+                lfs_file_sync(lfs, &vars_file);
                 sent_vars_bytes = 0;
             }
         }
 
-        if (xQueueReceive(text_queue, &c, pdMS_TO_TICKS(1))) {
-            lfs_file_write(lfs, &text_file, &c, sizeof(c));
+        /* if (xQueueReceive(text_queue, &c, pdMS_TO_TICKS(1))) { */
+        /*     lfs_file_write(lfs, &text_file, &c, sizeof(c)); */
 
-            ++sent_text_bytes;
-            if (sent_text_bytes >= SS_s25fl_get_page_size()) {
-                lfs_file_close(lfs, &text_file);
-                lfs_file_opencfg(lfs, &text_file, "text.txt", LFS_O_WRONLY | LFS_O_CREAT | LFS_O_APPEND, &text_cfg);
-                sent_text_bytes = 0; 
-            }
-        }
+        /*     ++sent_text_bytes; */
+        /*     if (sent_text_bytes >= SS_s25fl_get_page_size()) { */
+        /*         lfs_file_close(lfs, &text_file); */
+        /*         lfs_file_opencfg(lfs, &text_file, "text.txt", LFS_O_WRONLY | LFS_O_CREAT | LFS_O_APPEND, &text_cfg); */
+        /*         sent_text_bytes = 0; */
+        /*     } */
+        /* } */
+
     }
 }

@@ -41,7 +41,8 @@ static void SS_print_runtime_stats(char *args);
 static void SS_console_run_all_tests(char *args);
 static void SS_handle_console_input(char *buf);
 static void _SS_flash_log_toggle(char *buf);
-
+static void SS_flash_erase(char *buf);
+static void SS_flash_purge(char *buf);
 /* ==================================================================== */
 /* ======================== Private variables ========================= */
 /* ==================================================================== */
@@ -58,7 +59,10 @@ ConsoleCommand commands[] = {
     {"tasks", "Print task info", SS_print_tasks_info},
     {"stats", "Print task runtime stats", SS_print_runtime_stats},
 #ifdef SS_USE_FLASH
+/* TODO add flash subcommand */
     {"log", "Start / Stop logging to flash", _SS_flash_log_toggle},
+    {"erase", "Erase flash", SS_flash_erase},
+    {"purge", "Erase flash", SS_flash_purge},
 #endif
     {"help", "Print help", SS_console_print_help},
 };
@@ -164,6 +168,17 @@ static void SS_console_print_help(char *args) {
         SS_println("    - %s\t\t%s", command->command, command->help);
     }
 }
+
+static void SS_flash_erase(char *args) {
+    SS_flash_log_erase();
+}
+
+static void SS_flash_purge(char *args) {
+    SS_println("Purge flash");
+    SS_s25fl_erase_all();
+    SS_println("Flash purged");
+}
+
 
 /* ==================================================================== */
 /* ============================ Callbacks ============================= */

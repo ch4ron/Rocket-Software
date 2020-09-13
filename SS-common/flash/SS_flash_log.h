@@ -18,6 +18,7 @@ FlashStatus SS_flash_log_erase(void);
 FlashStatus SS_flash_log_start(void);
 FlashStatus SS_flash_log_stop(void);
 
+void SS_flash_log_var_fromISR(uint8_t id, uint8_t *data, uint32_t size);
 FlashStatus SS_flash_log_var(uint8_t id, uint8_t *data, uint32_t size);
 FlashStatus SS_flash_log_bytes(const char *str, uint16_t size);
 FlashStatus SS_flash_log_text(const char *str);
