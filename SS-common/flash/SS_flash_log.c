@@ -28,12 +28,10 @@
 /* ======================== Private datatypes ========================= */
 /* ==================================================================== */
 
-typedef struct
-{
-    uint8_t id;
-    uint8_t data[FLASH_LOG_MAX_VAR_DATA_SIZE];
-    uint32_t size;
-} Var;
+typedef struct {
+    uint8_t data[FLASH_LOG_MAX_VAR_DATA_SIZE + 1];
+    uint16_t size;
+} StreamElement;
 
 typedef struct FlashLogStream {
     QueueHandle_t queue;
@@ -47,20 +45,19 @@ typedef struct FlashLogStream {
     struct FlashLogStream *next;
 } FlashLogStream;
 
+
 /* ==================================================================== */
 /* ========================= Global variables ========================= */
 /* ==================================================================== */
 
 static FlashLogStream *flash_log_streams;
 
-static FlashLogStream vars_stream = {
+FlashLogStream vars_stream = {
     .filename = FLASH_LOG_VARS_FILENAME,
-    .item_size = sizeof(Var)
 };
 
-static FlashLogStream text_stream = {
+FlashLogStream text_stream = {
     .filename = FLASH_LOG_TEXT_FILENAME,
-    .item_size = sizeof(char)
 };
 
 
@@ -70,8 +67,8 @@ static FlashLogStream text_stream = {
 
 static FlashLogStream *SS_flash_stream_get(char *filename);
 static void SS_flash_stream_init(FlashLogStream *stream);
-static FlashStatus SS_flash_stream_log(char *filename, void *data);
-static void SS_flash_stream_log_fromISR(char *filename, void *data);
+static FlashStatus SS_flash_stream_log(char *filename, void *data, uint16_t size);
+static void SS_flash_stream_log_fromISR(char *filename, void *data, uint16_t size);
 static void SS_flash_log_task(void *pvParameters);
 
 /* ==================================================================== */
@@ -137,8 +134,6 @@ FlashStatus SS_flash_stream_stop(char *filename) {
     if(SS_usb_start() != USB_STATUS_OK) {
         return FLASH_STATUS_ERR;
     }
-
-    SS_println("usb start");
     return FLASH_STATUS_OK;
 }
 
@@ -192,56 +187,30 @@ FlashStatus SS_flash_stream_erase_all(void) {
     return FLASH_STATUS_OK;
 }
 
-FlashStatus SS_flash_stream_log_var(uint8_t id, uint8_t *data, uint32_t size) {
-    Var var;
-    var.id = id;
-    var.size = size;
-    memcpy(var.data, data, size);
-    return SS_flash_stream_log(vars_stream.filename, &var);
+FlashStatus SS_flash_log_var(uint8_t id, uint8_t *data, uint16_t size) {
+    static uint8_t var[FLASH_LOG_MAX_VAR_DATA_SIZE + 1];
+    var[0] = id;
+    memcpy(var + 1, data, size);
+
+    return SS_flash_stream_log(vars_stream.filename, &var, size + 1);
 }
 
-void SS_flash_stream_log_var_fromISR(uint8_t id, uint8_t *data, uint32_t size) {
-    Var var;
-    var.id = id;
-    var.size = size;
-    memcpy(var.data, data, size);
-    SS_flash_stream_log_fromISR(vars_stream.filename, &var);
+void SS_flash_log_var_fromISR(uint8_t id, uint8_t *data, uint16_t size) {
+    static uint8_t var[FLASH_LOG_MAX_VAR_DATA_SIZE + 1];
+    var[0] = id;
+    memcpy(var + 1, data, size);
+    SS_flash_stream_log_fromISR(vars_stream.filename, &var, size +1);
 }
 
-/* FlashStatus SS_flash_log_bytes(const char *str, uint16_t size) */
-/* { */
-/*     if (!is_logging) { */
-/*         return FLASH_STATUS_DISABLED; */
-/*     } */
-
-/*     for (uint32_t i = 0; i < size; ++i) { */
-/*         if (!xQueueSend(text_queue, &str[i], pdMS_TO_TICKS(1))) { */
-/*             return FLASH_STATUS_BUSY; */
-/*         } */
-/*     } */
-
-/*     return FLASH_STATUS_OK; */
-/* } */
-
-/* FlashStatus SS_flash_log_text(const char *str) */
-/* { */
-/*     if (!is_logging) { */
-/*         return FLASH_STATUS_DISABLED; */
-/*     } */
-
-/* for (uint32_t i = 0; str[i] != '\0'; ++i) { */
-/*     if (!xQueueSend(text_queue, &str[i], pdMS_TO_TICKS(1))) { */
-/*         return FLASH_STATUS_BUSY; */
-/*     } */
-/* } */
-
-/* return FLASH_STATUS_OK; */
-/* } */
-
-/* bool SS_flash_log_get_is_logging(void) */
-/* { */
-/*     return true; */
-/* } */
+FlashStatus SS_flash_log_text(const char *str) {
+    for (uint32_t i = 0; str[i] != '\0'; ++i) {
+        FlashStatus res = SS_flash_stream_log(text_stream.filename, (void*) &str[i], 1);
+        if(res != FLASH_STATUS_OK) {
+            return res;
+        }
+    }
+    return FLASH_STATUS_OK;
+}
 
 /* ==================================================================== */
 /* ======================== Private functions ========================= */
@@ -259,6 +228,7 @@ static FlashLogStream *SS_flash_stream_get(char *filename) {
 }
 
 static void SS_flash_stream_init(FlashLogStream *stream) {
+    stream->item_size = sizeof(StreamElement);
     stream->queue = xQueueCreate(VARS_QUEUE_LEN, stream->item_size);
     assert(stream->queue != NULL);
     if(flash_log_streams == NULL) {
@@ -272,28 +242,40 @@ static void SS_flash_stream_init(FlashLogStream *stream) {
     stream->next = NULL;
 }
 
-/* Ensure data size is equal to the queue item size */
-static void SS_flash_stream_log_fromISR(char *filename, void *data) {
+/* Ensure data size is not larger than the queue item size */
+static void SS_flash_stream_log_fromISR(char *filename, void *data, uint16_t size) {
+    /* Logging from ISR disabled when running tests!!! */
+#ifdef SS_RUN_TESTS
+    return;
+#endif
     FlashLogStream *stream = SS_flash_stream_get(filename);
+
+    static StreamElement element;
+    element.size = size;
+    memcpy(element.data, data, size);
 
     if(!stream->is_logging) {
         return;
     }
 
     BaseType_t pxHigherPriorityTaskWoken = pdFALSE;
-    xQueueSendFromISR(stream->queue, data, &pxHigherPriorityTaskWoken);
+    xQueueSendFromISR(stream->queue, &element, &pxHigherPriorityTaskWoken);
     portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);
 }
 
-/* Ensure data size is equal to the queue item size */
-static FlashStatus SS_flash_stream_log(char *filename, void *data) {
+/* Ensure data size is not larger than to the queue item size */
+static FlashStatus SS_flash_stream_log(char *filename, void *data, uint16_t size) {
     FlashLogStream *stream = SS_flash_stream_get(filename);
+
+    static StreamElement element;
+    element.size = size;
+    memcpy(element.data, data, size);
 
     if(!stream->is_logging) {
         return FLASH_STATUS_DISABLED;
     }
 
-    if(!xQueueSend(stream->queue, data, pdMS_TO_TICKS(1))) {
+    if(!xQueueSend(stream->queue, &element, pdMS_TO_TICKS(1))) {
         return FLASH_STATUS_BUSY;
     }
     return FLASH_STATUS_OK;
@@ -303,17 +285,20 @@ static void SS_flash_log_task(void *pvParameters) {
     FlashLogStream *stream = (FlashLogStream *) pvParameters;
     SS_flash_stream_init(stream);
     lfs_t *lfs = SS_flash_lfs_get();
-    uint8_t buf[stream->item_size];
+    static StreamElement element;
     uint32_t sent_bytes = 0;
     while(true) {
-        /* TODO add mutex */
-        if(xQueueReceive(stream->queue, buf, pdMS_TO_TICKS(portMAX_DELAY))) {
-            lfs_file_write(lfs, &stream->file, buf, stream->item_size);
-            sent_bytes += stream->item_size;
+        /* TODO add mutex - for concurrent calls to SS_flash_stream_stop */
+        if(xQueueReceive(stream->queue, &element, pdMS_TO_TICKS(portMAX_DELAY)) == pdTRUE) {
+
+            lfs_file_write(lfs, &stream->file, element.data, element.size);
+            sent_bytes += element.size;
+
             if(sent_bytes >= SS_s25fl_get_sector_size()) {
                 lfs_file_sync(lfs, &stream->file);
                 sent_bytes = 0;
             }
+
         }
     }
 }

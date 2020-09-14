@@ -83,7 +83,7 @@ static void vLEDFlashTask(void *pvParameters) {
 static void SS_FreeRTOS_create_tasks(void) {
     BaseType_t res;
 #if defined(SS_RUN_TESTS) && !defined(SS_RUN_TESTS_FROM_CONSOLE)
-    res = xTaskCreate(SS_run_tests_task, "Tests Task", 512, NULL, 4, (TaskHandle_t *) NULL);
+    res = xTaskCreate(SS_run_tests_task, "Tests Task", 512, NULL, 3, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
 #endif /* defined(SS_RUN_TESTS) && !defined(SS_RUN_TESTS_FROM_CONSOLE) */
     res = xTaskCreate(vLEDFlashTask, "LED Task", 64, NULL, 2, (TaskHandle_t *) NULL);
@@ -108,9 +108,14 @@ static void SS_FreeRTOS_create_tasks(void) {
 #endif /* SS_USE_COM */
 #ifdef SS_USE_FLASH
     SS_flash_create_tasks(10);
+    SS_flash_create_tasks(6);
 #endif /* SS_USE_FLASH */
     res = xTaskCreate(SS_console_task, "Console Task", 512, NULL, 3, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
+#if !defined(SS_RUN_TESTS) || defined(SS_RUN_TESTS_FROM_CONSOLE)
+    res = xTaskCreate(SS_usb_start_task, "Usb start task", 300, NULL, 2, (TaskHandle_t *) NULL);
+    assert(res == pdTRUE);
+#endif
 }
 
 /* ==================================================================== */

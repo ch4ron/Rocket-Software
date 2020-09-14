@@ -74,6 +74,9 @@ void SS_ADS1258_measurements_parse(ADS1258_Measurement *meas) {
         return;
     }
     measurement_pointers[meas->channel]->raw = meas->value;
+#ifdef SS_USE_FLASH
+    SS_flash_log_var_fromISR(meas->channel, (uint8_t *) &meas->value, sizeof(meas->value));
+#endif
 }
 
 float SS_ADS1258_measurements_read_VCC() {

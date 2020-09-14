@@ -34,7 +34,8 @@ bool SS_flash_stream_toggle(char *filename);
 FlashStatus SS_flash_stream_erase(char *filename);
 FlashStatus SS_flash_stream_erase_all(void);
 
-FlashStatus SS_flash_stream_log_var(uint8_t id, uint8_t *data, uint32_t size);
-void SS_flash_stream_log_var_fromISR(uint8_t id, uint8_t *data, uint32_t size);
+FlashStatus SS_flash_log_var(uint8_t id, uint8_t *data, uint16_t size);
+void SS_flash_log_var_fromISR(uint8_t id, uint8_t *data, uint16_t size);
+FlashStatus SS_flash_log_text(const char *str);
 
 #endif /* SS_FLASH_LOG_H */
