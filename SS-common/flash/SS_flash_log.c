@@ -22,14 +22,20 @@
 /* ========================= Private macros =========================== */
 /* ==================================================================== */
 
-#define VARS_QUEUE_LEN 1048
+#define VARS_QUEUE_LEN 512
 
 /* ==================================================================== */
 /* ======================== Private datatypes ========================= */
 /* ==================================================================== */
 
+typedef struct __attribute__((packed)) {
+    uint8_t id;
+    uint32_t timestamp;
+    uint8_t data[FLASH_LOG_MAX_VAR_DATA_SIZE];
+} StreamVar;
+
 typedef struct {
-    uint8_t data[FLASH_LOG_MAX_VAR_DATA_SIZE + 1];
+    uint8_t data[sizeof(StreamVar)];
     uint16_t size;
 } StreamElement;
 
@@ -59,6 +65,8 @@ FlashLogStream vars_stream = {
 FlashLogStream text_stream = {
     .filename = FLASH_LOG_TEXT_FILENAME,
 };
+
+static volatile uint32_t flash_timer;
 
 
 /* ==================================================================== */
@@ -188,18 +196,19 @@ FlashStatus SS_flash_stream_erase_all(void) {
 }
 
 FlashStatus SS_flash_log_var(uint8_t id, uint8_t *data, uint16_t size) {
-    static uint8_t var[FLASH_LOG_MAX_VAR_DATA_SIZE + 1];
-    var[0] = id;
-    memcpy(var + 1, data, size);
-
-    return SS_flash_stream_log(vars_stream.filename, &var, size + 1);
+    static StreamVar var;
+    var.id = id;
+    var.timestamp = flash_timer;
+    memcpy(var.data, data, size);
+    return SS_flash_stream_log(vars_stream.filename, &var, size + sizeof(var) - sizeof(var.data));
 }
 
 void SS_flash_log_var_fromISR(uint8_t id, uint8_t *data, uint16_t size) {
-    static uint8_t var[FLASH_LOG_MAX_VAR_DATA_SIZE + 1];
-    var[0] = id;
-    memcpy(var + 1, data, size);
-    SS_flash_stream_log_fromISR(vars_stream.filename, &var, size +1);
+    static StreamVar var;
+    var.id = id;
+    var.timestamp = flash_timer;
+    memcpy(var.data, data, size);
+    return SS_flash_stream_log_fromISR(vars_stream.filename, &var, size + sizeof(var) - sizeof(var.data));
 }
 
 FlashStatus SS_flash_log_text(const char *str) {
@@ -210,6 +219,14 @@ FlashStatus SS_flash_log_text(const char *str) {
         }
     }
     return FLASH_STATUS_OK;
+}
+
+void SS_flash_log_25khz_timer_isr(void) {
+    if(vars_stream.is_logging) {
+        flash_timer++;
+    } else {
+        flash_timer = 0;
+    }
 }
 
 /* ==================================================================== */
@@ -290,7 +307,6 @@ static void SS_flash_log_task(void *pvParameters) {
     while(true) {
         /* TODO add mutex - for concurrent calls to SS_flash_stream_stop */
         if(xQueueReceive(stream->queue, &element, pdMS_TO_TICKS(portMAX_DELAY)) == pdTRUE) {
-
             lfs_file_write(lfs, &stream->file, element.data, element.size);
             sent_bytes += element.size;
 
@@ -302,4 +318,3 @@ static void SS_flash_log_task(void *pvParameters) {
         }
     }
 }
-

@@ -69,18 +69,21 @@ TEST(flash_log, log_vars)
 
     TEST_ASSERT_EQUAL_INT(1, lfs_file_read(lfs, &vars_file, data, 1));
     TEST_ASSERT_EQUAL_HEX8_ARRAY(&id1, data, 1);
+    TEST_ASSERT_EQUAL_INT(4, lfs_file_read(lfs, &vars_file, data, 4));
 
     TEST_ASSERT_EQUAL_INT(sizeof(data1), lfs_file_read(lfs, &vars_file, data, sizeof(data1)));
     TEST_ASSERT_EQUAL_HEX8_ARRAY(data1, data, sizeof(data1));
 
     TEST_ASSERT_EQUAL_INT(1, lfs_file_read(lfs, &vars_file, data, 1));
     TEST_ASSERT_EQUAL_HEX8_ARRAY(&id2, data, 1);
+    TEST_ASSERT_EQUAL_INT(4, lfs_file_read(lfs, &vars_file, data, 4));
 
     TEST_ASSERT_EQUAL_INT(sizeof(data2), lfs_file_read(lfs, &vars_file, data, sizeof(data2)));
     TEST_ASSERT_EQUAL_HEX8_ARRAY(data2, data, sizeof(data2));
 
     TEST_ASSERT_EQUAL_INT(1, lfs_file_read(lfs, &vars_file, data, 1));
     TEST_ASSERT_EQUAL_HEX8_ARRAY(&id3, data, 1);
+    TEST_ASSERT_EQUAL_INT(4, lfs_file_read(lfs, &vars_file, data, 4));
 
     TEST_ASSERT_EQUAL_INT(sizeof(data3), lfs_file_read(lfs, &vars_file, data, sizeof(data3)));
     TEST_ASSERT_EQUAL_HEX8_ARRAY(data3, data, sizeof(data3));
@@ -168,18 +171,21 @@ TEST(flash_log, reset_log_vars)
 
     TEST_ASSERT_EQUAL_INT(1, lfs_file_read(lfs, &vars_file, data, 1));
     TEST_ASSERT_EQUAL_INT(0, memcmp(data, &id1, 1));
+    TEST_ASSERT_EQUAL_INT(4, lfs_file_read(lfs, &vars_file, data, 4));
 
     TEST_ASSERT_EQUAL_INT(sizeof(data1), lfs_file_read(lfs, &vars_file, data, sizeof(data1)));
     TEST_ASSERT_EQUAL_INT(0, memcmp(data, data1, sizeof(data1)));
 
     TEST_ASSERT_EQUAL_INT(1, lfs_file_read(lfs, &vars_file, data, 1));
     TEST_ASSERT_EQUAL_INT(0, memcmp(data, &id2, 1));
+    TEST_ASSERT_EQUAL_INT(4, lfs_file_read(lfs, &vars_file, data, 4));
 
     TEST_ASSERT_EQUAL_INT(sizeof(data2), lfs_file_read(lfs, &vars_file, data, sizeof(data2)));
     TEST_ASSERT_EQUAL_INT(0, memcmp(data, data2, sizeof(data2)));
 
     TEST_ASSERT_EQUAL_INT(1, lfs_file_read(lfs, &vars_file, data, 1));
     TEST_ASSERT_EQUAL_INT(0, memcmp(data, &id3, 1));
+    TEST_ASSERT_EQUAL_INT(4, lfs_file_read(lfs, &vars_file, data, 4));
 
     TEST_ASSERT_EQUAL_INT(sizeof(data3), lfs_file_read(lfs, &vars_file, data, sizeof(data3)));
     TEST_ASSERT_EQUAL_INT(0, memcmp(data, data3, sizeof(data3)));

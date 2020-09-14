@@ -19,7 +19,7 @@
 /* ============================= Macros =============================== */
 /* ==================================================================== */
 
-#define FLASH_LOG_MAX_VAR_DATA_SIZE 8
+#define FLASH_LOG_MAX_VAR_DATA_SIZE 4
 #define FLASH_LOG_VARS_FILENAME "vars.bin"
 #define FLASH_LOG_TEXT_FILENAME "text.txt"
 
