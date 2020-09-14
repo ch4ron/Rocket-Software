@@ -21,6 +21,7 @@ typedef enum
 UsbStatus SS_usb_init(void);
 UsbStatus SS_usb_stop(void);
 UsbStatus SS_usb_start(void);
+void SS_usb_start_task(void *pvParameters);
 
 Fatmap *SS_usb_get_fatmap(void);
 bool SS_usb_get_is_enabled(void);

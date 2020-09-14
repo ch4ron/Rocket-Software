@@ -6,6 +6,8 @@
  **/
 
 #include "SS_usb.h"
+#include "FreeRTOS.h"
+#include "task.h"
 
 static Fatmap fatmap;
 static FatmapConfig fatmap_cfg;
@@ -55,6 +57,12 @@ UsbStatus SS_usb_stop(void)
 
     is_enabled = false;
     return USB_STATUS_OK;
+}
+
+void SS_usb_start_task(void *pvParameters) {
+    /* Usb has to be started after initializing log streams */
+    SS_usb_start();
+    vTaskDelete(NULL);
 }
 
 Fatmap *SS_usb_get_fatmap(void)
