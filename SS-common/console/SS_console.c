@@ -150,12 +150,10 @@ static void SS_console_run_all_tests(char *args) {
 #include "SS_flash_log.h"
 
 static void _SS_flash_log_toggle(char *args) {
-    if (SS_flash_log_get_is_logging()) {
-        assert(SS_flash_log_stop() == FLASH_STATUS_OK);
-        SS_println("Logging stopped");
+    if(SS_flash_stream_toggle(FLASH_LOG_VARS_FILENAME)) {
+        SS_println("Log Started");
     } else {
-        assert(SS_flash_log_start() == FLASH_STATUS_OK);
-        SS_println("Logging started");
+        SS_println("Log Stopped");
     }
 }
 
@@ -170,7 +168,9 @@ static void SS_console_print_help(char *args) {
 }
 
 static void SS_flash_erase(char *args) {
-    SS_flash_log_erase();
+    SS_println("Erase flash");
+    SS_flash_stream_erase_all();
+    SS_println("Flash erased");
 }
 
 static void SS_flash_purge(char *args) {

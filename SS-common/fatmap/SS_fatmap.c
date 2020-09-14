@@ -57,14 +57,14 @@ FatmapStatus SS_fatmap_start(Fatmap *fm)
     vars_cfg.buffer = vars_buf;
     vars_cfg.attr_count = 0;
 
-    if (lfs_file_opencfg(lfs, &vars_file, "vars.bin", LFS_O_RDONLY, &vars_cfg) != LFS_ERR_OK) {
+    if (lfs_file_opencfg(lfs, &vars_file, FLASH_LOG_VARS_FILENAME, LFS_O_RDONLY, &vars_cfg) != LFS_ERR_OK) {
         return FATMAP_STATUS_ERR;
     }
 
     text_cfg.buffer = text_buf;
     text_cfg.attr_count = 0;
 
-    if (lfs_file_opencfg(lfs, &text_file, "text.txt", LFS_O_RDONLY, &text_cfg) != LFS_ERR_OK) {
+    if (lfs_file_opencfg(lfs, &text_file, FLASH_LOG_TEXT_FILENAME, LFS_O_RDONLY | LFS_O_CREAT, &text_cfg) != LFS_ERR_OK) {
         return FATMAP_STATUS_ERR;
     }
 
