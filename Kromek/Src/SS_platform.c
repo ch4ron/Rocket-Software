@@ -190,7 +190,6 @@ void SS_platform_init() {
     SS_platform_relays_init();
     SS_platform_ADS1258_init();
     SS_can_init(&hcan1, COM_KROMEK_ID);
-    SS_relay_open(SS_relay_get(4));
     SS_grazyna_init(&huart2);
     SS_igniter_init(RELAY2_GPIO_Port, RELAY2_Pin);
 #ifdef SS_USE_DYNAMIXEL
@@ -199,5 +198,6 @@ void SS_platform_init() {
 #ifdef SS_USE_FLASH
     assert(SS_s25fl_init(FLASH_RESET_GPIO_Port, FLASH_RESET_Pin, 64*1024*1024, 256*1024, 512, true, 4, 1) == S25FL_STATUS_OK);
     SS_println("flash init: %d", SS_flash_init(&hqspi, FLASH_RESET_GPIO_Port, FLASH_RESET_Pin));
+    SS_enable_supply(&relay_supply);
 #endif
 }
