@@ -29,6 +29,9 @@
 #ifdef SS_USE_IGNITER
 #include "SS_igniter_com.h"
 #endif
+#ifdef SS_USE_FLASH
+#include "SS_flash_com.h"
+#endif
 
 /* ==================================================================== */
 /* ======================== Private datatypes ========================= */
@@ -60,6 +63,9 @@ static ComHandler service_handlers[] = {
 #endif
 #ifdef SS_USE_IGNITER
     {COM_IGNITER_ID, SS_igniter_com_service},
+#endif
+#ifdef SS_USE_FLASH
+    {COM_FLASH_ID, SS_flash_com_service},
 #endif
 };
 
