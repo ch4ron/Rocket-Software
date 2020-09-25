@@ -62,16 +62,16 @@ ComStatus SS_dynamixel_com_request(ComFrame *frame) {
     ComDynamixelID msgID = frame->operation;
     switch(msgID) {
         case COM_DYNAMIXEL_OPENED_POSITION:
-            SS_com_add_payload_to_frame(frame, UINT16, &dynamixel.opened_position);
+            SS_com_add_payload_to_frame(frame, INT32, &dynamixel.opened_position);
             break;
         case COM_DYNAMIXEL_CLOSED_POSITION:
-            SS_com_add_payload_to_frame(frame, UINT16, &dynamixel.closed_position);
+            SS_com_add_payload_to_frame(frame, INT32, &dynamixel.closed_position);
             break;
         case COM_DYNAMIXEL_POSITION:
             if(SS_dynamixel_get_position(&dynamixel) != DYNAMIXEL_RESULT_OK) {
                 return COM_ERROR;
             }
-            SS_com_add_payload_to_frame(frame, UINT16, &dynamixel.present_position);
+            SS_com_add_payload_to_frame(frame, INT32, &dynamixel.present_position);
             break;
         default:
             SS_error("Unhandled Grazyna dynamixel request: %d\r\n", msgID);
