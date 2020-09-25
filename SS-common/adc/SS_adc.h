@@ -8,18 +8,49 @@
 #ifndef SS_ADC_H_
 #define SS_ADC_H_
 
-#include "stdint.h"
-#include "adc.h"
+/* ==================================================================== */
+/* ============================= Includes ============================= */
+/* ==================================================================== */
 
-/* Note that channelId is equal to channel's rank, counting from 1 (dependent on CubeMX configuration) not ADC Channel */
-typedef struct {
+#include "stdint.h"
+#include "stm32f4xx_hal.h"
+#include "stdbool.h"
+
+/* ==================================================================== */
+/* ============================ Datatypes ============================= */
+/* ==================================================================== */
+
+/* Takes measured voltage as parameter, should return a scaled value */
+typedef float (*SS_adc_scale_fun)(float);
+
+struct AdcMeasurement_tag;
+
+typedef struct Adc_tag {
+    ADC_HandleTypeDef hadc;
+
+    /* Allocated dynamically */
+    struct AdcMeasurement_tag **measurements;
+    uint16_t *raw;
+
+    uint8_t max_channel_count;
+    bool save_to_flash;
+    uint8_t active_channels;
+} Adc;
+
+typedef struct AdcMeasurement_tag {
     float value;
-    float (*fun)(uint16_t, float);
-    uint8_t rankId;
-    uint8_t adc;
+    SS_adc_scale_fun scale_fun;
+    uint32_t channel;
+    Adc *adc;
 } AdcMeasurement;
 
-void SS_adc_init(ADC_HandleTypeDef *adc[], uint8_t count);
-void SS_adc_add_measurement(AdcMeasurement *meas);
+/* ==================================================================== */
+/* ==================== Public function prototypes ==================== */
+/* ==================================================================== */
 
-#endif /* SS_KROMEK_ADC_H_ */
+void SS_adc_init(Adc *adc, ADC_TypeDef *adc_type, uint8_t channel_count);
+void SS_adc_add_measurement(AdcMeasurement *meas);
+void SS_adc_start();
+void SS_adc_enable_vref(Adc *adc);
+
+#endif /* SS_ADC_H_ */

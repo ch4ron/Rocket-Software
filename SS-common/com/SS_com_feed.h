@@ -8,10 +8,22 @@
 #ifndef SS_COM_H_
 #define SS_COM_H_
 
-#include "stm32f4xx_hal.h"
+/* ==================================================================== */
+/* ============================= Includes ============================= */
+/* ==================================================================== */
 
-void SS_com_feed_main();
-void SS_com_feed_enable();
-void SS_com_feed_disable();
+#include "stm32f4xx_hal.h"
+#include "FreeRTOS.h"
+#include "task.h"
+
+extern TaskHandle_t com_feed_task;
+
+/* ==================================================================== */
+/* ==================== Public function prototypes ==================== */
+/* ==================================================================== */
+
+void SS_com_feed_task(void *pvParameters);
+void SS_com_feed_enable(void);
+void SS_com_feed_disable(void);
 
 #endif /* SS_COM_H_ */

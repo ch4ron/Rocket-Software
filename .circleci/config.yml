@@ -16,6 +16,9 @@ jobs:
           name: "Create build directory"
           command: mkdir cmake-build && cd cmake-build && cmake ../
       - run:
+          name: "Create test build directory"
+          command: mkdir cmake-build-test && cd cmake-build-test && cmake -DCMAKE_BUILD_TYPE=Test ../
+      - run:
           name: "Build Kromek"
           command:
               make -C cmake-build kromek.elf
@@ -23,6 +26,22 @@ jobs:
           name: "Build Staszek"
           command:
               make -C cmake-build staszek.elf
+      - run:
+          name: "Build Pauek"
+          command:
+              make -C cmake-build pauek.elf
+      - run:
+          name: "Build Kromek test"
+          command:
+              make -C cmake-build-test kromek.elf
+      - run:
+          name: "Build Staszek test"
+          command:
+              make -C cmake-build-test staszek.elf
+      - run:
+          name: "Build Pauek test"
+          command:
+              make -C cmake-build-test pauek.elf
       - run:
           name: "Run tests"
           command:

@@ -8,7 +8,7 @@
 #include "SS_measurements.h"
 
 #include "SS_com.h"
-#include "SS_com_debug.h"
+#include "SS_com_ids.h"
 #include "string.h"
 
 #define ADS1258_PREVIEW_VALUES_PERIOD 100
@@ -138,13 +138,15 @@ static float SS_ADS1258_calculate_scaled(Measurement *meas) {
     return meas->scaled;
 }
 
+#ifdef SS_USE_COM
 static void SS_ADS1258_measurement_feed(Measurement *meas, ComFrame *frame) {
     SS_ADS1258_calculate_scaled(meas);
     frame->priority = COM_LOW_PRIORITY;
     frame->action = COM_FEED;
     frame->destination = COM_GRAZYNA_ID;
+    frame->source = SS_com_get_board_id();
     frame->device = COM_MEASUREMENT_ID;
-    frame->operation = 0;
+    frame->operation = 1;
     frame->id = meas->channel_id;
     frame->data_type = FLOAT;
     frame->payload = *((uint32_t *) &meas->scaled);
@@ -177,6 +179,7 @@ ComStatus SS_ADS1258_com_request(ComFrame *frame) {
     SS_com_add_payload_to_frame(frame, FLOAT, &meas->scaled);
     return COM_OK;
 }
+#endif
 
 /* Unnecessary, feed calculates scaled values before sending */
 

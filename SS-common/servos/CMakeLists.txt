@@ -1,13 +1,18 @@
-project(servos C)
+set(TARGET servos)
 
-add_library(${PROJECT_NAME} INTERFACE)
+add_library(${TARGET} INTERFACE)
 
 target_include_directories(
-        ${PROJECT_NAME} INTERFACE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
+    ${TARGET} INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_sources(${PROJECT_NAME} INTERFACE
-        ${CMAKE_CURRENT_SOURCE_DIR}/SS_servos.c)
+target_non_test_sources(${TARGET} INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}/SS_servos.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/SS_servos.c)
 
-target_test_sources(${PROJECT_NAME} INTERFACE
-        ${CMAKE_CURRENT_SOURCE_DIR}/SS_servos_test.c)
+target_sources(${TARGET} INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}/SS_servos_com.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/SS_servos_com.c)
+
+target_test_sources(${TARGET} INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}/SS_servos_test.c)

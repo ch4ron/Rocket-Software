@@ -26,26 +26,39 @@ extern void SS_grazyna_rx_isr(void);
 static UART_HandleTypeDef *grazyna_huart;
 
 /* ==================================================================== */
-/* ========================= Global functions ========================= */
+/* ========================= Public functions ========================= */
 /* ==================================================================== */
 
 /* huart is of type UART_HandleTypedef */
-void SS_grazyna_init_hal(void *huart) {
-    grazyna_huart = (UART_HandleTypeDef *) huart;
+void SS_grazyna_init_hal(UART_HandleTypeDef *huart) {
+    grazyna_huart = huart;
 }
 
 void SS_grazyna_receive_hal(uint8_t *data, uint16_t length) {
+#ifdef SS_GRAZYNA_USE_DMA
     HAL_UART_Receive_DMA(grazyna_huart, data, length);
+#else
+    HAL_UART_Receive_IT(grazyna_huart, data, length);
+#endif
 }
 
 void SS_grazyna_transmit_hal(uint8_t *data, uint16_t length) {
-    /* TODO Add mutex for transmission */
+#ifdef SS_GRAZYNA_USE_DMA
     HAL_UART_Transmit_DMA(grazyna_huart, data, length);
+#else
+    HAL_UART_Transmit_IT(grazyna_huart, data, length);
+#endif
 }
 
 void SS_grazyna_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
     if(huart == grazyna_huart) {
         SS_grazyna_rx_isr();
+    }
+}
+
+void SS_grazyna_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
+    if(huart == grazyna_huart) {
+        SS_grazyna_tx_isr();
     }
 }
 

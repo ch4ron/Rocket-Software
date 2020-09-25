@@ -8,19 +8,37 @@
 #ifndef SS_SEQUENCE_H_
 #define SS_SEQUENCE_H_
 
-#include "stm32f4xx_hal.h"
+/* ==================================================================== */
+/* ============================= Includes ============================= */
+/* ==================================================================== */
+
+#include "SS_com_ids.h"
+#include "SS_com.h"
+#include "stdint.h"
+
+/* ==================================================================== */
+/* ============================= Macros =============================== */
+/* ==================================================================== */
 
 #define MAX_SEQUENCE_ITEMS 25
 
-typedef struct {
-    void (*func)(uint32_t);
-    uint32_t value;
-    uint32_t time;
-} SequenceItem;
+/* ==================================================================== */
+/* ============================ Datatypes ============================= */
+/* ==================================================================== */
 
-void SS_sequence_add(void (*func)(uint32_t), uint32_t value, uint32_t time);
-void SS_sequence_clear();
-void SS_sequence_start();
-void SS_sequence_SYSTICK();
+typedef enum {
+    COM_SEQUENCE_CLEAR = 0x01,
+    COM_SEQUENCE_START = 0x02,
+    COM_SEQUENCE_ABORT = 0x03
+} ComSequenceID;
+
+/* ==================================================================== */
+/* ==================== Public function prototypes ==================== */
+/* ==================================================================== */
+
+void SS_sequence_init(void);
+int8_t SS_sequence_add(ComDeviceID device, uint8_t id, uint8_t operation, int16_t value, int16_t time);
+ComStatus SS_sequence_com_service(ComFrame *frame);
+void SS_sequence_task(void *pvParameters);
 
 #endif /* SS_SEQUENCE_H_ */

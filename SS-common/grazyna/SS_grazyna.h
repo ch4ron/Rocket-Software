@@ -17,7 +17,7 @@
 #include "stm32f4xx_hal.h"
 
 /* ==================================================================== */
-/* ============================= Defines ============================== */
+/* ============================= Macros =============================== */
 /* ==================================================================== */
 
 #define GRAZYNA_HEADER 0x05
@@ -41,5 +41,7 @@ void SS_grazyna_transmit(ComFrame *frame);
 void SS_grazyna_disable(void);
 void SS_grazyna_enable(void);
 bool SS_grazyna_is_enabled(void);
+void SS_grazyna_tx_handler_task(void *pvParameters);
+void SS_grazyna_tx_isr(void);
 
 #endif /* SS_GRAZYNA_H */

@@ -6,8 +6,13 @@
 
 #include "SS_can.h"
 #include "SS_common.h"
+#include "SS_console.h"
 #include "can.h"
 #include "usart.h"
+
+void SS_platform_toggle_loop_led() {
+    HAL_GPIO_TogglePin(LOOP_LED_GPIO_Port, LOOP_LED_Pin);
+}
 
 /********** ADC *********/
 
@@ -41,6 +46,7 @@ void SS_platform_init() {
     //    SS_platform_adc_init();
     //    SS_platform_supply_init();
     SS_log_init(&huart6);
+    SS_console_init(&huart6);
     SS_can_init(&hcan1, COM_PAUEK_ID);
     SS_can_ext_init(&hcan2);
     SS_grazyna_init(&huart1);

@@ -5,15 +5,16 @@
  *      Author: maciek
  */
 
-#include "SS_servos.h"
+#include "SS_servos.c"
 
+#ifdef SS_USE_COM
 #include "SS_com.h"
+#include "SS_servos_com.h"
+#endif
 #include "string.h"
 #include "unity_fixture.h"
 
-extern Servo *servo_pointers[MAX_SERVO_COUNT];
-extern uint16_t SS_servo_get_width(uint16_t position);
-extern ServosConfig servos_config;
+extern void SS_platform_servos_init(void);
 extern ComStatus SS_com_handle_action(ComFrame *frame);
 
 ServosConfig tmp_config;
@@ -128,23 +129,23 @@ TEST(servos, timeout) {
     servos_config.MAX_PULSE_WIDTH = 2000;
     servos_config.SERVO_FREQUENCY = 300;
     servos_config.SERVO_RANGE = 1000;
-    for (int i = 0; i < sizeof(servo_pointers) / sizeof(servo_pointers[1]); i++) {
+    for(int i = 0; i < sizeof(servo_pointers) / sizeof(servo_pointers[1]); i++) {
         SS_servo_open(servo_pointers[i]);
     }
-    for (int i = 0; i < sizeof(servo_pointers) / sizeof(servo_pointers[1]); i++) {
+    for(int i = 0; i < sizeof(servo_pointers) / sizeof(servo_pointers[1]); i++) {
         TEST_ASSERT_EQUAL(600, *servo_pointers[i]->pointer);
         TEST_ASSERT_TRUE(SS_supply_get_state(servo_pointers[i]->supply));
     }
 
     HAL_Delay(SERVO_TIMEOUT + 1);
-    for (int i = 0; i < sizeof(servo_pointers) / sizeof(servo_pointers[1]); i++) {
+    for(int i = 0; i < sizeof(servo_pointers) / sizeof(servo_pointers[1]); i++) {
         TEST_ASSERT_EQUAL(0, *servo_pointers[i]->pointer);
         TEST_ASSERT_FALSE(SS_supply_get_state(servo_pointers[i]->supply));
     }
-    for (int i = 0; i < sizeof(servo_pointers) / sizeof(servo_pointers[1]); i++) {
+    for(int i = 0; i < sizeof(servo_pointers) / sizeof(servo_pointers[1]); i++) {
         SS_servo_open(servo_pointers[i]);
     }
-    for (int i = 0; i < sizeof(servo_pointers) / sizeof(servo_pointers[1]); i++) {
+    for(int i = 0; i < sizeof(servo_pointers) / sizeof(servo_pointers[1]); i++) {
         TEST_ASSERT_EQUAL(600, *servo_pointers[i]->pointer);
         TEST_ASSERT_TRUE(SS_supply_get_state(servo_pointers[i]->supply));
     }
@@ -264,13 +265,13 @@ static void test_grazyna_servo_get_closed_position(uint8_t servo_id) {
 }
 
 TEST(grazyna_servos, open) {
-    for (uint8_t i = 0; i < MAX_SERVO_COUNT; i++) {
+    for(uint8_t i = 0; i < MAX_SERVO_COUNT; i++) {
         test_grazyna_servo_open(i);
     }
 }
 
 TEST(grazyna_servos, close) {
-    for (uint8_t i = 0; i < MAX_SERVO_COUNT; i++) {
+    for(uint8_t i = 0; i < MAX_SERVO_COUNT; i++) {
         test_grazyna_servo_close(i);
     }
 }
@@ -286,19 +287,19 @@ TEST(grazyna_servos, wrong_id) {
 }
 
 TEST(grazyna_servos, set_position) {
-    for (uint8_t i = 0; i < MAX_SERVO_COUNT; i++) {
+    for(uint8_t i = 0; i < MAX_SERVO_COUNT; i++) {
         test_grazyna_servo_set_position(i);
     }
 }
 
 TEST(grazyna_servos, set_closed_position) {
-    for (uint8_t i = 0; i < MAX_SERVO_COUNT; i++) {
+    for(uint8_t i = 0; i < MAX_SERVO_COUNT; i++) {
         test_grazyna_servo_set_closed_position(i);
     }
 }
 
 TEST(grazyna_servos, set_opened_position) {
-    for (uint8_t i = 0; i < MAX_SERVO_COUNT; i++) {
+    for(uint8_t i = 0; i < MAX_SERVO_COUNT; i++) {
         test_grazyna_servo_set_opened_position(i);
     }
 }
@@ -324,19 +325,19 @@ TEST(grazyna_servos, disable) {
 }
 
 TEST(grazyna_servos, get_position) {
-    for (uint8_t i = 0; i < MAX_SERVO_COUNT; i++) {
+    for(uint8_t i = 0; i < MAX_SERVO_COUNT; i++) {
         test_grazyna_servo_get_position(i);
     }
 }
 
 TEST(grazyna_servos, get_closed_position) {
-    for (uint8_t i = 0; i < MAX_SERVO_COUNT; i++) {
+    for(uint8_t i = 0; i < MAX_SERVO_COUNT; i++) {
         test_grazyna_servo_get_closed_position(i);
     }
 }
 
 TEST(grazyna_servos, get_opened_position) {
-    for (uint8_t i = 0; i < MAX_SERVO_COUNT; i++) {
+    for(uint8_t i = 0; i < MAX_SERVO_COUNT; i++) {
         test_grazyna_servo_get_opened_position(i);
     }
 }
