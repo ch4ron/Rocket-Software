@@ -21,6 +21,7 @@
 #include "tim.h"
 
 /* USER CODE BEGIN 0 */
+TIM_HandleTypeDef htim13;
 
 /* USER CODE END 0 */
 
