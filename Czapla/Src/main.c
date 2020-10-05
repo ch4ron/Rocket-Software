@@ -102,6 +102,7 @@ int main(void)
   MX_CAN1_Init();
   MX_CAN2_Init();
   MX_SPI1_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
   SS_platform_init();
   SS_init();
@@ -184,7 +185,34 @@ void SystemClock_Config(void)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* USER CODE BEGIN Callback 0 */
-
+    if (htim->Instance == TIM1)
+    {
+        /*
+		uint8_t data[10] =
+		{ 't', 'e', 's', 't', 'G', 0, 0, 'x', '\r', '\n' };
+		static uint8_t j = 0, d = 0;
+		data[6] = j + 48;
+		data[5] = d + 48;
+		j++;
+		if (j == 10)
+		{
+			j = 0;
+			d++;
+		}
+		if (d == 10)
+			d = 0;
+		//HAL_GPIO_TogglePin (COM_BLUE_GPIO_Port, COM_BLUE_Pin);
+		union FRAME tx_frame;
+		tx_frame.frame.type = 0x15;
+		tx_frame.frame.id = 95;
+		tx_frame.frame.data = 100;
+		tx_frame.frame.crc = 0x00;
+		tx_frame.frame.crc = HAL_CRC_Calculate(&hcrc, tx_frame.data_u32_u16.data_u32, 2);
+		if(SS_grazyna_get_from_fifo_tx(&tx_frame) !=-1)
+			RFM23_send(tx_frame.data_u8.data);
+        */
+        //HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
+    }
   /* USER CODE END Callback 0 */
   if (htim->Instance == TIM14) {
     HAL_IncTick();
