@@ -58,20 +58,16 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define Ttransfer 20
-#define Tswap 20
 #define TIMEPULSE_Pin GPIO_PIN_0
 #define TIMEPULSE_GPIO_Port GPIOA
-#define TIMEPULSE_EXTI_IRQn EXTI0_IRQn
 #define SPI1_NSS_Pin GPIO_PIN_4
 #define SPI1_NSS_GPIO_Port GPIOA
 #define COM_GREEN_Pin GPIO_PIN_4
 #define COM_GREEN_GPIO_Port GPIOC
 #define COM_BLUE_Pin GPIO_PIN_5
 #define COM_BLUE_GPIO_Port GPIOC
-#define LORA_NIRQ_Pin GPIO_PIN_1
-#define LORA_NIRQ_GPIO_Port GPIOB
-#define LORA_NIRQ_EXTI_IRQn EXTI1_IRQn
+#define LORA_INRQ_Pin GPIO_PIN_1
+#define LORA_INRQ_GPIO_Port GPIOB
 #define COM_RED_Pin GPIO_PIN_6
 #define COM_RED_GPIO_Port GPIOC
 #define LOOP_LED_Pin GPIO_PIN_5
