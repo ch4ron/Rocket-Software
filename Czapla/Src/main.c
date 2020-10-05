@@ -98,10 +98,10 @@ int main(void)
   MX_TIM13_Init();
   MX_USART2_UART_Init();
   MX_CRC_Init();
+  MX_UART5_Init();
   MX_CAN1_Init();
   MX_CAN2_Init();
   MX_SPI1_Init();
-  MX_UART5_Init();
   /* USER CODE BEGIN 2 */
   SS_platform_init();
   SS_init();
