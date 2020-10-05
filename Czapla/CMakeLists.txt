@@ -24,6 +24,7 @@ add_compile_definitions(SS_USE_CAN)
 #add_compile_definitions(SS_USE_GRAZYNA)
 add_compile_definitions(SS_USE_COM)
 add_compile_definitions(SS_USE_GRAZYNA)
+add_compile_definitions(SS_USE_LORA)
 
 #add_compile_definitions(SS_USE_FLASH)
 

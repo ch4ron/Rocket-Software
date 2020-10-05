@@ -15,6 +15,10 @@
 #endif
 #include "SS_console.h"
 #include "SS_log.h"
+#ifdef SS_USE_LORA
+#include "SS_rfm23.h"
+#endif
+#include "SS_it.h"
 
 /*********** LED **********/
 
@@ -40,6 +44,7 @@ void SS_platform_init() {
 #endif
 #ifdef SS_USE_CAN
     SS_can_init(&hcan1,COM_CZAPLA_ID);
+    SS_can_init(&hcan2, COM_CZAPLA_ID);
 #endif
 #ifdef SS_USE_GRAZYNA
     SS_grazyna_init(&huart2);
