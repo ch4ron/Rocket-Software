@@ -4,6 +4,31 @@
  *  Created on: 27.12.2017
  *      Author: Tomasz
  */
+/* ==================================================================== *
+ * ============================ HOW TO USE ============================ *
+ * ==================================================================== *
+ *
+ *  1. Configure SPI Connection in MxCube
+ *  2. Enter 'MPU_CS' 'MPU_SCK''MPU_MISO''MPU_MOSI' 'MPU_INT' as user label for CPU's pin connected
+ *     with MPU9250's chip select pin (in CubeMX).
+ *  3. #include "SS_MPU9250.h" in main.c file, and add SS_MPu9250.c and SS_MPU9250.h to your project.
+ *  4. Call SS_MPU_init function in init section of main function.
+ *  5. Enter proper pointer to a SPI_HandleTypeDef structure that contains the configuration
+ *     information for proper SPI module. It is placed at the beginning of SS_MPU_9250.h file.
+ *  6. Use functions SS_MPU_accel_write_calibration and SS_MPU_gyro_write_calibration to calibrate
+ *     sensor. Use function SS_MPU_calibrate in console in order to get an accurate data about what
+ *     should be wrote in functions above
+ *  7. Then just use SS_MPU_get_accel_data or SS_MPU_get_gyro_data function
+ *     by calling it in main loop of the program.
+ * ==================================================================== *
+ * ====================== HOW TO USE DMA MODE ========================= *
+ * ==================================================================== *
+ *  1. Configure SPI connection in STM32CubeMX and add DMA requests for chosen SPI. Do not forget about enabling
+ *     global interrupts for both DMA streams.
+ *  2. Do the same what in points 2,3,4,5,6.
+ *  3. Use SS_MPU_get_data_DMA function by calling it in main loop of the program.
+ *     Or use SS_MPU_read_multiple_DMA. The above functions may not be available outside library
+ *     due to static definitions.
 
 /* ==================================================================== */
 /* ============================= Includes ============================= */
@@ -156,7 +181,7 @@ MPU_STATUS SS_MPU_math_scaled_accel(MPU9250 *mpu9250) {
 }
 
 MPU_STATUS SS_MPU_calibrate(MPU9250 *mpu9250) {  //Device needs to be flat during calibration!!!
-    int16_t calibration_time = 2000;
+    int16_t calibration_time = 20;
     uint16_t max_gyro_deviation = 15;
     uint16_t max_accel_deviation = 200;
     HAL_Delay(100);
@@ -172,12 +197,13 @@ MPU_STATUS SS_MPU_calibrate(MPU9250 *mpu9250) {  //Device needs to be flat durin
     HAL_Delay(50);
 
     int16_t data[6][calibration_time];
+    int16_t data1[6][30];
     for(int16_t i = 0; i < calibration_time; i++) {
         result |= SS_MPU_get_gyro_data(mpu9250);
         result |= SS_MPU_get_accel_data(mpu9250);
-        data[0][i] = mpu9250->gyro_raw_x;
-        data[1][i] = mpu9250->gyro_raw_y;
-        data[2][i] = mpu9250->gyro_raw_z;
+       data[0][i] = mpu9250->gyro_raw_x;
+       data[1][i] = mpu9250->gyro_raw_y;
+       data[2][i] = mpu9250->gyro_raw_z;
         data[3][i] = mpu9250->accel_raw_x;
         data[4][i] = mpu9250->accel_raw_y;
         data[5][i] = mpu9250->accel_raw_z;
@@ -453,15 +479,19 @@ static MPU_STATUS SS_MPU_set_accel_scale(MPU9250 *mpu9250, uint8_t scale) {
     switch(scale) {
         case MPU_ACCEL_SCALE_2:
             mpu9250->accel_resolution = 1.0 / 16383.5;
+            mpu9250->accel_extent = 2;
             break;
         case MPU_ACCEL_SCALE_4:
             mpu9250->accel_resolution = 1.0 / 8191.75;
+            mpu9250->accel_extent = 4;
             break;
         case MPU_ACCEL_SCALE_8:
             mpu9250->accel_resolution = 1.0 / 4095.875;
+            mpu9250->accel_extent = 8;
             break;
         case MPU_ACCEL_SCALE_16:
             mpu9250->accel_resolution = 1.0 / 2047.9375;
+            mpu9250->accel_extent = 16;
             break;
     }
     HAL_Delay(1);

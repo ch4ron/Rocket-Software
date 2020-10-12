@@ -196,9 +196,10 @@ static void SS_Check_bias_test() {
     TEST_ASSERT_INT_WITHIN(100, 0, abs(mpu9250->accel_raw_x));
     TEST_ASSERT_INT_WITHIN(100, 0, abs(mpu9250->accel_raw_y));
     TEST_ASSERT_INT_WITHIN(200, 2000, abs(mpu9250->accel_raw_z));  // oscillations are too big
-    TEST_ASSERT_INT_WITHIN(200, 0, abs(mpu9250->gyro_raw_x));
-    TEST_ASSERT_INT_WITHIN(200, 0, abs(mpu9250->gyro_raw_y));
-    TEST_ASSERT_INT_WITHIN(200, 0, abs(mpu9250->gyro_raw_z));
+    TEST_ASSERT_INT_WITHIN(100, 0, abs(mpu9250->gyro_raw_x));
+    TEST_ASSERT_INT_WITHIN(100, 0, abs(mpu9250->gyro_raw_y));
+    TEST_ASSERT_INT_WITHIN(100, 0, abs(mpu9250->gyro_raw_z));
+    
 
 
     SS_AK8963_reset(mpu9250);
@@ -441,7 +442,7 @@ TEST(MPU, sleep) {
     TEST_ASSERT_EQUAL(MPU_OK, function_response);
 }
 TEST(MPU, calibrate) {
-    TEST_IGNORE();
+
     function_response = SS_MPU_calibrate(mpu9250);
     TEST_ASSERT_EQUAL(MPU_OK, function_response);
 }

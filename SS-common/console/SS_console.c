@@ -85,7 +85,9 @@ static void SS_flash_stop(char *params) {
 }
 
 static void SS_mpu_calibrate(char *params) {
-    /* SS_MPU_calibrate(&mpu); */
+    SS_MPU_calibrate(&mpu);
+    SS_println("calibrate used successfully");
+
 }
 
 ConsoleCommand commands[] = {
@@ -100,7 +102,7 @@ ConsoleCommand commands[] = {
     {"start", "Start logging", SS_flash_start},
     {"print", "Pring logs", SS_flash_print_logs},
     {"mpu", "Prints mpu config", SS_print_MPU_params},
-    /* {"calibrate", "Calibrate", SS_mpu_calibrate}, */
+    {"c", "Calibrate", SS_mpu_calibrate},
 #endif
     {"help", "Print help", SS_console_print_help},
 };

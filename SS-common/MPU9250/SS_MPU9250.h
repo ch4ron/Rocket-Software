@@ -55,6 +55,8 @@ typedef struct {
     uint8_t mgnt_id;
     float gyro_resolution;
     float accel_resolution;
+    int16_t accel_extent;
+    int16_t gyro_extent;
     uint8_t gyro_bandwidth;
     uint8_t accel_bandwidth;
     uint8_t gyro_scale;
