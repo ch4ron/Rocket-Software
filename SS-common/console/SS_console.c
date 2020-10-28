@@ -87,7 +87,6 @@ static void SS_flash_stop(char *params) {
 static void SS_mpu_calibrate(char *params) {
     SS_println(" Wait A Second ! :D ");
     SS_MPU_calibrate(&mpu);
-    SS_println("calibrate used successfully");
 
 }
 

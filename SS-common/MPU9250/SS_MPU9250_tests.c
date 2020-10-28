@@ -23,6 +23,8 @@ MPU_STATUS function_response;
 
 TEST_GROUP(MPU);
 
+
+
 TEST_GROUP_RUNNER(MPU) {
     for(uint8_t i = 0; i < MAX_MPU_COUNT; i++) {
         mpu9250 = mpu_pointers[i];
@@ -30,6 +32,7 @@ TEST_GROUP_RUNNER(MPU) {
             continue;
         }
         SS_MPU_calibration_read();
+        //RUN_TEST_CASE(MPU, set_calibration);
         /* RUN_TEST_CASE(MPU, init); */ // There is no reason to use it since test reinit exists
         RUN_TEST_CASE(MPU, set_accel_scale);
         RUN_TEST_CASE(MPU, get_accel_data);
@@ -196,7 +199,7 @@ static void SS_Check_bias_test() {
     TEST_ASSERT_INT_WITHIN(100, 0, abs(mpu9250->accel_raw_x));
     TEST_ASSERT_INT_WITHIN(100, 0, abs(mpu9250->accel_raw_y));
     TEST_ASSERT_INT_WITHIN(200, 2000, abs(mpu9250->accel_raw_z));  // oscillations are too big
-    TEST_ASSERT_INT_WITHIN(100, 0, abs(mpu9250->gyro_raw_x));
+    TEST_ASSERT_INT_WITHIN(200, 0, abs(mpu9250->gyro_raw_x));
     TEST_ASSERT_INT_WITHIN(100, 0, abs(mpu9250->gyro_raw_y));
     TEST_ASSERT_INT_WITHIN(100, 0, abs(mpu9250->gyro_raw_z));
     
