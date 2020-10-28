@@ -31,7 +31,7 @@ TEST_GROUP_RUNNER(MPU) {
         }
         SS_MPU_calibration_read();
         /* RUN_TEST_CASE(MPU, init); */
-        /* RUN_TEST_CASE(MPU, bias); */
+        RUN_TEST_CASE(MPU, bias);
         RUN_TEST_CASE(MPU, set_accel_scale);
         RUN_TEST_CASE(MPU, get_accel_data);
         RUN_TEST_CASE(MPU, get_gyro_data);
@@ -51,9 +51,6 @@ TEST_GROUP_RUNNER(MPU) {
         RUN_TEST_CASE(MPU, MPU_self_test);
         RUN_TEST_CASE(MPU, math_scaled_gyro);
         RUN_TEST_CASE(MPU, math_scaled_accel);
-        /* RUN_TEST_CASE(MPU, get_fifo_counter); */
-        /* RUN_TEST_CASE(MPU, get_fifo_data); */
-        /* RUN_TEST_CASE(MPU, set_fifo_data); */
         RUN_TEST_CASE(MPU, INT_enable);
         RUN_TEST_CASE(MPU, sleep);
         /* RUN_TEST_CASE(MPU, calibrate); */
@@ -62,7 +59,7 @@ TEST_GROUP_RUNNER(MPU) {
         RUN_TEST_CASE(MPU, gyro_write_calibration);
         RUN_TEST_CASE(MPU, set_smplrt);
         RUN_TEST_CASE(MPU, MPU_reset);
-        /* RUN_TEST_CASE(MPU, Reinit);  // MPU is Reinitialized to prior settings */
+        RUN_TEST_CASE(MPU, Reinit);  // MPU is Reinitialized to prior settings */
     }
 }
 static void set_up(void) {
@@ -182,9 +179,9 @@ static void SS_Check_bias_test() {
     TEST_ASSERT_INT_WITHIN(400, 2000, abs(bias_data[0]));  // it is only checked if data is different from 0
     TEST_ASSERT_INT_WITHIN(400, 2000, abs(bias_data[1]));
     TEST_ASSERT_INT_WITHIN(400, 2000, abs(bias_data[2]));
-    TEST_ASSERT_INT_WITHIN(1500, 5500, abs(bias_data[3]));
-    TEST_ASSERT_INT_WITHIN(1500, 5500, abs(bias_data[4]));
-    TEST_ASSERT_INT_WITHIN(1500, 5500, abs(bias_data[5]));
+    TEST_ASSERT_INT_WITHIN(2000, 5500, abs(bias_data[3]));
+    TEST_ASSERT_INT_WITHIN(2000, 5500, abs(bias_data[4]));
+    TEST_ASSERT_INT_WITHIN(2000, 5500, abs(bias_data[5]));
 
     int32_t bias1[] = {bias[0], bias[1], bias[2], bias_data[3] * 8, bias_data[4] * 8, (bias_data[5] * 8 - 16300)};  // Gyro_set function is bizarre this is only way to set gyro offset properly
 
@@ -193,12 +190,12 @@ static void SS_Check_bias_test() {
     SS_MPU_get_accel_data(mpu9250);
     SS_MPU_get_gyro_data(mpu9250);
 
-    TEST_ASSERT_INT_WITHIN(100, 0, abs(mpu9250->accel_raw_x));
-    TEST_ASSERT_INT_WITHIN(100, 0, abs(mpu9250->accel_raw_y));
+    TEST_ASSERT_INT_WITHIN(200, 0, abs(mpu9250->accel_raw_x));
+    TEST_ASSERT_INT_WITHIN(200, 0, abs(mpu9250->accel_raw_y));
     TEST_ASSERT_INT_WITHIN(200, 16300, abs(mpu9250->accel_raw_z));  // oscillations are too big
-    TEST_ASSERT_INT_WITHIN(100, 0, abs(mpu9250->gyro_raw_x));
-    TEST_ASSERT_INT_WITHIN(100, 0, abs(mpu9250->gyro_raw_y));
-    TEST_ASSERT_INT_WITHIN(100, 0, abs(mpu9250->gyro_raw_z));
+    TEST_ASSERT_INT_WITHIN(200, 0, abs(mpu9250->gyro_raw_x));
+    TEST_ASSERT_INT_WITHIN(200, 0, abs(mpu9250->gyro_raw_y));
+    TEST_ASSERT_INT_WITHIN(200, 0, abs(mpu9250->gyro_raw_z));
 
     SS_AK8963_reset(mpu9250);
     HAL_Delay(50);

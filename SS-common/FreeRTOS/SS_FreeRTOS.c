@@ -61,17 +61,23 @@ void SS_FreeRTOS_init(void) {
 
 #ifdef SS_RUN_TESTS
 #include "SS_init.h"
+#include "SS_common.h"
 void SS_run_tests_task(void *pvParameters) {
     SS_run_all_tests();
     vTaskDelete(NULL);
 }
+
 #endif /* SS_RUN_TESTS */
 
 /* ==================================================================== */
 /* ======================== Private functions ========================= */
 /* ==================================================================== */
 
+#include "SS_MPU9250.h"
+extern MPU9250 mpu;
+
 static void vLEDFlashTask(void *pvParameters) {
+
     while(1) {
         vTaskDelay(500);
         SS_platform_toggle_loop_led();
@@ -84,7 +90,7 @@ static void SS_FreeRTOS_create_tasks(void) {
     res = xTaskCreate(SS_run_tests_task, "Tests Task", 512, NULL, 4, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
 #endif /* defined(SS_RUN_TESTS) && !defined(SS_RUN_TESTS_FROM_CONSOLE) */
-    res = xTaskCreate(vLEDFlashTask, "LED Task", 64, NULL, 2, (TaskHandle_t *) NULL);
+    res = xTaskCreate(vLEDFlashTask, "LED Task", 256, NULL, 2, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
 #ifdef SS_USE_COM
     res = xTaskCreate(SS_com_rx_handler_task, "Com Rx Task", 256, NULL, 5, NULL);
