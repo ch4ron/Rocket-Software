@@ -29,6 +29,7 @@ TEST_GROUP_RUNNER(MPU) {
         if(mpu9250 == NULL) {
             continue;
         }
+        RUN_TEST_CASE(MPU, calibrate);
         SS_MPU_calibration_read();
         /* RUN_TEST_CASE(MPU, init); */
         RUN_TEST_CASE(MPU, bias);
@@ -53,7 +54,7 @@ TEST_GROUP_RUNNER(MPU) {
         RUN_TEST_CASE(MPU, math_scaled_accel);
         RUN_TEST_CASE(MPU, INT_enable);
         RUN_TEST_CASE(MPU, sleep);
-        /* RUN_TEST_CASE(MPU, calibrate); */
+
         RUN_TEST_CASE(MPU, set_calibration);
         RUN_TEST_CASE(MPU, accel_write_calibration);
         RUN_TEST_CASE(MPU, gyro_write_calibration);
@@ -63,16 +64,13 @@ TEST_GROUP_RUNNER(MPU) {
     }
 }
 static void set_up(void) {
-    /* HAL_NVIC_DisableIRQ(MPU1_INT_EXTI_IRQn); */
-
-    /* HAL_NVIC_DisableIRQ(MPU2_INT_EXTI_IRQn); */
+    HAL_NVIC_DisableIRQ(MPU_INT_EXTI_IRQn);
 
     HAL_Delay(20);
 }
 static void tear_down(void) {
-    /* HAL_NVIC_EnableIRQ(MPU1_INT_EXTI_IRQn); */
+    HAL_NVIC_EnableIRQ(MPU_INT_EXTI_IRQn);
 
-    /* HAL_NVIC_EnableIRQ(MPU2_INT_EXTI_IRQn); */
 
     HAL_Delay(20);
 }
@@ -185,14 +183,16 @@ static void SS_Check_bias_test() {
 
     int32_t bias1[] = {bias[0], bias[1], bias[2], bias_data[3] * 8, bias_data[4] * 8, (bias_data[5] * 8 - 16300)};  // Gyro_set function is bizarre this is only way to set gyro offset properly
 
-    function_response = SS_MPU_set_calibration(mpu9250, bias1);
+    function_response = SS_MPU_gyro_write_calibration(mpu9250, bias1);
+    TEST_ASSERT_EQUAL(MPU_OK, function_response);
+    function_response = SS_MPU_accel_write_calibration(mpu9250, bias1);
     TEST_ASSERT_EQUAL(MPU_OK, function_response);
     SS_MPU_get_accel_data(mpu9250);
     SS_MPU_get_gyro_data(mpu9250);
 
     TEST_ASSERT_INT_WITHIN(200, 0, abs(mpu9250->accel_raw_x));
     TEST_ASSERT_INT_WITHIN(200, 0, abs(mpu9250->accel_raw_y));
-    TEST_ASSERT_INT_WITHIN(200, 16300, abs(mpu9250->accel_raw_z));  // oscillations are too big
+    TEST_ASSERT_INT_WITHIN(200, 2000, abs(mpu9250->accel_raw_z));  // oscillations are too big
     TEST_ASSERT_INT_WITHIN(200, 0, abs(mpu9250->gyro_raw_x));
     TEST_ASSERT_INT_WITHIN(200, 0, abs(mpu9250->gyro_raw_y));
     TEST_ASSERT_INT_WITHIN(200, 0, abs(mpu9250->gyro_raw_z));
@@ -202,7 +202,11 @@ static void SS_Check_bias_test() {
     SS_MPU_reset(mpu9250);
     HAL_Delay(50);
     SS_MPU_init(mpu9250);
-    SS_MPU_set_calibration(mpu9250, bias);
+    SS_MPU_calibrate(mpu9250);
+    //SS_MPU_gyro_write_calibration(mpu9250, bias);
+    //SS_MPU_accel_write_calibration(mpu9250, bias);
+    SS_MPU_get_accel_data(mpu9250);
+    SS_print("%d ,\r\n ", mpu9250->accel_raw_x);
 }
 
 TEST_SETUP(MPU) {
@@ -342,23 +346,24 @@ TEST(MPU, get_gyro_data) {
     TEST_ASSERT_INT_WITHIN(200, 0, mpu9250->gyro_raw_x);
 }
 TEST(MPU, get_data_DMA) {
-    /* int16_t data_container; */
+     HAL_NVIC_EnableIRQ(MPU_INT_EXTI_IRQn);
+     HAL_Delay(1);
+     int16_t data_container;
 
-    /* SS_MPU_set_accel_scale(mpu9250, MPU_ACCEL_SCALE_2); */
-    /* HAL_NVIC_EnableIRQ(MPU1_INT_EXTI_IRQn); */
-    /* HAL_NVIC_EnableIRQ(MPU2_INT_EXTI_IRQn); */
+     SS_MPU_set_accel_scale(mpu9250, MPU_ACCEL_SCALE_2);
 
-    /* data_container = mpu9250->accel_raw_z; */
-    /* function_response = SS_MPU_get_data_DMA(mpu9250); */
-    /* TEST_ASSERT_EQUAL(MPU_OK, function_response); */
-    /* while(mpu9250->accel_raw_z == data_container) */
-    /*     ;                                                       //Check if DMA is maned by Interrupts */
-    /* TEST_ASSERT_INT_WITHIN(1000, 16000, mpu9250->accel_raw_z);  // check if Accel in static position measure properly */
-    /* TEST_ASSERT_INT_WITHIN(1000, 0, mpu9250->accel_raw_y); */
-    /* TEST_ASSERT_INT_WITHIN(1000, 0, mpu9250->accel_raw_x); */
 
-    /* HAL_NVIC_DisableIRQ(MPU1_INT_EXTI_IRQn); */
-    /* HAL_NVIC_DisableIRQ(MPU2_INT_EXTI_IRQn); */
+     data_container = mpu9250->accel_raw_z;
+     function_response = SS_MPU_get_data_DMA(mpu9250);
+     TEST_ASSERT_EQUAL(MPU_OK, function_response);
+
+     while(mpu9250->accel_raw_z == data_container) ;                                                       //Check if DMA is maned by Interrupts */
+     TEST_ASSERT_INT_WITHIN(1000, 16000, mpu9250->accel_raw_z);  // check if Accel in static position measure properly
+     TEST_ASSERT_INT_WITHIN(1000, 0, mpu9250->accel_raw_y);
+     TEST_ASSERT_INT_WITHIN(1000, 0, mpu9250->accel_raw_x);
+
+     HAL_NVIC_DisableIRQ(MPU_INT_EXTI_IRQn);
+
 }
 
 TEST(MPU, MPU_set_clk) {
@@ -377,7 +382,8 @@ TEST(MPU, Reinit) {
     function_response = SS_MPU_init(mpu9250);
     TEST_ASSERT_EQUAL(MPU_OK, function_response);
 
-    SS_MPU_set_calibration(mpu9250, bias);
+    SS_MPU_gyro_write_calibration(mpu9250,  bias);
+    SS_MPU_accel_write_calibration(mpu9250, bias);
 
     function_response = SS_MPU_write_check_byte(mpu9250, MPU_ACCEL_CONFIG, accel_prior_range);  // here is set the previous range for accel
     TEST_ASSERT_EQUAL(MPU_OK, function_response);
@@ -407,18 +413,7 @@ TEST(MPU, math_scaled_accel) {
     function_response = SS_MPU_math_scaled_accel(mpu9250);
     TEST_ASSERT_EQUAL(MPU_OK, function_response);
 }
-/* TEST(MPU, get_fifo_counter) { */
-/*     function_response = SS_MPU_get_fifo_counter(mpu9250); */
-/*     TEST_ASSERT_EQUAL(MPU_OK, function_response); */
-/* } */
-/* TEST(MPU, get_fifo_data) { */
-/*     function_response = SS_MPU_get_fifo_data(mpu9250); */
-/*     TEST_ASSERT_EQUAL(MPU_OK, function_response); */
-/* } */
-/* TEST(MPU, set_fifo_data) { */
-/*     function_response = SS_MPU_set_fifo_data(mpu9250); */
-/*     TEST_ASSERT_EQUAL(MPU_OK, function_response); */
-/* } */
+
 
 TEST(MPU, INT_enable) {
     function_response = SS_MPU_INT_enable(mpu9250);
@@ -436,7 +431,7 @@ TEST(MPU, sleep) {
     TEST_ASSERT_EQUAL(MPU_OK, function_response);
 }
 TEST(MPU, calibrate) {
-    TEST_IGNORE();
+
     function_response = SS_MPU_calibrate(mpu9250);
     TEST_ASSERT_EQUAL(MPU_OK, function_response);
 }

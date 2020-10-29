@@ -121,7 +121,7 @@ MPU_STATUS SS_MPU_init(MPU9250 *mpu9250) {
 
     result |= SS_MPU_gyro_write_calibration(mpu9250, mpu9250->bias);
     result |= SS_MPU_accel_write_calibration(mpu9250, mpu9250->bias);
-    //	result |= SS_MPU_calibrate(mpu9250);
+    //result |= SS_MPU_calibrate(mpu9250);
     mpu9250->result = result;
     switch(result) {
         case MPU_OK:
@@ -203,13 +203,13 @@ MPU_STATUS SS_MPU_calibrate(MPU9250 *mpu9250) {  //Device needs to be flat durin
     HAL_Delay(50);
 
 
-    for(int a=0;a<11;a++){                                        // I decide that better option is to calibrate accel and gyro separately
+    for(int a=0;a<=10;a++){                // I decide that better option is to calibrate accel and gyro separately then data bias is more accurate
         for (int16_t i = 0; i < calibration_time; i++) {
             result |= SS_MPU_get_accel_data(mpu9250);
             data[3][i] = mpu9250->accel_raw_x;
             data[4][i] = mpu9250->accel_raw_y;
             data[5][i] = mpu9250->accel_raw_z;
-            HAL_Delay(10);
+            HAL_Delay(2);
         }
         for (uint16_t i = 0; i < calibration_time; i++) {
             for (uint8_t j = 3; j < 6; j++) {
@@ -231,7 +231,7 @@ MPU_STATUS SS_MPU_calibrate(MPU9250 *mpu9250) {  //Device needs to be flat durin
         if (((abs(mpu9250->accel_raw_x-bias[3])) < max_accel_deviation) &&         //makes our calibration much faster
             ((abs(mpu9250->accel_raw_y-bias[4] ))< max_accel_deviation)&&
             ((abs(mpu9250->accel_raw_z-bias[5]-accelsensitivity)) < max_accel_deviation)) {
-            goto proper_accel_calibration ;
+            break;
         }
 
         for (uint8_t j = 3; j < 6; j++) {
@@ -239,18 +239,15 @@ MPU_STATUS SS_MPU_calibrate(MPU9250 *mpu9250) {  //Device needs to be flat durin
             bias[j]=0;
 
         }
+
     }
-
-    return MPU_COMM_ERROR;
-    proper_accel_calibration:;
-
-
     result |= SS_MPU_accel_write_calibration(mpu9250, bias);
     HAL_Delay(100);
     result |= SS_MPU_get_accel_data(mpu9250);
     HAL_Delay(20);
 
-    for(int a=0;a<11;a++){
+
+    for(int a=0;a<=10;a++){
         for (int16_t i = 0; i < calibration_time; i++) {
             result |= SS_MPU_get_gyro_data(mpu9250);
             data[0][i] = mpu9250->gyro_raw_x;
@@ -268,20 +265,35 @@ MPU_STATUS SS_MPU_calibrate(MPU9250 *mpu9250) {  //Device needs to be flat durin
 
         }
 
-        if ((abs(mpu9250->gyro_raw_x) < max_gyro_deviation) && (abs(mpu9250->gyro_raw_y) < max_gyro_deviation) &&(abs(mpu9250->gyro_raw_z) < max_gyro_deviation)) {
-            goto proper_gyro_calibration ;
+        if ((abs(mpu9250->gyro_raw_x)-bias[0] < max_gyro_deviation) &&
+        (abs(mpu9250->gyro_raw_y)-bias[1] < max_gyro_deviation) &&
+        (abs(mpu9250->gyro_raw_z)-bias[2] < max_gyro_deviation)) {
+            break ;
         }
 
+        for (uint8_t j = 0; j < 3; j++) {
+            sum[j] =0;
+            bias[j]=0;
+
+        }
         result |= SS_MPU_gyro_write_calibration(mpu9250, bias);
         HAL_Delay(100);
         result |= SS_MPU_get_gyro_data(mpu9250);
         HAL_Delay(20);
-
     }
-    return MPU_COMM_ERROR;
-    proper_gyro_calibration:
+        result |= SS_MPU_get_gyro_data(mpu9250);
+        HAL_Delay(20);
 
-
+    if ((abs(mpu9250->gyro_raw_x) < max_gyro_deviation) &&
+    (abs(mpu9250->gyro_raw_y) < max_gyro_deviation) &&
+    (abs(mpu9250->gyro_raw_z) < max_gyro_deviation)&&
+    ((abs(mpu9250->accel_raw_x)) < max_accel_deviation) &&
+    ((abs(mpu9250->accel_raw_y ))< max_accel_deviation)&&
+    ((abs(mpu9250->accel_raw_z)-16384) < max_accel_deviation)) {
+        result |=MPU_OK;
+    }else{
+        return MPU_CALIBRATION_ERROR;
+    }
 #ifdef MPU_DEBUG
     SS_print("--------------------------------\r\n");
     SS_print("MPU CALIBRATION\r\n");
@@ -308,33 +320,27 @@ MPU_STATUS SS_MPU_calibrate(MPU9250 *mpu9250) {  //Device needs to be flat durin
     mpu9250->bias[0] = bias[0];
     mpu9250->bias[1] = bias[1];
     mpu9250->bias[2] = bias[2];
-    // mpu9250->bias[3] = bias[3];   i belive that someone has done something messy with this one
+    mpu9250->bias[3] = bias[3]; // Now it is behaving much different (i belive that someone has done something messy with this one)
     mpu9250->bias[4] = bias[4];
     mpu9250->bias[5] = bias[5];
 
 
 #ifdef PRINT_CALIBRATION
     SS_print("--------------------------------\r\n");
-    SS_print("Calibration values:\r\n{ ");
-    for(uint8_t i = 0; i < 6; i++) {
-        if (i < 5) {
-            SS_print("%d, ", bias[i]);
-        }
-        else{
-            SS_print("%d }\r\n", bias[i]);
-        }
+    SS_print("Calibration values:\r\n { ");
+    for(uint8_t i = 0; i < 5; i++) {
+        SS_print("%d, ", bias[i]);
     }
+    SS_print("%d } \r\n", bias[5]);
     SS_print("Raw values:\r\n");
-    SS_print("Gx: Gy: Gz: Ax: Ay: Az:\r\n{ ");
-    for(uint8_t i = 0; i < 6; i++) {
-        if(i < 5)
-            SS_print("%d, ", data1[i]);
-        else
-            SS_print("%d }\r\n", data1[i]);
+    SS_print("Gx: Gy: Gz: Ax: Ay: Az:\r\n ");
+    for(uint8_t i = 0; i < 5; i++) {
+        SS_print("%d, ", data1[i]);
     }
+    SS_print("%d }\r\n ", data1[5]);
     SS_print("--------------------------------\r\n");
 #endif
-    result |= SS_MPU_gyro_write_calibration(mpu9250, bias);
+    //result |= SS_MPU_gyro_write_calibration(mpu9250, bias);   it does more harm than good why my main suspect i gyro calibrate function whereas i write bias 8 and recive raw data 180
     result |= SS_MPU_accel_write_calibration(mpu9250, bias);
     return result;
 }
@@ -792,7 +798,7 @@ static void SS_MPU_spi_tx_rx_isr(MPU9250 *mpu9250) {
     mpu9250->gyro_raw_y = (int16_t)((int16_t) mpu9250->rcv[11] << 8) | mpu9250->rcv[12];
     mpu9250->gyro_raw_z = (int16_t)((int16_t) mpu9250->rcv[13] << 8) | mpu9250->rcv[14];
 
-    bool hptw;
+    //bool hptw;
 
     if((mpu9250->rcv[21] & 0x10)) {  //Check if the data is overflown
         mpu9250->mgnt_raw_x = (int16_t)((int16_t) mpu9250->rcv[16] << 8) | mpu9250->rcv[15];
