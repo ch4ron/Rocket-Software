@@ -185,7 +185,7 @@ static ComStatus SS_com_handle_sequence(ComFrame *frame) {
     if(SS_sequence_add(frame->device, frame->id, frame->operation, val.val, val.time) != 0) {
         res = COM_ERROR;
     }
-    frame->action = res == 0 ? COM_ACK : COM_NACK;
+    frame->action = res == 0 ? COM_SACK : COM_SNACK;
     return res;
 }
 #endif
