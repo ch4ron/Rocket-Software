@@ -3379,6 +3379,7 @@ static portTASK_FUNCTION( prvIdleTask, pvParameters )
 			{
 				mtCOVERAGE_TEST_MARKER();
 			}
+
 		}
 		#endif /* ( ( configUSE_PREEMPTION == 1 ) && ( configIDLE_SHOULD_YIELD == 1 ) ) */
 

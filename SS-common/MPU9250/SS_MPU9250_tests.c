@@ -206,7 +206,6 @@ static void SS_Check_bias_test() {
     //SS_MPU_gyro_write_calibration(mpu9250, bias);
     //SS_MPU_accel_write_calibration(mpu9250, bias);
     SS_MPU_get_accel_data(mpu9250);
-    SS_print("%d ,\r\n ", mpu9250->accel_raw_x);
 }
 
 TEST_SETUP(MPU) {
@@ -310,7 +309,6 @@ TEST(MPU, set_accel_scale) {
     function_response = SS_MPU_set_accel_scale(mpu9250, MPU_ACCEL_SCALE_8);
     SS_MPU_different_scale_accel_data_check(0x10, 4000, 250);
     TEST_ASSERT_EQUAL(MPU_OK, function_response);
-
     function_response = SS_MPU_set_accel_scale(mpu9250, MPU_ACCEL_SCALE_16);
     SS_MPU_different_scale_accel_data_check(0x18, 2000, 125);
     TEST_ASSERT_EQUAL(MPU_OK, function_response);
