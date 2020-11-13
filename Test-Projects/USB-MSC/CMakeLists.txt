@@ -13,7 +13,7 @@ file(GLOB_RECURSE SOURCES
     USB_DEVICE/*.*)
 
 # XXX.
-add_definitions(-DDEBUG)
+add_definitions(-DDEBUG -DLFS_YES_TRACE -DLFS_NO_MALLOC)
 
 add_compile_definitions(SS_RUN_TESTS_FROM_CONSOLE)
 

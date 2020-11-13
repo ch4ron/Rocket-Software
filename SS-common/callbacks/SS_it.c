@@ -41,6 +41,9 @@
 #ifdef SS_USE_MPU9250
 #include "SS_MPU9250.h"
 #endif
+#ifdef SS_USE_LORA
+#include "SS_rfm23.h"
+#endif
 #include "stm32f4xx_hal.h"
 #include "SS_log.h"
 #include "SS_console.h"
@@ -64,6 +67,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 #endif
 #ifdef SS_USE_MPU9250
     SS_MPU_GPIO_EXTI_Callback(GPIO_Pin);
+#endif
+#ifdef SS_USE_LORA
+    SS_LoRa_EXTI_Callback(GPIO_Pin);
 #endif
 }
 
@@ -120,10 +126,10 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 #ifdef HAL_QSPI_MODULE_ENABLED
 void HAL_QSPI_CmdCpltCallback(QSPI_HandleTypeDef *hqspi) {
 #ifdef SS_USE_FLASH
-    bool higher_priority_task_woken = false;
+    /*bool higher_priority_task_woken = false;
 
     SS_s25fl_qspi_cmdcplt_handler(hqspi, &higher_priority_task_woken);
-    portYIELD_FROM_ISR(higher_priority_task_woken);
+    portYIELD_FROM_ISR(higher_priority_task_woken);*/
 #endif
 }
 

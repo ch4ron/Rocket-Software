@@ -32,9 +32,11 @@ S25flStatus SS_s25fl_erase_sector(uint32_t sector);
 
 S25flStatus SS_s25fl_write_bytes(uint32_t addr, const uint8_t *data, uint32_t size);
 S25flStatus SS_s25fl_write_bytes_dma(uint32_t addr, const uint8_t *data, uint32_t size);
+S25flStatus SS_s25fl_write_bytes_dma_wait(uint32_t addr, const uint8_t *data, uint32_t size);
 
 S25flStatus SS_s25fl_write_page(uint32_t page, uint8_t *data);
 S25flStatus SS_s25fl_write_page_dma(uint32_t page, uint8_t *data);
+S25flStatus SS_s25fl_write_page_dma_wait(uint32_t page, uint8_t *data);
 
 S25flStatus SS_s25fl_read_bytes(uint32_t addr, uint8_t *data, uint32_t size);
 S25flStatus SS_s25fl_read_bytes_dma(uint32_t addr, uint8_t *data, uint32_t size);

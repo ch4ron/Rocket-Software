@@ -25,6 +25,8 @@ void SS_platform_set_com_led(bool r, bool g, bool b) {
 void SS_platform_toggle_loop_led() {
     /* HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin); */
     HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
+    HAL_GPIO_TogglePin(LD4_GPIO_Port, LD4_Pin);
+
 }
 
 /********** SERVOS *********/

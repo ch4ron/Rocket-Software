@@ -124,6 +124,7 @@ add_subdirectory(Pauek)
 add_subdirectory(Test-Projects/USB-MSC)
 add_subdirectory(Test-Projects/Nucleo-F446RE)
 add_subdirectory(Bolek)
+add_subdirectory(Czapla)
 
 set(TEST_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/test)
 set(TEST_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/SS-test)

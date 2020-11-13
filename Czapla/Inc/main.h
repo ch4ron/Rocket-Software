@@ -60,9 +60,6 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define Ttransfer 20
 #define Tswap 20
-#define TIMEPULSE_Pin GPIO_PIN_0
-#define TIMEPULSE_GPIO_Port GPIOA
-#define TIMEPULSE_EXTI_IRQn EXTI0_IRQn
 #define SPI1_NSS_Pin GPIO_PIN_4
 #define SPI1_NSS_GPIO_Port GPIOA
 #define COM_GREEN_Pin GPIO_PIN_4
@@ -71,11 +68,18 @@ void Error_Handler(void);
 #define COM_BLUE_GPIO_Port GPIOC
 #define LORA_NIRQ_Pin GPIO_PIN_1
 #define LORA_NIRQ_GPIO_Port GPIOB
-#define LORA_NIRQ_EXTI_IRQn EXTI1_IRQn
 #define COM_RED_Pin GPIO_PIN_6
 #define COM_RED_GPIO_Port GPIOC
-#define LOOP_LED_Pin GPIO_PIN_5
-#define LOOP_LED_GPIO_Port GPIOB
+#define TMS_Pin GPIO_PIN_13
+#define TMS_GPIO_Port GPIOA
+#define TCK_Pin GPIO_PIN_14
+#define TCK_GPIO_Port GPIOA
+#define LD1_Pin GPIO_PIN_3
+#define LD1_GPIO_Port GPIOB
+#define LD3_Pin GPIO_PIN_4
+#define LD3_GPIO_Port GPIOB
+#define LD4_Pin GPIO_PIN_5
+#define LD4_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
