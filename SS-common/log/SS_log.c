@@ -177,13 +177,13 @@ void __assert_func(const char *file, int line, const char *function, const char 
         HAL_UART_Transmit(log_huart, (uint8_t *) msg, len, 1000);
     }
     uint32_t i = 0;
-    while(1) {
-        i++;
-        if(i > 3000000) {
-            SS_led_toggle_all(true, false, false);
-            i = 0;
-        }
-    }
+//    while(1) {
+//        i++;
+//        if(i > 3000000) {
+//            SS_led_toggle_all(true, false, false);
+//            i = 0;
+//        }
+//    }
 }
 
 /* ==================================================================== */
