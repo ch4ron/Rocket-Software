@@ -21,6 +21,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "dma.h"
+#include "i2c.h"
 #include "quadspi.h"
 #include "spi.h"
 #include "tim.h"
@@ -97,13 +98,11 @@ int main(void)
   MX_USART2_UART_Init();
   MX_SPI1_Init();
   MX_QUADSPI_Init();
+//  MX_I2C3_Init();
   /* USER CODE BEGIN 2 */
 
   SS_platform_init();
 
-  /* SS_MPU_get_accel_data(&mpu); */
-  /* SS_MPU_get_gyro_data(&mpu); */
-  /* Dane=SS_MPU_who_am_i(&mpu); */
   SS_init();
   /* USER CODE END 2 */
 
