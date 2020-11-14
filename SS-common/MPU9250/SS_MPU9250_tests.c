@@ -2,7 +2,7 @@
  * SS_MPU9250_Tests.c
  *
  *  Created on: 25.02.2020
- *      Author: dawid
+ *      Author: Dawid
  */
 
 #include "SS_MPU9250.c"

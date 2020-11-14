@@ -189,7 +189,6 @@ extern void SS_FreeRTOS_25khz_timer_callback(TIM_HandleTypeDef *htim);
   */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     /* USER CODE BEGIN Callback 0 */
-
     SS_FreeRTOS_25khz_timer_callback(htim);
     /* USER CODE END Callback 0 */
     if(htim->Instance == TIM13) {

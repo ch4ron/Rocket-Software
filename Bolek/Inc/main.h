@@ -100,6 +100,8 @@ void Error_Handler(void);
 #define SCD_SCL_GPIO_Port GPIOA
 #define SCD_DRDY_Pin GPIO_PIN_10
 #define SCD_DRDY_GPIO_Port GPIOA
+#define BUZZER_Pin GPIO_PIN_15
+#define BUZZER_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

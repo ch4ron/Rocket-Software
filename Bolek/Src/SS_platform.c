@@ -5,6 +5,7 @@
 #include "SS_platform.h"
 #include "spi.h"
 #include "main.h"
+#include "SS_misc.h"
 
 #ifdef SS_USE_MS5X
 #include "SS_MS5X.h"
@@ -109,6 +110,7 @@ void SS_platform_init() {
     SS_log_init(&huart2);
     SS_console_init(&huart2);
     SS_platform_init_MPU();
+    SS_buzzer_start_count(1500,3500,2);
 #ifdef SS_USE_FLASH
     /* assert(SS_s25fl_init() == FLASH_STATUS_OK); */
     assert(SS_flash_init(&hqspi, FLASH_RESET_GPIO_Port, FLASH_RESET_Pin) == FLASH_STATUS_OK);
