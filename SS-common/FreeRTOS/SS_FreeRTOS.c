@@ -85,7 +85,7 @@ static void vLEDFlashTask(void *pvParameters) {
 static void SS_FreeRTOS_create_tasks(void) {
     BaseType_t res;
 #if defined(SS_RUN_TESTS) && !defined(SS_RUN_TESTS_FROM_CONSOLE)
-    res = xTaskCreate(SS_run_tests_task, "Tests Task", 1512, NULL, 4, (TaskHandle_t *) NULL);
+    res = xTaskCreate(SS_run_tests_task, "Tests Task", 2048, NULL, 4, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
 #endif /* defined(SS_RUN_TESTS) && !defined(SS_RUN_TESTS_FROM_CONSOLE) */
     res = xTaskCreate(vLEDFlashTask, "LED Task", 256, NULL, 2, (TaskHandle_t *) NULL);
