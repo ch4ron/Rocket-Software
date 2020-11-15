@@ -7,13 +7,17 @@ set(MCU STM32F446VE)
 project(bolek C ASM)
 
 file(GLOB_RECURSE SOURCES
-  "Inc/*.*"
-  "Src/*.*"
-  "startup/*.*")
+        "Inc/*.*"
+        "Src/*.*"
+        "startup/*.*"
+        "Middlewares/*.*")
+
 
 add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
 
-target_include_directories(${PROJECT_NAME}.elf PRIVATE Inc)
+target_include_directories(${PROJECT_NAME}.elf PRIVATE Inc
+        Middlewares/ST/STM32_USB_Device_Library/Core/Inc
+        Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc )
 
 
 # DEFINE YOUR LIBRARIES HERE

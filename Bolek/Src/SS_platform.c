@@ -110,7 +110,12 @@ void SS_platform_init() {
     SS_log_init(&huart2);
     SS_console_init(&huart2);
     SS_platform_init_MPU();
+#if defined(SS_RUN_TESTS) && !defined(SS_RUN_TESTS_FROM_CONSOLE)
+    SS_buzzer_start_count(750,2500,2);
+#endif
+#if !defined(SS_RUN_TESTS) && !defined(SS_RUN_TESTS_FROM_CONSOLE)
     SS_buzzer_start_count(1500,3500,2);
+#endif
 #ifdef SS_USE_FLASH
     /* assert(SS_s25fl_init() == FLASH_STATUS_OK); */
     assert(SS_flash_init(&hqspi, FLASH_RESET_GPIO_Port, FLASH_RESET_Pin) == FLASH_STATUS_OK);
