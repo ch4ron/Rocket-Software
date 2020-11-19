@@ -84,7 +84,8 @@ void SS_set_beep_gap(uint8_t gap){
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+    MX_TIM10_Init();
+    SS_buzzer_start_count(1000,1600,2);
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -111,10 +112,8 @@ int main(void)
   MX_SPI1_Init();
   MX_QUADSPI_Init();
   MX_I2C3_Init();
-  MX_TIM10_Init();
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
-  SS_buzzer_start_count(1000,1600,2);
   SS_platform_init();
 
   SS_init();
