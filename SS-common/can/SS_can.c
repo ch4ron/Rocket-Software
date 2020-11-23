@@ -175,7 +175,7 @@ static void SS_can_filters_init_with_mask(CAN_HandleTypeDef *hcan, ComBoardID bo
     filter_frame.destination = board;
     uint32_t filter = SS_can_get_header(&filter_frame);
     mask_frame.destination = board_mask;
-    mask_frame.priority = 0b111;
+    mask_frame.priority = 0b11;
     uint32_t mask = SS_can_get_header(&mask_frame);
     SS_can_filter_init(hcan, filter, mask, CAN_FILTER_FIFO1, &filter_bank);
     filter_frame.priority = 1;
