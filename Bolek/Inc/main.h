@@ -106,6 +106,16 @@ void Error_Handler(void);
 #define USB_DP_GPIO_Port GPIOA
 #define BUZZER_Pin GPIO_PIN_15
 #define BUZZER_GPIO_Port GPIOA
+#define MS56_CS_Pin GPIO_PIN_7
+#define MS56_CS_GPIO_Port GPIOD
+#define MS56_SCk_Pin GPIO_PIN_3
+#define MS56_SCk_GPIO_Port GPIOB
+#define MS56_MISO_Pin GPIO_PIN_4
+#define MS56_MISO_GPIO_Port GPIOB
+#define MS56_MOSI_Pin GPIO_PIN_5
+#define MS56_MOSI_GPIO_Port GPIOB
+#define HSPI_MS56 hspi3
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

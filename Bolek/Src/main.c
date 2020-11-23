@@ -112,6 +112,8 @@ int main(void)
   MX_SPI1_Init();
   MX_QUADSPI_Init();
   MX_I2C3_Init();
+  MX_TIM10_Init();
+  MX_SPI3_Init();
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
   SS_platform_init();

@@ -103,13 +103,21 @@ static void SS_platform_init_MPU(void) {
     /* result |= SS_MPU_set_calibration(&mpu1, bias1); */
     /* HAL_NVIC_EnableIRQ(MPU_INT_EXTI_IRQn); */
 }
+/********** MS5607 *********/
 
+
+static void SS_platform_init_MS5X(void) {
+    ms5607.hspi=&hspi3;
+    SS_MS56_init(&ms5607,MS56_PRESS_512,MS56_TEMP_512);
+    SS_MS56_read_convert(&ms5607);
+}
 /********** MAIN INIT *********/
 
 void SS_platform_init() {
     SS_log_init(&huart2);
     SS_console_init(&huart2);
     SS_platform_init_MPU();
+    SS_platform_init_MS5X();
 #if defined(SS_RUN_TESTS) && !defined(SS_RUN_TESTS_FROM_CONSOLE)
     SS_buzzer_start_count(750,2500,2);
 #endif
