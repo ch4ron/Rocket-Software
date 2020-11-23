@@ -198,7 +198,7 @@ void SS_platform_init() {
 #endif
 #ifdef SS_USE_FLASH
     assert(SS_s25fl_init(FLASH_RESET_GPIO_Port, FLASH_RESET_Pin, 64*1024*1024, 256*1024, 512, true, 4, 1) == S25FL_STATUS_OK);
-    assert(SS_flash_init(&hqspi, FLASH_RESET_GPIO_Port, FLASH_RESET_Pin) == FLASH_STATUS_OK);
+    /* assert(SS_flash_init(&hqspi, FLASH_RESET_GPIO_Port, FLASH_RESET_Pin) == FLASH_STATUS_OK); */
     HAL_Delay(100);
 #endif
     SS_enable_supply(&relay_supply);

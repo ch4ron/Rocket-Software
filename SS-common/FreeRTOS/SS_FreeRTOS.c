@@ -118,10 +118,10 @@ static void SS_FreeRTOS_create_tasks(void) {
 #endif
     res = xTaskCreate(SS_console_task, "Console Task", 256, NULL, 3, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
-#if !defined(SS_RUN_TESTS) || defined(SS_RUN_TESTS_FROM_CONSOLE)
-    res = xTaskCreate(SS_usb_start_task, "Usb start task", 300, NULL, 2, (TaskHandle_t *) NULL);
-    assert(res == pdTRUE);
-#endif
+/* #if !defined(SS_RUN_TESTS) || defined(SS_RUN_TESTS_FROM_CONSOLE) */
+/*     res = xTaskCreate(SS_usb_start_task, "Usb start task", 300, NULL, 2, (TaskHandle_t *) NULL); */
+/*     assert(res == pdTRUE); */
+/* #endif */
 }
 
 /* ==================================================================== */

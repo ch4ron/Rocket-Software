@@ -39,5 +39,6 @@ FlashStatus SS_flash_ctrl_set_is_emulating(bool is_emulating_);
 bool SS_flash_ctrl_get_is_page_emulated(uint32_t page);
 
 void SS_flash_ctrl_time_increment_handler(void);
+FlashStatus SS_flash_control_log_bytes(uint8_t *data, uint16_t size);
 
 #endif

@@ -231,6 +231,11 @@ static const uint8_t fs_info_sector[S25FL_PAGE_SIZE] = {
 /*     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, */
 /* }; */
 
+
+static FlashStatus SS_flash_translate_s25fl_status(S25flStatus status) {
+    return (FlashStatus) status;
+}
+
 static const uint32_t stream_first_page[FLASH_STREAM_COUNT] = {
     [FLASH_STREAM_VAR] = LOG_FILE_FIRST_PAGE,
     [FLASH_STREAM_TEXT] = LOG_FILE_FIRST_PAGE+LOG_FILE_LEN-1,
@@ -767,6 +772,12 @@ static FlashStatus select_next_page(FlashStream stream)
     }
 
     return FLASH_STATUS_OK;
+}
+
+FlashStatus SS_flash_control_log_bytes(uint8_t *data, uint16_t size) {
+    for(uint16_t i = 0; i < size; i++) {
+        log_byte(FLASH_STREAM_VAR, data[i]);
+    }
 }
 
 static FlashStatus log_byte(FlashStream stream, uint8_t byte)

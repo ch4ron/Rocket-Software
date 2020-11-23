@@ -10,11 +10,12 @@
 /* ==================================================================== */
 
 #include "SS_flash_log.h"
+#include "SS_flash_ctrl.h"
 
 #include "FreeRTOS.h"
 #include "SS_flash_lfs.h"
 #include "SS_s25fl.h"
-#include "SS_usb.h"
+/* #include "SS_usb.h" */
 #include "semphr.h"
 #include "string.h"
 
@@ -94,23 +95,23 @@ void SS_flash_create_tasks(UBaseType_t priority) {
 FlashStatus SS_flash_stream_start(char *filename) {
     FlashLogStream *stream = SS_flash_stream_get(filename);
     assert(stream != NULL);
-    UsbStatus usb_status = SS_usb_stop();
-    if(usb_status != USB_STATUS_OK && usb_status != USB_STATUS_DISABLED) {
-        return FLASH_STATUS_ERR;
-    }
+    /* UsbStatus usb_status = SS_usb_stop(); */
+    /* if(usb_status != USB_STATUS_OK && usb_status != USB_STATUS_DISABLED) { */
+    /*     return FLASH_STATUS_ERR; */
+    /* } */
 
-    if(SS_flash_lfs_start() != FLASH_STATUS_OK) {
-        return FLASH_STATUS_ERR;
-    }
+    /* if(SS_flash_lfs_start() != FLASH_STATUS_OK) { */
+    /*     return FLASH_STATUS_ERR; */
+    /* } */
 
-    lfs_t *lfs = SS_flash_lfs_get();
+    /* lfs_t *lfs = SS_flash_lfs_get(); */
 
     stream->cfg.buffer = stream->buf;
     stream->cfg.attr_count = 0;
 
-    if(lfs_file_opencfg(lfs, &stream->file, filename, LFS_O_WRONLY | LFS_O_CREAT | LFS_O_APPEND, &stream->cfg)) {
-        return FLASH_STATUS_ERR;
-    }
+    /* if(lfs_file_opencfg(lfs, &stream->file, filename, LFS_O_WRONLY | LFS_O_CREAT | LFS_O_APPEND, &stream->cfg)) { */
+    /*     return FLASH_STATUS_ERR; */
+    /* } */
     stream->is_logging = true;
 
     return FLASH_STATUS_OK;
@@ -121,15 +122,15 @@ FlashStatus SS_flash_stream_stop(char *filename) {
     assert(stream != NULL);
     stream->is_logging = false;
 
-    lfs_t *lfs = SS_flash_lfs_get();
+    /* lfs_t *lfs = SS_flash_lfs_get(); */
 
     while(uxQueueSpacesAvailable(stream->queue) < VARS_QUEUE_LEN) {
         vTaskDelay(pdMS_TO_TICKS(1));
     }
 
-    if(lfs_file_close(lfs, &stream->file)) {
-        return FLASH_STATUS_ERR;
-    }
+    /* if(lfs_file_close(lfs, &stream->file)) { */
+    /*     return FLASH_STATUS_ERR; */
+    /* } */
 
     FlashLogStream *s = flash_log_streams;
     while(s != NULL) {
@@ -139,10 +140,10 @@ FlashStatus SS_flash_stream_stop(char *filename) {
         s = s->next;
     }
     /* If none of the streams are logging start usb */
-    if(SS_usb_start() != USB_STATUS_OK) {
-        return FLASH_STATUS_ERR;
-    }
-    return FLASH_STATUS_OK;
+    /* if(SS_usb_start() != USB_STATUS_OK) { */
+    /*     return FLASH_STATUS_ERR; */
+    /* } */
+    /* return FLASH_STATUS_OK; */
 }
 
 /* Return true if logging */
@@ -159,7 +160,7 @@ bool SS_flash_stream_toggle(char *filename) {
 }
 
 FlashStatus SS_flash_stream_erase(char *filename) {
-    lfs_t *lfs = SS_flash_lfs_get();
+    /* lfs_t *lfs = SS_flash_lfs_get(); */
 
     FlashLogStream *stream = SS_flash_stream_get(filename);
     assert(stream != NULL);
@@ -170,15 +171,15 @@ FlashStatus SS_flash_stream_erase(char *filename) {
         return status;
     }
 
-    int err = lfs_file_truncate(lfs, &stream->file, 0);
-    if(err) {
-        return FLASH_STATUS_ERR;
-    }
+    /* int err = lfs_file_truncate(lfs, &stream->file, 0); */
+    /* if(err) { */
+    /*     return FLASH_STATUS_ERR; */
+    /* } */
 
-    status = SS_flash_stream_stop(filename);
-    if(status != FLASH_STATUS_OK) {
-        return status;
-    }
+    /* status = SS_flash_stream_stop(filename); */
+    /* if(status != FLASH_STATUS_OK) { */
+    /*     return status; */
+    /* } */
 
     return FLASH_STATUS_OK;
 }
@@ -301,19 +302,20 @@ static FlashStatus SS_flash_stream_log(char *filename, void *data, uint16_t size
 static void SS_flash_log_task(void *pvParameters) {
     FlashLogStream *stream = (FlashLogStream *) pvParameters;
     SS_flash_stream_init(stream);
-    lfs_t *lfs = SS_flash_lfs_get();
+    /* lfs_t *lfs = SS_flash_lfs_get(); */
     static StreamElement element;
-    uint32_t sent_bytes = 0;
+    /* uint32_t sent_bytes = 0; */
     while(true) {
         /* TODO add mutex - for concurrent calls to SS_flash_stream_stop */
         if(xQueueReceive(stream->queue, &element, pdMS_TO_TICKS(portMAX_DELAY)) == pdTRUE) {
-            lfs_file_write(lfs, &stream->file, element.data, element.size);
-            sent_bytes += element.size;
+            SS_flash_control_log_bytes(element.data, element.size);
+            /* lfs_file_write(lfs, &stream->file, element.data, element.size); */
+            /* sent_bytes += element.size; */
 
-            if(sent_bytes >= SS_s25fl_get_sector_size()) {
-                lfs_file_sync(lfs, &stream->file);
-                sent_bytes = 0;
-            }
+            /* if(sent_bytes >= SS_s25fl_get_sector_size()) { */
+            /*     lfs_file_sync(lfs, &stream->file); */
+            /*     sent_bytes = 0; */
+            /* } */
 
         }
     }
