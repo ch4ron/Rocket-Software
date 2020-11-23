@@ -21,6 +21,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "dma.h"
+#include "i2c.h"
 #include "quadspi.h"
 #include "spi.h"
 #include "tim.h"
@@ -29,9 +30,17 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "FreeRTOS.h"
+#include "SS_FreeRTOS.h"
 #include "SS_platform.h"
 #include "SS_MPU9250.h"
 #include "SS_common.h"
+#include "SS_init.h"
+#include "scd30.h"
+#include "sensirion_common.h"
+#include "task.h"
+#include "SS_log.h"
+#include "timers.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -52,16 +61,25 @@
 
 /* USER CODE BEGIN PV */
 int32_t Dane=100;
+float32_t co2_ppm, temperature, relative_humidity;
+int16_t err;
+uint16_t interval_in_seconds = 2;
+int _write(int file, char *ptr, int len) {
+    HAL_UART_Transmit(&huart2, (uint8_t*) ptr, (uint16_t) len, 1000);
+    return len;
+}
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-
+void Scd30_task(void *pvParameters);
+void led_loop(void *pvParameters);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+/*
 static MPU9250 mpu = {
     .gyro_id = 10,
     .accel_id = 11,
@@ -81,6 +99,7 @@ static MPU9250 mpu = {
     .mgnt_scale_z = 0.95,
     .bias = {-15, -11, 72, 230, 300, 537}
 };
+ */
 /* USER CODE END 0 */
 
 /**
@@ -116,24 +135,47 @@ int main(void)
   MX_USART2_UART_Init();
   MX_SPI1_Init();
   MX_QUADSPI_Init();
+  MX_I2C3_Init();
   /* USER CODE BEGIN 2 */
 
   SS_platform_init();
+  xTaskCreate(&Scd30_task, "Scd 30", 2048, NULL, 20, NULL);
+  xTaskCreate(&led_loop, " loop led ", 64, NULL, 1, NULL);
+   while (scd30_probe() != STATUS_OK) {
+        SS_print("SCD30 sensor probing failed\n");
+        sensirion_sleep_usec(1000000u);
+    }
+    SS_print("SCD30 sensor probing successful\n");
+
+    scd30_set_measurement_interval(interval_in_seconds);
+    sensirion_sleep_usec(20000u);
+    scd30_start_periodic_measurement(0);
+    sensirion_sleep_usec(interval_in_seconds * 1000000u);
 
   /* SS_MPU_get_accel_data(&mpu); */
   /* SS_MPU_get_gyro_data(&mpu); */
   /* Dane=SS_MPU_who_am_i(&mpu); */
-  SS_init();
+
+    vTaskStartScheduler();
+    SS_init();
+
+
+
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
   }
+
+    return 0;
   /* USER CODE END 3 */
 }
 
@@ -187,6 +229,34 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void Scd30_task(void *pvParameters){
+    while(1){
+        //scd30_start_periodic_measurement(0);
+       // sensirion_sleep_usec(interval_in_seconds * 1000000u);
+        err = scd30_read_measurement(&co2_ppm, &temperature, &relative_humidity);
+        if (err != STATUS_OK) {
+            SS_print("error reading measurement\n");
+
+        } else {
+            SS_print("%0.2f %0.2f %0.2f\n", co2_ppm, temperature, relative_humidity);
+        }
+       // sensirion_sleep_usec(interval_in_seconds * 1000000u);
+      //  scd30_stop_periodic_measurement();
+        vTaskDelay( 300 / portTICK_RATE_MS );
+    }
+}
+
+void led_loop(void *pVParameters)
+{
+    while(1)
+    {
+        HAL_GPIO_TogglePin(LED_BLUE_1_GPIO_Port, LED_BLUE_1_Pin);
+        vTaskDelay( 300 / portTICK_RATE_MS );
+    }
+}
+
+
+
 extern void SS_FreeRTOS_25khz_timer_callback(TIM_HandleTypeDef *htim);
 /* USER CODE END 4 */
 

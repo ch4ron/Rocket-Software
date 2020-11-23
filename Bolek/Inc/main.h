@@ -29,6 +29,7 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
+#include "stm32f4xx_hal.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -93,6 +94,12 @@ void Error_Handler(void);
 #define LED_RGB_BLUE_DO_NOT_USE_GPIO_Port GPIOB
 #define FLASH_RESET_Pin GPIO_PIN_8
 #define FLASH_RESET_GPIO_Port GPIOD
+#define Scd_SDA_Pin GPIO_PIN_9
+#define Scd_SDA_GPIO_Port GPIOC
+#define Scd_SCL_Pin GPIO_PIN_8
+#define Scd_SCL_GPIO_Port GPIOA
+#define Scd_DRDY_Pin GPIO_PIN_10
+#define Scd_DRDY_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
