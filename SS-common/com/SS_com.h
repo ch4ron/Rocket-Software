@@ -28,8 +28,8 @@
 
 typedef struct __attribute__((packed)) {
     ComBoardID destination : 5;
-    ComPriority priority : 3;
-    ComActionID action : 3;
+    ComPriority priority : 2;
+    ComActionID action : 4;
     ComBoardID source : 5;
     ComDeviceID device : 6;
     uint32_t id : 6;
