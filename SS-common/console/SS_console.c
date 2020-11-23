@@ -17,6 +17,7 @@
 #include "semphr.h"
 #include "string.h"
 #include "task.h"
+#include "SS_flash_log.h"
 
 #include "SS_log.h"
 #include "SS_FreeRTOS.h"
@@ -63,6 +64,7 @@ ConsoleCommand commands[] = {
     {"log", "Start / Stop logging to flash", _SS_flash_log_toggle},
     {"erase", "Erase flash", SS_flash_erase},
     {"purge", "Erase flash", SS_flash_purge},
+    {"dump", "Dump flash", SS_flash_print_logs},
 #endif
     {"help", "Print help", SS_console_print_help},
 };
@@ -178,7 +180,6 @@ static void SS_flash_purge(char *args) {
     SS_s25fl_erase_all();
     SS_println("Flash purged");
 }
-
 
 /* ==================================================================== */
 /* ============================ Callbacks ============================= */

@@ -18,6 +18,7 @@
 /* #include "SS_usb.h" */
 #include "semphr.h"
 #include "string.h"
+#include "usart.h"
 
 /* ==================================================================== */
 /* ========================= Private macros =========================== */
@@ -170,6 +171,7 @@ FlashStatus SS_flash_stream_erase(char *filename) {
     if(status != FLASH_STATUS_OK) {
         return status;
     }
+    SS_flash_ctrl_erase_logs();
 
     /* int err = lfs_file_truncate(lfs, &stream->file, 0); */
     /* if(err) { */
@@ -268,13 +270,13 @@ static void SS_flash_stream_log_fromISR(char *filename, void *data, uint16_t siz
 #endif
     FlashLogStream *stream = SS_flash_stream_get(filename);
 
-    static StreamElement element;
-    element.size = size;
-    memcpy(element.data, data, size);
-
     if(!stream->is_logging) {
         return;
     }
+
+    static StreamElement element;
+    element.size = size;
+    memcpy(element.data, data, size);
 
     BaseType_t pxHigherPriorityTaskWoken = pdFALSE;
     xQueueSendFromISR(stream->queue, &element, &pxHigherPriorityTaskWoken);
@@ -318,5 +320,41 @@ static void SS_flash_log_task(void *pvParameters) {
             /* } */
 
         }
+    }
+}
+
+static bool is_page_empty(uint8_t *data) {
+    for(uint16_t i = 0; i < S25FL_PAGE_SIZE; i++) {
+        if(data[i] != 0xFF) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void SS_flash_print_logs(char *args) {
+    /* SS_MPU_set_is_logging(false); */
+    /* SS_println("Start transmiting"); */
+    for(uint32_t i = 0;; i++) {
+        static uint8_t data[S25FL_PAGE_SIZE];
+        SS_s25fl_read_page(0x00089200UL/S25FL_PAGE_SIZE + i, data);
+        if(is_page_empty(data)) {
+            SS_s25fl_read_page(0x00089200UL/S25FL_PAGE_SIZE + i + 1, data);
+            if(is_page_empty(data)) {
+                /* SS_println("Transmit done, page: %d", i); */
+                return;
+            }
+            SS_s25fl_read_page(0x00089200UL/S25FL_PAGE_SIZE + i, data);
+        }
+        /* SS_print("tx page: %d", i); */
+        HAL_UART_Transmit(&huart2, data, S25FL_PAGE_SIZE, 4000);
+        /* SS_print_bytes(data, S25FL_PAGE_SIZE); */
+        /* for (uint32_t ii = 0; ii < S25FL_PAGE_SIZE; ++ii) { */
+            /* if(ii%16 == 0) { */
+                /* SS_println(""); */
+            /* } */
+            /* SS_print("%x ", data[ii]); */
+        /* } */
+        /* SS_print("\n\n------------------\n\n"); */
     }
 }
