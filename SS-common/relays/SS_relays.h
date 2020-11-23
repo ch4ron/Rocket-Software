@@ -12,7 +12,6 @@
 /* ============================= Includes ============================= */
 /* ==================================================================== */
 
-#include "SS_com.h"
 #include "gpio.h"
 
 /* ==================================================================== */
@@ -32,12 +31,6 @@ typedef struct {
     uint8_t state;
 } Relay;
 
-typedef enum {
-    COM_RELAY_OPEN = 0x01,
-    COM_RELAY_CLOSE = 0x02,
-    COM_RELAY_STATUS = 0x03,
-} ComRelayID;
-
 /* ==================================================================== */
 /* ========================= Extern variables ========================= */
 /* ==================================================================== */
@@ -50,9 +43,7 @@ extern Relay relays[9];
 
 void SS_relay_open(Relay *relay);
 void SS_relay_close(Relay *relay);
-void SS_relay_init(Relay *relay);
 void SS_relays_init(Relay *relay_array, uint8_t count);
-ComStatus SS_relay_com_service(ComFrame *frame);
-ComStatus SS_relays_com_request(ComFrame *frame);
+Relay *SS_relay_get(uint8_t id);
 
 #endif /* SS_RELAYS_H_ */

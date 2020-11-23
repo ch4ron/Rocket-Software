@@ -71,8 +71,9 @@ extern SPI_HandleTypeDef hspi1;
 extern SPI_HandleTypeDef hspi2;
 extern SPI_HandleTypeDef hspi4;
 extern TIM_HandleTypeDef htim8;
-extern UART_HandleTypeDef huart4;
 extern TIM_HandleTypeDef htim14;
+extern UART_HandleTypeDef huart4;
+extern TIM_HandleTypeDef htim13;
 
 /* USER CODE BEGIN EV */
 
@@ -326,6 +327,7 @@ void TIM8_UP_TIM13_IRQHandler(void)
 
   /* USER CODE END TIM8_UP_TIM13_IRQn 0 */
   HAL_TIM_IRQHandler(&htim8);
+  HAL_TIM_IRQHandler(&htim13);
   /* USER CODE BEGIN TIM8_UP_TIM13_IRQn 1 */
 
   /* USER CODE END TIM8_UP_TIM13_IRQn 1 */

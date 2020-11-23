@@ -2,7 +2,8 @@
 // Created by maciek on 29.02.2020.
 //
 
-#include "SS_relays.h"
+#include "SS_relays.c"
+#include "SS_relays_com.h"
 #include "SS_com.h"
 #include "unity_fixture.h"
 

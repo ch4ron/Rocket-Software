@@ -149,7 +149,7 @@ static void SS_ADS1258_measurement_feed(Measurement *meas, ComFrame *frame) {
     frame->destination = COM_GRAZYNA_ID;
     frame->source = SS_com_get_board_id();
     frame->device = COM_MEASUREMENT_ID;
-    frame->operation = 0;
+    frame->operation = 1;
     frame->id = meas->channel_id;
     frame->data_type = FLOAT;
     frame->payload = *((uint32_t *) &meas->scaled);

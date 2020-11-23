@@ -17,6 +17,9 @@
 #include "SS_flash_ctrl.h"
 #include "SS_flash_log.h"
 #endif
+#ifdef SS_USE_IGNITER
+#include "SS_igniter.h"
+#endif
 #include "SS_adc.h"
 #include "SS_can.h"
 #include "SS_console.h"
@@ -66,7 +69,7 @@ Servo servos[] = {
     {.id = 7, .tim = &htim3, .channel = TIM_CHANNEL_1, .supply = &servos2_supply},
 };
 
-void SS_platform_servos_init() {
+void SS_platform_servos_init(void) {
     SS_servos_init(servos, sizeof(servos) / sizeof(servos[0]));
 }
 
@@ -176,6 +179,7 @@ Dynamixel dynamixel = {
 
 #endif
 
+
 /********** MAIN INIT *********/
 
 void SS_platform_init() {
@@ -188,10 +192,14 @@ void SS_platform_init() {
     SS_platform_ADS1258_init();
     SS_can_init(&hcan1, COM_KROMEK_ID);
     SS_grazyna_init(&huart2);
+    SS_igniter_init(RELAY2_GPIO_Port, RELAY2_Pin);
 #ifdef SS_USE_DYNAMIXEL
     SS_dynamixel_init(&dynamixel);
 #endif
+#ifdef SS_USE_FLASH
     assert(SS_s25fl_init(FLASH_RESET_GPIO_Port, FLASH_RESET_Pin, 64*1024*1024, 256*1024, 512, true, 4, 1) == S25FL_STATUS_OK);
     assert(SS_flash_init(&hqspi, FLASH_RESET_GPIO_Port, FLASH_RESET_Pin) == FLASH_STATUS_OK);
     HAL_Delay(100);
+#endif
+    SS_enable_supply(&relay_supply);
 }

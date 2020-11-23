@@ -1,0 +1,8 @@
+si SWD
+Device STM32F446RE
+speed 4000
+r
+h
+loadfile /home/birb/Rocket-Software/build_tests/Test-Projects/Nucleo-F446RE/nucleo-f446re.hex
+r
+exit

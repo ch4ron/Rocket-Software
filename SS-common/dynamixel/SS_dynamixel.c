@@ -98,6 +98,15 @@ DynamixelStatus SS_dynamixel_disable_led(Dynamixel *servo) {
     return SS_dynamixel_write(servo, DYNAMIXEL_LED, &buf, 1);
 }
 
+DynamixelStatus SS_dynamixel_check_position(Dynamixel *servo, int32_t position) {
+    int32_t max_pos = (servo->opened_position > servo->closed_position) ? servo->opened_position : servo->closed_position;
+    int32_t min_pos = (servo->opened_position < servo->closed_position) ? servo->opened_position : servo->closed_position;
+    if(position > max_pos || position < min_pos) {
+        return DYNAMIXEL_RESULT_FAIL;
+    }
+    return DYNAMIXEL_RESULT_OK;
+}
+
 DynamixelStatus SS_dynamixel_set_goal_position(Dynamixel *servo, int32_t position) {
     SS_dynamixel_enable_torque(servo);
     int32_t max_pos = (servo->opened_position > servo->closed_position) ? servo->opened_position : servo->closed_position;
@@ -117,13 +126,13 @@ DynamixelStatus SS_dynamixel_set_velocity_limit(Dynamixel *servo, uint32_t limit
     return SS_dynamixel_write(servo, DYNAMIXEL_VELOCITY_LIMIT, (uint8_t *) &limit, 4);
 }
 
-DynamixelStatus SS_dynamixel_set_opened_position(Dynamixel *servo, uint32_t position) {
+DynamixelStatus SS_dynamixel_set_opened_position(Dynamixel *servo, int32_t position) {
     servo->opened_position = position;
     Dynamixel_ID id = (position > servo->closed_position) ? DYNAMIXEL_MAX_POSITION_LIMIT : DYNAMIXEL_MIN_POSITION_LIMIT;
     return SS_dynamixel_write(servo, id, (uint8_t *) &position, 4);
 }
 
-DynamixelStatus SS_dynamixel_set_closed_position(Dynamixel *servo, uint32_t position) {
+DynamixelStatus SS_dynamixel_set_closed_position(Dynamixel *servo, int32_t position) {
     servo->closed_position = position;
     Dynamixel_ID id = (position > servo->opened_position) ? DYNAMIXEL_MAX_POSITION_LIMIT : DYNAMIXEL_MIN_POSITION_LIMIT;
     return SS_dynamixel_write(servo, id, (uint8_t *) &position, 4);

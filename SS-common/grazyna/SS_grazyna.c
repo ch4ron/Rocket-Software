@@ -119,6 +119,8 @@ static void SS_grazyna_handle_frame() {
     uint32_t calculated_crc = SS_grazyna_crc_calculate(&grazyna.rx_buff);
     if(grazyna.rx_buff.crc == calculated_crc) {
         SS_com_message_received(&grazyna.rx_buff.com_frame);
+    } else {
+        SS_println_fromISR("Grazyna invalid CRC");
     }
     grazyna.grazyna_state = GRAZYNA_LOOKING_FOR_HEADER;
     SS_grazyna_receive_hal((uint8_t *) &grazyna.rx_buff, sizeof(grazyna.rx_buff.header));

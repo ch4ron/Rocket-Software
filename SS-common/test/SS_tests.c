@@ -67,8 +67,10 @@ static void tests(void) {
 #ifdef SS_USE_MPU9250
     RUN_TEST_GROUP(MPU);
 #endif
-
     are_tests_running = false;
+#ifdef SS_USE_SEQUENCE
+    RUN_TEST_GROUP(sequence);
+#endif
 }
 
 /* Enable verbose output */

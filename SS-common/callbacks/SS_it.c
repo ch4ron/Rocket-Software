@@ -41,6 +41,9 @@
 #ifdef SS_USE_MPU9250
 #include "SS_MPU9250.h"
 #endif
+#ifdef SS_USE_LORA
+#include "SS_rfm23.h"
+#endif
 #include "stm32f4xx_hal.h"
 #include "SS_log.h"
 #include "SS_console.h"
@@ -64,6 +67,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 #endif
 #ifdef SS_USE_MPU9250
     SS_MPU_GPIO_EXTI_Callback(GPIO_Pin);
+#endif
+#ifdef SS_USE_LORA
+    SS_LoRa_EXTI_Callback(GPIO_Pin);
 #endif
 }
 
@@ -150,16 +156,16 @@ void HAL_QSPI_RxCpltCallback(QSPI_HandleTypeDef *hqspi) {
 void HAL_SYSTICK_Callback() {
 /* TODO Remove Systick Callback and change it to a task */
 #ifdef SS_USE_SERVOS
-    SS_servos_SYSTICK();
+    /* SS_servos_SYSTICK(); */
 #endif
 #ifdef SS_USE_SUPPLY
-    SS_supply_SYSTICK();
+    /* SS_supply_SYSTICK(); */
 #endif
 #ifdef SS_USE_SEQUENCE
     /* SS_sequence_SYSTICK(); */
 #endif
 #ifdef SS_USE_MS5X
-    SS_MS56_SYSTICK_Callback();
+    /* SS_MS56_SYSTICK_Callback(); */
 #endif
 #ifdef SS_USE_FLASH
     //SS_flash_ctrl_time_increment_handler();

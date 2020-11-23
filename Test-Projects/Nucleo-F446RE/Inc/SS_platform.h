@@ -8,4 +8,4 @@
 /********** MAIN INIT *********/
 void SS_platform_init();
 
-#endif //KROMEK_SS_KROMEK_INIT_H
+#endif

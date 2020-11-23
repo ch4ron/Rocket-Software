@@ -1,0 +1,8 @@
+si SWD
+Device STM32F446VE
+speed 4000
+r
+h
+loadfile /home/birb/Rocket-Software/build_tests/Staszek/staszek.hex
+r
+exit

@@ -22,8 +22,8 @@ extern TaskHandle_t com_feed_task;
 /* ==================== Public function prototypes ==================== */
 /* ==================================================================== */
 
-void SS_com_feed_task();
-void SS_com_feed_enable();
-void SS_com_feed_disable();
+void SS_com_feed_task(void *pvParameters);
+void SS_com_feed_enable(void);
+void SS_com_feed_disable(void);
 
 #endif /* SS_COM_H_ */

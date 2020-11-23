@@ -7,6 +7,9 @@
 #ifdef SS_USE_ADC
 #include "SS_adc.h"
 #endif
+#ifdef SS_USE_SEQUENCE
+#include "SS_sequence.h"
+#endif
 
 #include "SS_init.h"
 #include "SS_log.h"
@@ -19,6 +22,9 @@ void SS_init(void) {
     SS_led_set_com(0, 0, 0);
 #ifdef SS_USE_ADC
     SS_adc_start();
+#endif
+#ifdef SS_USE_SEQUENCE
+    SS_sequence_init();
 #endif
     SS_FreeRTOS_init();
 }
