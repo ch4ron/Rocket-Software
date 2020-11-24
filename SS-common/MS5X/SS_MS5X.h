@@ -21,7 +21,7 @@
 /*	Check if it coincides with pointer to a SPI_HandleTypeDef structure that
  * 	contains the configuration information for proper SPI module. */
 
-//#define HSPI_MS56 hspi3
+#define HSPI_MS56 hspi3
 
 
 #define MS56_PRESS_256 0x40
@@ -36,9 +36,9 @@
 #define MS56_TEMP_2048 0x56
 #define MS56_TEMP_4096 0x58
 
-#define MS56_RESET 0x1E
-#define MS56_ADC_READ 0x00
-#define MS56_PROM_READ_BASE 0xA0
+#define MS56_RESET 0x1E               // commend that makes MS56 o reset
+#define MS56_ADC_READ 0x00            // 24 bits pressure and 24 bits temp so put this in uint32_t
+#define MS56_PROM_READ_BASE 0xA0      // 128 bit of calibration words
 
 extern struct MS5607 ms5607;
 

@@ -55,21 +55,13 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-static uint8_t beep_number;
-static uint8_t  beep_gap;
-
 
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-void SS_set_beep_number(uint16_t beeps){
-    beep_number=beeps;
-}
-void SS_set_beep_gap(uint8_t gap){
-    beep_gap=gap;
-}
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -112,10 +104,11 @@ int main(void)
   MX_SPI1_Init();
   MX_QUADSPI_Init();
   MX_I2C3_Init();
-  MX_TIM10_Init();
+  //MX_TIM10_Init();
   MX_SPI3_Init();
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
+
   SS_platform_init();
 
   SS_init();
@@ -209,19 +202,9 @@ extern void SS_FreeRTOS_25khz_timer_callback(TIM_HandleTypeDef *htim);
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* USER CODE BEGIN Callback 0 */
-    static uint8_t cnt;
-    if (htim->Instance == TIM10) {
-        cnt++;
-        HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET);
-        if(cnt % beep_gap == 0) {
-            cnt = 0;
-            if(beep_number > 0) {
-                if(beep_number < 255)
-                    beep_number--;
-                HAL_GPIO_TogglePin(BUZZER_GPIO_Port, BUZZER_Pin);
-            }
-        }
-    }
+  if (htim->Instance == TIM10) {
+      SS_buzzer_start_beeping();
+  }
   SS_FreeRTOS_25khz_timer_callback(htim);
   /* USER CODE END Callback 0 */
   if (htim->Instance == TIM13) {

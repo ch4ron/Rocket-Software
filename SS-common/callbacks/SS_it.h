@@ -13,5 +13,6 @@
 /* ==================================================================== */
 
 void SS_25khz_timer_callback(void);
+void SS_SYSTICK_callback_task(void *pvParameters);
 
 #endif  // SS_IT_H

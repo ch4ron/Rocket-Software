@@ -114,8 +114,6 @@ void Error_Handler(void);
 #define MS56_MISO_GPIO_Port GPIOB
 #define MS56_MOSI_Pin GPIO_PIN_5
 #define MS56_MOSI_GPIO_Port GPIOB
-#define HSPI_MS56 hspi3
-
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

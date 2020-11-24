@@ -107,9 +107,8 @@ static void SS_platform_init_MPU(void) {
 
 
 static void SS_platform_init_MS5X(void) {
-    ms5607.hspi=&hspi3;
-    SS_MS56_init(&ms5607,MS56_PRESS_512,MS56_TEMP_512);
-    SS_MS56_read_convert(&ms5607);
+    SS_MS56_init(&ms5607,MS56_PRESS_256,MS56_TEMP_256);
+
 }
 /********** MAIN INIT *********/
 

@@ -35,15 +35,11 @@ SS_led_generate_header(adc)
 SS_led_generate_header(com)
 SS_led_generate_header(meas)
 
-
-
-void SS_set_beep_number(uint16_t beeps);
-void SS_set_beep_gap(uint8_t gap);
-
 void SS_platform_toggle_loop_led();
 void SS_led_set_all(bool red, bool green, bool blue);
 void SS_led_toggle_all(bool red, bool green, bool blue);
 void SS_buzzer_start_count(uint16_t hertz_100, uint16_t beeps,uint8_t gap);
+void SS_buzzer_start_beeping(void);
 
 
 /*

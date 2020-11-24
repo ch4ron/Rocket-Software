@@ -25,6 +25,10 @@ typedef struct {
 /* ========================== Private macros ========================== */
 /* ==================================================================== */
 
+ static uint8_t gap_time;
+ static uint8_t beep_number;
+ static int cnt;
+
 #define SS_led_generate_source(name)                                                           \
     static Led name;                                                                           \
     void __attribute__((weak)) SS_platform_set_##name##_led(bool red, bool green, bool blue) { \
@@ -73,9 +77,22 @@ void __attribute__((weak)) SS_platform_toggle_loop_led() {}
 void SS_buzzer_start_count(uint16_t hertz_100, uint16_t beeps,uint8_t gap)
 {
     BUZZER_TIM_REGISTER->ARR = 1000 *100/hertz_100 - 1;
-    SS_set_beep_number(beeps);
-    SS_set_beep_gap(gap);
+    beep_number=beeps;
+    gap_time=gap;
     HAL_TIM_Base_Start_IT(&BUZZER_TIM);
+}
+
+void SS_buzzer_start_beeping(void){
+    cnt++;
+    HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET);
+    if(cnt % gap_time == 0) {
+        cnt = 0;
+        if(beep_number > 0) {
+            if(beep_number < 255)
+                beep_number--;
+            HAL_GPIO_TogglePin(BUZZER_GPIO_Port, BUZZER_Pin);
+        }
+    }
 }
 
 /*                                                      These were unused in old Repo and i consider deleting it

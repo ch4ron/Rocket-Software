@@ -3,9 +3,13 @@
  *
  *  Created on: Dec 25, 2019
  *      Author: maciek
+ *
+ *  Modified on: Nov 23, 2020
+ *     Author: Dawid
  */
 
 #include "FreeRTOS.h"
+#include "task.h"
 #include "stm32f4xx_hal.h"
 #include "SS_log.h"
 #include "SS_console.h"
@@ -64,6 +68,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 #endif
 #ifdef SS_USE_MPU9250
     SS_MPU_GPIO_EXTI_Callback(GPIO_Pin);
+
 #endif
 }
 
@@ -86,6 +91,7 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
 #ifdef SS_USE_MS5X
     SS_MS56_RxCpltCallback(hspi);
+
 #endif
 }
 #endif
@@ -147,25 +153,27 @@ void HAL_QSPI_RxCpltCallback(QSPI_HandleTypeDef *hqspi) {
 }
 #endif
 
-void HAL_SYSTICK_Callback() {
-/* TODO Remove Systick Callback and change it to a task */
-#ifdef SS_USE_SERVOS
-    /* SS_servos_SYSTICK(); */
-#endif
-#ifdef SS_USE_SUPPLY
-    /* SS_supply_SYSTICK(); */
-#endif
-#ifdef SS_USE_SEQUENCE
-    /* SS_sequence_SYSTICK(); */
-#endif
-#ifdef SS_USE_MS5X
-    /* SS_MS56_SYSTICK_Callback(); */
-#endif
-#ifdef SS_USE_FLASH
-    //SS_flash_ctrl_time_increment_handler();
-#endif
-}
+void SS_SYSTICK_callback_task(void *pvParameters) {
 
+    while(1) {
+        vTaskDelay(2);
+        #ifdef SS_USE_SERVOS
+             /* SS_servos_SYSTICK(); */
+        #endif
+        #ifdef SS_USE_SUPPLY
+            /* SS_supply_SYSTICK(); */
+        #endif
+        #ifdef SS_USE_SEQUENCE
+            /* SS_sequence_SYSTICK(); */
+        #endif
+        #ifdef SS_USE_MS5X
+            SS_MS56_SYSTICK_Callback();
+        #endif
+        #ifdef SS_USE_FLASH
+            //SS_flash_ctrl_time_increment_handler();
+        #endif
+    }
+}
 
 void SS_25khz_timer_callback(void) {
 #ifdef SS_USE_FLASH

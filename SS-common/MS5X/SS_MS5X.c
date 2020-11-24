@@ -34,6 +34,8 @@
 #include "SS_S25FL.h"
 #endif
 
+
+
 struct MS5607 ms5607;
 uint8_t MS56_WAIT_READY = 0;
 uint8_t data_flash[8];
@@ -285,9 +287,11 @@ void SS_MS56_decrement_wait_ready(struct MS5607 *ms5607) {
 void SS_MS56_read_convert(struct MS5607 *ms5607) {
     int64_t dT;
     int64_t OFF, SENS;
+    uint8_t rcv[6];
 
     SS_MS56_convertion_press_start(ms5607);
     SS_MS56_wait(ms5607->pressOSR);
+
     SS_MS56_adc_read(&ms5607->uncomp_press);
 
     SS_MS56_convertion_temp_start(ms5607);
