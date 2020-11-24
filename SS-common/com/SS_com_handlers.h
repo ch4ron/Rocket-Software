@@ -101,6 +101,9 @@ static ComHandler sequence_handlers[] = {
 #ifdef SS_USE_IGNITER
     {COM_IGNITER_ID, SS_igniter_com_sequence_validate},
 #endif
+#ifdef SS_USE_FLASH
+    {COM_FLASH_ID, SS_flash_com_sequence_validate},
+#endif
 };
 #endif
 

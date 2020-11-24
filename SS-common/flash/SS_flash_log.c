@@ -89,7 +89,7 @@ static void SS_flash_log_task(void *pvParameters);
 void SS_flash_create_tasks(UBaseType_t priority) {
     BaseType_t res = xTaskCreate(SS_flash_log_task, "Flash Var Stream Task", 256, &vars_stream, priority, NULL);
     assert(res == pdTRUE);
-    res = xTaskCreate(SS_flash_log_task, "Flash Text Stream Task", 256, &text_stream, priority, NULL);
+    //res = xTaskCreate(SS_flash_log_task, "Flash Text Stream Task", 256, &text_stream, priority, NULL);
     assert(res == pdTRUE);
 }
 
@@ -311,6 +311,10 @@ static void SS_flash_log_task(void *pvParameters) {
         /* TODO add mutex - for concurrent calls to SS_flash_stream_stop */
         if(xQueueReceive(stream->queue, &element, pdMS_TO_TICKS(portMAX_DELAY)) == pdTRUE) {
             SS_flash_control_log_bytes(element.data, element.size);
+            for(int i=0;i<element.size;i++) SS_print("%d,", element.data[i]);
+            SS_println("");
+//            uint8_t test[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+//            SS_flash_control_log_bytes(test, 9);
             /* lfs_file_write(lfs, &stream->file, element.data, element.size); */
             /* sent_bytes += element.size; */
 
@@ -347,13 +351,33 @@ void SS_flash_print_logs(char *args) {
             SS_s25fl_read_page(0x00089200UL/S25FL_PAGE_SIZE + i, data);
         }
         /* SS_print("tx page: %d", i); */
-        HAL_UART_Transmit(&huart2, data, S25FL_PAGE_SIZE, 4000);
+        HAL_UART_Transmit(&huart5, data, S25FL_PAGE_SIZE, 4000);
         /* SS_print_bytes(data, S25FL_PAGE_SIZE); */
         /* for (uint32_t ii = 0; ii < S25FL_PAGE_SIZE; ++ii) { */
             /* if(ii%16 == 0) { */
                 /* SS_println(""); */
             /* } */
             /* SS_print("%x ", data[ii]); */
+        /* } */
+        /* SS_print("\n\n------------------\n\n"); */
+    }
+}
+void SS_flash_print_logs_debug(char *args) {
+    /* SS_MPU_set_is_logging(false); */
+    /* SS_println("Start transmiting"); */
+    for(uint32_t i = 0; i < 2; i++) {
+        static uint8_t data[S25FL_PAGE_SIZE];
+        SS_s25fl_read_page(0x00089200UL/S25FL_PAGE_SIZE + i, data);
+
+
+        /* SS_print("tx page: %d", i); */
+        HAL_UART_Transmit(&huart5, data, S25FL_PAGE_SIZE, 4000);
+        /* SS_print_bytes(data, S25FL_PAGE_SIZE); */
+        /* for (uint32_t ii = 0; ii < S25FL_PAGE_SIZE; ++ii) { */
+        /* if(ii%16 == 0) { */
+        /* SS_println(""); */
+        /* } */
+        /* SS_print("%x ", data[ii]); */
         /* } */
         /* SS_print("\n\n------------------\n\n"); */
     }

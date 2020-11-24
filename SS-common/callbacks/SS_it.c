@@ -10,6 +10,7 @@
 #include "SS_log.h"
 #include "SS_console.h"
 
+
 /* ==================================================================== */
 /* ============================= Includes ============================= */
 /* ==================================================================== */
@@ -21,6 +22,7 @@
 #include "SS_s25fl.h"
 #include "SS_flash_ctrl.h"
 #include "SS_flash_caching.h"
+#include "SS_flash_log.h"
 #endif
 #ifdef SS_USE_ADS1258
 #include "SS_ADS1258.h"
@@ -174,6 +176,7 @@ void HAL_SYSTICK_Callback() {
 
 void SS_25khz_timer_callback(void) {
 #ifdef SS_USE_FLASH
+    SS_flash_log_25khz_timer_isr();
     /* SS_flash_ctrl_time_increment_handler(); */
 #endif
 }

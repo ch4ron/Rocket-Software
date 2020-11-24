@@ -156,9 +156,27 @@ static void SS_platform_relays_init() {
 /********** ADS1258 *********/
 
 Measurement measurements[] = {
-    {.channel_id = STATUS_CHID_DIFF0,
+    {.channel_id = STATUS_CHID_VCC,
      .a_coefficient = 0.251004016064257028112449799196787148f,
      .b_coefficient = 0.75f},
+    {.channel_id = STATUS_CHID_REF,
+            .a_coefficient = 0.251004016064257028112449799196787148f,
+            .b_coefficient = 0.75f},
+    {.channel_id = STATUS_CHID_DIFF0,
+            .a_coefficient = 0.251004016064257028112449799196787148f,
+            .b_coefficient = 0.75f},
+    {.channel_id = STATUS_CHID_DIFF1,
+            .a_coefficient = 0.251004016064257028112449799196787148f,
+            .b_coefficient = 0.75f},
+    {.channel_id = STATUS_CHID_DIFF2,
+            .a_coefficient = 0.251004016064257028112449799196787148f,
+            .b_coefficient = 0.75f},
+    {.channel_id = STATUS_CHID_DIFF3,
+            .a_coefficient = 0.251004016064257028112449799196787148f,
+            .b_coefficient = 0.75f},
+    {.channel_id = STATUS_CHID_DIFF4,
+            .a_coefficient = 0.251004016064257028112449799196787148f,
+            .b_coefficient = 0.75f},
 };
 
 static void

@@ -5,6 +5,7 @@
  *      Author: maciek
  */
 
+#include <SS_flash_log.h>
 #include "SS_measurements.h"
 
 #include "SS_com.h"
@@ -75,6 +76,10 @@ void SS_ADS1258_measurements_parse(ADS1258_Measurement *meas) {
     }
     measurement_pointers[meas->channel]->raw = meas->value;
 #ifdef SS_USE_FLASH
+//    static uint8_t t = 0;
+//    t += 1;
+//    if(t%3 == 0)
+    //SS_println_fromISR("%d", meas->channel);
     SS_flash_log_var_fromISR(meas->channel, (uint8_t *) &meas->value, sizeof(meas->value));
 #endif
 }
@@ -118,9 +123,11 @@ float SS_ADS1258_measurements_read_VREF() {
     HAL_Delay(10);
     for (uint8_t i = 0; i < 25; i++) {
         vref += meas.raw / 786432.0f;
+
         HAL_Delay(1);
     }
     vref /= 25.0f;
+    vref = 3609902 / 786432.0f; /* FIXME */
     SS_ADS1258_measurements_clear();
     for (uint8_t i = 0; i < MAX_MEASUREMENT_COUNT; i++) {
         if (tmp_pointers[i] != NULL) {

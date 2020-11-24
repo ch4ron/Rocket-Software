@@ -38,5 +38,7 @@ FlashStatus SS_flash_log_var(uint8_t id, uint8_t *data, uint16_t size);
 void SS_flash_log_var_fromISR(uint8_t id, uint8_t *data, uint16_t size);
 FlashStatus SS_flash_log_text(const char *str);
 void SS_flash_print_logs(char *args);
+void SS_flash_print_logs_debug(char *args);
+void SS_flash_log_25khz_timer_isr(void);
 
 #endif /* SS_FLASH_LOG_H */

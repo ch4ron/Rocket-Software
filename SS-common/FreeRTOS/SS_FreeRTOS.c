@@ -105,7 +105,7 @@ static void SS_FreeRTOS_create_tasks(void) {
 #ifdef SS_USE_GRAZYNA
     res = xTaskCreate(SS_grazyna_tx_handler_task, "Grazyna Tx Task", 64, NULL, 5, NULL);
     assert(res == pdTRUE);
-    /* res = xTaskCreate(SS_com_feed_task, "Feed Task", 256, NULL, 5, (TaskHandle_t *) &com_feed_task); */
+     res = xTaskCreate(SS_com_feed_task, "Feed Task", 256, NULL, 5, (TaskHandle_t *) &com_feed_task);
     assert(res == pdTRUE);
 #endif /* SS_USE_GRAZYNA */
 #endif /* SS_USE_COM */

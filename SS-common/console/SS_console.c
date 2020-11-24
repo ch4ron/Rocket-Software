@@ -65,6 +65,7 @@ ConsoleCommand commands[] = {
     {"erase", "Erase flash", SS_flash_erase},
     {"purge", "Erase flash", SS_flash_purge},
     {"dump", "Dump flash", SS_flash_print_logs},
+    {"dumpd", "Dump Debug", SS_flash_print_logs_debug},
 #endif
     {"help", "Print help", SS_console_print_help},
 };
