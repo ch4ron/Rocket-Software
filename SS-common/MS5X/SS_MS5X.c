@@ -463,8 +463,8 @@ uint8_t SS_MS56_DMA_wait(uint8_t press_or_temp_OSR) {
   * @retval None
   */
 void SS_MS56_SYSTICK_Callback(void) {
-    static uint8_t counter = 0;
-    /* Wait for MS5607 conversion.  */
+  /*  static uint8_t counter = 0;
+    // Wait for MS5607 conversion.
     if (ms5607.sequence_flag == 2) {
         counter++;
         if (counter >= SS_MS56_DMA_wait(ms5607.pressOSR)) {
@@ -474,8 +474,8 @@ void SS_MS56_SYSTICK_Callback(void) {
             }
         }
     }
-    /* This allows to automatically starts temperature conversion just after press conversion and leave
-     * all previous interruptions.  */
+    // This allows to automatically starts temperature conversion just after press conversion and leave
+    // all previous interruptions.
     if (ms5607.sequence_flag == 4) {
         counter++;
         if (counter >= 1) {
@@ -486,8 +486,8 @@ void SS_MS56_SYSTICK_Callback(void) {
             }
         }
     }
-    /* Check if there is sequence_start request and if there is conversion_ongoing flag.
-     * Fulfilled condition causes start of DMA conversion sequence.  */
+    // Check if there is sequence_start request and if there is conversion_ongoing flag.
+     //* Fulfilled condition causes start of DMA conversion sequence.
     if (sequence_start == 1 && conversion_ongoing == 0) {
 
         if (HAL_SPI_GetState(&HSPI_MS56) == HAL_SPI_STATE_READY) {
@@ -496,10 +496,11 @@ void SS_MS56_SYSTICK_Callback(void) {
             SS_MS56_DMA_convertion_press_start(&ms5607);
         }
     }
-    /* Wait for conversion. It works only when using SS_MS56_read_convert_non_polling function  */
+    // Wait for conversion. It works only when using SS_MS56_read_convert_non_polling function
     if (ms5607.stage == 1 || ms5607.stage == 3) {
         SS_MS56_decrement_wait_ready(&ms5607);
     }
+    */
 }
 
 /**
@@ -508,7 +509,7 @@ void SS_MS56_SYSTICK_Callback(void) {
   * @retval None
   */
 void SS_MS56_TxCpltCallback(SPI_HandleTypeDef *hspi) {
-    if (hspi == &HSPI_MS56) {
+   /* if (hspi == &HSPI_MS56) {
         if ((HAL_GPIO_ReadPin(MS56_CS_GPIO_Port, MS56_CS_Pin) == GPIO_PIN_RESET) && ms5607.sequence_flag == 1) {
             ms5607.sequence_flag = 2;
             SS_MS56_CS_DISABLE();
@@ -524,13 +525,13 @@ void SS_MS56_TxCpltCallback(SPI_HandleTypeDef *hspi) {
 
         }
 
-        /* Error report.  */
+        // Error report.
         if (HAL_SPI_GetState(&HSPI_MS56) == HAL_SPI_STATE_ERROR)
             ms5607.result = 1;
         else
             ms5607.result = 0;
     }
-
+*/
 }
 
 /**
@@ -538,10 +539,11 @@ void SS_MS56_TxCpltCallback(SPI_HandleTypeDef *hspi) {
   * @note   It is hardware interrupt.
   * @retval None
   */
+
 void SS_MS56_RxCpltCallback(SPI_HandleTypeDef *hspi) {
-    if (hspi == &HSPI_MS56) {
-        /* Check if its time to temp conversion or to end of conversion.  */
-        if (ms5607.comp_type == temp) {
+    /*if (hspi == &HSPI_MS56) {
+        // Check if its time to temp conversion or to end of conversion.
+          if (ms5607.comp_type == temp) {
             SS_MS56_CS_DISABLE();
             ms5607.sequence_flag = 4;
         } else {
@@ -552,13 +554,13 @@ void SS_MS56_RxCpltCallback(SPI_HandleTypeDef *hspi) {
 #endif
         }
 
-        /* Error report.  */
+        // Error report.
         if (HAL_SPI_GetState(&HSPI_MS56) == HAL_SPI_STATE_ERROR)
             ms5607.result = 1;
         else
             ms5607.result = 0;
     }
-
+*/
 }
 
 

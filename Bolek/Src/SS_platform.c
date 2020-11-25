@@ -107,8 +107,25 @@ static void SS_platform_init_MPU(void) {
 
 
 static void SS_platform_init_MS5X(void) {
+    uint32_t data;
+    uint8_t buffTX = MS56_TEMP_512;
     SS_MS56_init(&ms5607,MS56_PRESS_256,MS56_TEMP_256);
+ /*   SS_MS56_CS_ENABLE();
+    while (HAL_SPI_Transmit_DMA(&hspi3,&buffTX,1));
+    SS_MS56_CS_DISABLE();
+    HAL_Delay(100);
+    buffTX = MS56_ADC_READ;
+    uint8_t buffRX[3];
+    SS_MS56_CS_ENABLE();
+    HAL_SPI_Transmit(&HSPI_MS56, &buffTX, 1, 200);
+    while (HAL_SPI_GetState(&HSPI_MS56) == HAL_SPI_STATE_BUSY_TX);
 
+    HAL_SPI_Receive(&HSPI_MS56, buffRX, 3, 200);
+    while (HAL_SPI_GetState(&HSPI_MS56) == HAL_SPI_STATE_BUSY_RX);
+
+    SS_MS56_CS_DISABLE();
+    data = buffRX[2] + ((uint16_t) buffRX[1] << 8) + ((uint32_t) buffRX[0] << 16);
+*/
 }
 /********** MAIN INIT *********/
 
