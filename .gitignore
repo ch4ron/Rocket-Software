@@ -210,6 +210,9 @@ local.properties
 .loadpath
 .recommenders
 
+#VS Code workspace files
+*.vscode/
+
 # External tool builders
 .externalToolBuilders/
 
