@@ -156,9 +156,6 @@ static void SS_platform_relays_init() {
 /********** ADS1258 *********/
 
 Measurement measurements[] = {
-    {.channel_id = STATUS_CHID_VCC,
-     .a_coefficient = 0.251004016064257028112449799196787148f,
-     .b_coefficient = 0.75f},
     {.channel_id = STATUS_CHID_REF,
             .a_coefficient = 0.251004016064257028112449799196787148f,
             .b_coefficient = 0.75f},
@@ -169,12 +166,21 @@ Measurement measurements[] = {
             .a_coefficient = 0.251004016064257028112449799196787148f,
             .b_coefficient = 0.75f},
     {.channel_id = STATUS_CHID_DIFF2,
-            .a_coefficient = 0.251004016064257028112449799196787148f,
-            .b_coefficient = 0.75f},
+            .a_coefficient = 95688.70933f,
+            .b_coefficient = 14168.46902f},
     {.channel_id = STATUS_CHID_DIFF3,
+            .a_coefficient = 1.0f,
+            .b_coefficient = 0.0f},
+    {.channel_id = STATUS_CHID_DIFF4,
             .a_coefficient = 0.251004016064257028112449799196787148f,
             .b_coefficient = 0.75f},
-    {.channel_id = STATUS_CHID_DIFF4,
+    {.channel_id = STATUS_CHID_DIFF5,
+            .a_coefficient = 22.906f,
+            .b_coefficient = -25.011f},
+    {.channel_id = STATUS_CHID_DIFF6,
+            .a_coefficient = 0.251004016064257028112449799196787148f,
+            .b_coefficient = 0.75f},
+    {.channel_id = STATUS_CHID_DIFF7,
             .a_coefficient = 0.251004016064257028112449799196787148f,
             .b_coefficient = 0.75f},
 };
@@ -210,7 +216,7 @@ void SS_platform_init() {
     SS_platform_ADS1258_init();
     SS_can_init(&hcan1, COM_KROMEK_ID);
     SS_grazyna_init(&huart2);
-    SS_igniter_init(RELAY2_GPIO_Port, RELAY2_Pin);
+    SS_igniter_init(RELAY3_GPIO_Port, RELAY3_Pin);
 #ifdef SS_USE_DYNAMIXEL
     SS_dynamixel_init(&dynamixel);
 #endif

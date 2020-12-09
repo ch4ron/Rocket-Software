@@ -53,6 +53,7 @@ static void SS_FreeRTOS_create_tasks(void);
 /* ========================= Public functions ========================= */
 /* ==================================================================== */
 
+uint8_t ignstate;
 
 void SS_FreeRTOS_init(void) {
     SS_FreeRTOS_create_tasks();
@@ -79,6 +80,8 @@ static void vLEDFlashTask(void *pvParameters) {
     while(1) {
         vTaskDelay(pdMS_TO_TICKS(500));
         SS_platform_toggle_loop_led();
+        ignstate = HAL_GPIO_ReadPin(IGN_GPIO_Port, IGN_Pin);
+        //HAL_GPIO_WritePin(IGN_GPIO_Port,IGN_Pin, 1);
         
     }
 }

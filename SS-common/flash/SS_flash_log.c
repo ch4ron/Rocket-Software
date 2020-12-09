@@ -311,8 +311,8 @@ static void SS_flash_log_task(void *pvParameters) {
         /* TODO add mutex - for concurrent calls to SS_flash_stream_stop */
         if(xQueueReceive(stream->queue, &element, pdMS_TO_TICKS(portMAX_DELAY)) == pdTRUE) {
             SS_flash_control_log_bytes(element.data, element.size);
-            for(int i=0;i<element.size;i++) SS_print("%d,", element.data[i]);
-            SS_println("");
+//            for(int i=0;i<element.size;i++) SS_print("%d,", element.data[i]);
+//            SS_println("");
 //            uint8_t test[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
 //            SS_flash_control_log_bytes(test, 9);
             /* lfs_file_write(lfs, &stream->file, element.data, element.size); */
