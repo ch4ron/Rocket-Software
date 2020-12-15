@@ -20,7 +20,7 @@
 #ifndef __i2c_H
 #define __i2c_H
 #ifdef __cplusplus
- extern "C" {
+extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
@@ -45,7 +45,7 @@ void MX_I2C1_Init(void);
 #ifdef __cplusplus
 }
 #endif
-#endif /*__ i2c_H */
+#endif /*__i2c_H */
 
 /**
   * @}

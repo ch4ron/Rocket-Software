@@ -27,9 +27,8 @@
 I2C_HandleTypeDef hi2c1;
 
 /* I2C1 init function */
-void    MX_I2C1_Init(void)
+void MX_I2C1_Init(void)
 {
-
   hi2c1.Instance = I2C1;
   hi2c1.Init.ClockSpeed = 100000;
   hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
@@ -39,18 +38,17 @@ void    MX_I2C1_Init(void)
   hi2c1.Init.OwnAddress2 = 0;
   hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
   hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
+  if (HAL_OK != HAL_I2C_Init(&hi2c1))
   {
     Error_Handler();
   }
-
 }
 
 void HAL_I2C_MspInit(I2C_HandleTypeDef* i2cHandle)
 {
-
   GPIO_InitTypeDef GPIO_InitStruct = {0};
-  if(i2cHandle->Instance==I2C1)
+
+  if(I2C1 == i2cHandle->Instance)
   {
   /* USER CODE BEGIN I2C1_MspInit 0 */
 
@@ -61,7 +59,7 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef* i2cHandle)
     PB8     ------> I2C1_SCL
     PB9     ------> I2C1_SDA 
     */
-    GPIO_InitStruct.Pin = CHARGER_SCL_Pin|CHARGER_SDA_Pin;
+    GPIO_InitStruct.Pin = CHARGER_SCL_Pin | CHARGER_SDA_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
     GPIO_InitStruct.Pull = GPIO_PULLUP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
@@ -78,8 +76,7 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef* i2cHandle)
 
 void HAL_I2C_MspDeInit(I2C_HandleTypeDef* i2cHandle)
 {
-
-  if(i2cHandle->Instance==I2C1)
+  if(I2C1 == i2cHandle->Instance)
   {
   /* USER CODE BEGIN I2C1_MspDeInit 0 */
 
@@ -91,7 +88,7 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef* i2cHandle)
     PB8     ------> I2C1_SCL
     PB9     ------> I2C1_SDA 
     */
-    HAL_GPIO_DeInit(GPIOB, CHARGER_SCL_Pin|CHARGER_SDA_Pin);
+    HAL_GPIO_DeInit(GPIOB, CHARGER_SCL_Pin | CHARGER_SDA_Pin);
 
   /* USER CODE BEGIN I2C1_MspDeInit 1 */
 

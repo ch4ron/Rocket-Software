@@ -26,6 +26,7 @@
 #include "crc.h"
 #include "dma.h"
 #include "gpio.h"
+#include "i2c.h"
 #include "quadspi.h"
 #include "spi.h"
 #include "tim.h"
@@ -33,6 +34,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "SS_init.h"
 #include "SS_adc.h"
 #include "SS_common.h"
 #include "SS_log.h"
@@ -114,6 +116,7 @@ int main(void) {
     MX_TIM3_Init();
     MX_TIM8_Init();
     MX_CRC_Init();
+    MX_I2C1_Init();
 
     SS_platform_init();
 
