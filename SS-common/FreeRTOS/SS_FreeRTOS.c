@@ -16,6 +16,7 @@
 #include "task.h"
 #include "tim.h"
 #include "SS_misc.h"
+#include "adc.h"
 #ifdef SS_USE_COM
 #include "SS_com.h"
 #include "SS_com_feed.h"
@@ -76,11 +77,20 @@ void SS_run_tests_task(void *pvParameters) {
 
 
 static void vLEDFlashTask(void *pvParameters) {
+    HAL_ADC_Start(&hadc1);
+    uint16_t PomiarADC;
+    float Vsense;
+    const float SupplyVoltage = 3.3; // [Volts]
+    const float ADCResolution = 4095.0;
     while(1) {
         vTaskDelay(500);
         SS_platform_toggle_loop_led();
-        SS_MS56_DMA_read_convert_and_calculate();
-        SS_print(" %d, ", ms5607.temp);
+        if (HAL_ADC_PollForConversion(&hadc1, 10) == HAL_OK) {
+            PomiarADC = HAL_ADC_GetValue(&hadc1);
+            HAL_ADC_Start(&hadc1);
+
+        }
+        //SS_print("%d,", PomiarADC);
     }
 }
 

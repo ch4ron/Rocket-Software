@@ -13,6 +13,7 @@
 #include "stm32f4xx_hal.h"
 #include "SS_log.h"
 #include "SS_console.h"
+#include "adc.h"
 
 /* ==================================================================== */
 /* ============================= Includes ============================= */
@@ -154,9 +155,10 @@ void HAL_QSPI_RxCpltCallback(QSPI_HandleTypeDef *hqspi) {
 #endif
 
 void SS_SYSTICK_callback_task(void *pvParameters) {
-
+    int32_t Frequency_counter=0;
+    uint16_t PomiarADC;
     while(1) {
-        vTaskDelay(2);
+        vTaskDelay(1);
         #ifdef SS_USE_SERVOS
              /* SS_servos_SYSTICK(); */
         #endif
@@ -167,7 +169,17 @@ void SS_SYSTICK_callback_task(void *pvParameters) {
             /* SS_sequence_SYSTICK(); */
         #endif
         #ifdef SS_USE_MS5X
-            SS_MS56_SYSTICK_Callback();
+            if(Frequency_counter>=ms5607.pause_time){
+                SS_MS56_read_convert(&ms5607);
+                Frequency_counter=0;
+                SS_print("%d,", PomiarADC);
+            }else
+                Frequency_counter++;
+        if (HAL_ADC_PollForConversion(&hadc1, 10) == HAL_OK) {
+            PomiarADC = HAL_ADC_GetValue(&hadc1);
+            HAL_ADC_Start(&hadc1);
+
+        }
         #endif
         #ifdef SS_USE_FLASH
             //SS_flash_ctrl_time_increment_handler();

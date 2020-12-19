@@ -69,6 +69,7 @@ struct MS5607 {
     enum RESULT result;
     uint8_t stage;
     SPI_HandleTypeDef *hspi;
+    int32_t pause_time;
 
 /*Used in DMA mode*/
     uint8_t sequence_flag;

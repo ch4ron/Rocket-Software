@@ -20,6 +20,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "adc.h"
 #include "dma.h"
 #include "i2c.h"
 #include "quadspi.h"
@@ -107,8 +108,9 @@ int main(void)
   MX_TIM10_Init();
   MX_SPI3_Init();
   MX_USB_DEVICE_Init();
+  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
-
+  HAL_ADC_Start(&hadc1);
   SS_platform_init();
 
   SS_init();
