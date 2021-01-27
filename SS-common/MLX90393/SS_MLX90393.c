@@ -22,7 +22,7 @@ static MLX_StatusType SS_MLX90393_transceive(uint16_t deviceAddress, uint8_t *wr
 /* ==================================================================== */
 /* TODO */
 /* Implement function for reading status (probably using SS_MLX90393_cmdReadRegister as it is most neutral) - DONE
- * Use this function in SS_MLX90393_handleError to properly handle ERROR and CMD_REJECTED statuses
+ * Use this function in SS_MLX90393_handleError to properly handle ERROR and CMD_REJECTED statuses - DONE
  * Implement MLX initialization using Method 2 to investigate error repairing feature of MLX90393
  * Choose proper method for SS_MLX90393_init function, based on investigation
  * Move new functions to proper places in code
@@ -150,7 +150,11 @@ MLX_StatusType SS_MLX90393_handleError(uint16_t deviceAddress, MLX_StatusType st
             {
                 retValue = MLX_OK;
             }
-
+            else
+            {
+                retValue = status;
+            }
+            
             break;
 
         default:
