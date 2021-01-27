@@ -21,8 +21,9 @@ static MLX_StatusType SS_MLX90393_transceive(uint16_t deviceAddress, uint8_t *wr
 /* ========================= Public functions ========================= */
 /* ==================================================================== */
 /* TODO */
-/* Implement function for reading status (probably using SS_MLX90393_cmdReadRegister as it is most neutral) - DONE
+/* Implement function for reading status - DONE
  * Use this function in SS_MLX90393_handleError to properly handle ERROR and CMD_REJECTED statuses - DONE
+ * Write e-mail to Melexis and ask when exactly ERROR status bit is set - DONE
  * Implement MLX initialization using Method 2 to investigate error repairing feature of MLX90393
  * Choose proper method for SS_MLX90393_init function, based on investigation
  * Move new functions to proper places in code
@@ -39,84 +40,34 @@ static MLX_StatusType SS_MLX90393_transceive(uint16_t deviceAddress, uint8_t *wr
 MLX_StatusType SS_MLX90393_init(uint16_t deviceAddress, MLX_InitParams *params)
 {
     MLX_StatusType retValue = MLX_ERROR;
-
+    
     retValue = SS_MLX90393_resetDevice(deviceAddress);
 
     if(MLX_OK == retValue)
     {
         retValue = SS_MLX90393_setGain(deviceAddress, params->gain);
-
-        if(MLX_OK == retValue)
-        {
-            SS_MLX90393_setResolution(deviceAddress, MLX_AXIS_ALL, &params->resolutions);
-        }
     }
-    else
+
+    if(MLX_OK == retValue)
     {
-        return retValue;
+        retValue = SS_MLX90393_setResolution(deviceAddress, MLX_AXIS_ALL, &params->resolutions);
     }
-    
-    // To be called
-    SS_MLX90393_setResolution(deviceAddress, MLX_AXIS_ALL, &params->resolutions);
-    SS_MLX90393_setOversampling(deviceAddress, params->oversampling);
-    SS_MLX90393_setDigitalFiltering(deviceAddress, params->digitalFiltering);
-    SS_MLX90393_setBurstDatarate(deviceAddress, params->Burstdatarate);
 
-    /* Method 1
-    // This method is useful when we are sure, that previous command was executed successfully
-    retValue = SS_MLX90393_setGain(deviceAddress, params->gain);
-    if(handleError(retValue))
+    if(MLX_OK == retValue)
     {
-        return retValue;
+        retValue = SS_MLX90393_setOversampling(deviceAddress, params->oversampling);
     }
 
-    retValue = SS_MLX90393_setGain(deviceAddress, params->gain);
-    if(handleError(retValue))
+    if(MLX_OK == retValue)
     {
-        return retValue;
+        retValue = SS_MLX90393_setDigitalFiltering(deviceAddress, params->digitalFiltering);
     }
 
-    retValue = SS_MLX90393_setGain(deviceAddress, params->gain);
-    if(handleError(retValue))
+    if(MLX_OK == retValue)
     {
-        return retValue;
+        retValue = SS_MLX90393_setBurstDatarate(deviceAddress, params->Burstdatarate);
     }
 
-    retValue = SS_MLX90393_setGain(deviceAddress, params->gain);
-    if(handleError(retValue))
-    {
-        return retValue;
-    }
-    */
-
-    /* Method 2
-    // Here we are making sure, that a specific value is set, after repairing an error
-    // If we check that repairing an error means succesfull command execution - Method 1 can be used
-    retValue = SS_MLX90393_setGain(deviceAddress, params->gain);
-    if(MLX_OK != retValue)
-    {
-        if(!handleError(retValue))
-        {
-            uint16_t gain = 0u;
-            SS_MLX90393_getGain(deviceAddress, &gain);
-
-            if(params->gain != gain)
-            {
-                // try again
-                retValue = SS_MLX90393_setGain(deviceAddress, params->gain);
-
-                if(MLX_OK != retValue)
-                {
-                    return retValue;
-                }
-            }
-        }
-        else
-        {
-            return retValue;
-        }
-    }
-    */
     return retValue;
 }
 
