@@ -31,6 +31,7 @@ add_compile_definitions(SS_USE_JSON_SETTINGS)
 add_compile_definitions(SS_USE_CAN)
 add_compile_definitions(SS_USE_FLASH)
 add_compile_definitions(SS_USE_IGNITER)
+add_compile_definitions(SS_USE_MLX90393)
 add_compile_definitions(DEBUG)
 
 create_target()

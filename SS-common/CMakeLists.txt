@@ -60,6 +60,7 @@ add_subdirectory(console)
 add_subdirectory(MPU9250)
 add_subdirectory(igniter)
 add_subdirectory(LoRa)
+add_subdirectory(MLX90393)
 
 
 function(target_link_common TARGET)
@@ -121,6 +122,9 @@ if(COMPILE_DEFS MATCHES SS_USE_IGNITER)
 endif()
 if(COMPILE_DEFS MATCHES SS_USE_LORA)
     target_link_libraries(${TARGET} LoRa)
+endif()
+if(COMPILE_DEFS MATCHES SS_USE_MLX90393)
+    target_link_libraries(${TARGET} MLX90393)
 endif()
 
 # Mandatory
