@@ -26,7 +26,7 @@ static MLX_StatusType SS_MLX90393_transceive(uint16_t deviceAddress, uint8_t *wr
  * Write e-mail to Melexis and ask when exactly ERROR status bit is set - DONE
  * Implement MLX initialization using Method 2 to investigate error repairing feature of MLX90393
  * Choose proper method for SS_MLX90393_init function, based on investigation
- * Move new functions to proper places in code
+ * Move new functions to proper places in code - DONE
 
    Less important:
  * Reimplement SS_MLX90393_transceive function, to be more independent from i2c instance and
@@ -66,51 +66,6 @@ MLX_StatusType SS_MLX90393_init(uint16_t deviceAddress, MLX_InitParams *params)
     if(MLX_OK == retValue)
     {
         retValue = SS_MLX90393_setBurstDatarate(deviceAddress, params->Burstdatarate);
-    }
-
-    return retValue;
-}
-
-uint8_t SS_MLX90393_checkStatus(uint16_t deviceAddress)
-{
-    MLX_StatusType retValue = MLX_ERROR;
-    uint8_t cmd = MLX_CMD_NO_OPERATION;
-    uint8_t status = 0u;
-
-    retValue = SS_MLX90393_transceive(deviceAddress, &cmd, sizeof(cmd), &status, sizeof(status));
-
-    return status;
-}
-
-MLX_StatusType SS_MLX90393_handleError(uint16_t deviceAddress, MLX_StatusType status)
-{
-    MLX_StatusType retValue = MLX_ERROR;
-
-    switch(status)
-    {
-        case MLX_OK:
-        // In case of pre condition, we want from upper layer to log that incorrect parameter
-        // was entered, after one debugging session problem will be solved
-        case MLX_PRE_CONDITION:
-            retValue = status;
-            break;
-
-        case MLX_ERROR:
-        case MLX_CMD_REJECTED:
-            if((SS_MLX90393_checkStatus(deviceAddress) & MLX_STATUS_ERROR_CORRECTED) == MLX_STATUS_ERROR_CORRECTED)
-            {
-                retValue = MLX_OK;
-            }
-            else
-            {
-                retValue = status;
-            }
-            
-            break;
-
-        default:
-            retValue = MLX_PRE_CONDITION;
-            break;
     }
 
     return retValue;
@@ -588,6 +543,53 @@ MLX_StatusType SS_MLX90393_cmdReset(uint16_t deviceAddress)
                 retValue = MLX_CMD_REJECTED;
             }
         } 
+    }
+
+    return retValue;
+}
+
+uint8_t SS_MLX90393_checkStatus(uint16_t deviceAddress)
+{
+    MLX_StatusType retValue = MLX_ERROR;
+    uint8_t cmd = MLX_CMD_NO_OPERATION;
+    uint8_t status = 0u;
+
+    retValue = SS_MLX90393_transceive(deviceAddress, &cmd, sizeof(cmd), &status, sizeof(status));
+
+    return status;
+}
+
+MLX_StatusType SS_MLX90393_handleError(uint16_t deviceAddress, MLX_StatusType status)
+{
+    MLX_StatusType retValue = MLX_ERROR;
+
+    switch(status)
+    {
+        case MLX_OK:
+        // In case of pre condition, we want from upper layer to log that incorrect parameter
+        // was entered, then we can track the source of the problem during debugging
+        case MLX_PRE_CONDITION:
+        case MLX_HAL_ERROR:
+        case MLX_I2C_BUSY:
+            retValue = status;
+            break;
+
+        case MLX_ERROR:
+        case MLX_CMD_REJECTED:
+            if((SS_MLX90393_checkStatus(deviceAddress) & MLX_STATUS_ERROR_CORRECTED) == MLX_STATUS_ERROR_CORRECTED)
+            {
+                retValue = MLX_OK;
+            }
+            else
+            {
+                retValue = status;
+            }
+            
+            break;
+
+        default:
+            retValue = MLX_PRE_CONDITION;
+            break;
     }
 
     return retValue;

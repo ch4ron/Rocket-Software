@@ -207,6 +207,8 @@ MLX_StatusType SS_MLX90393_cmdWriteRegister(uint16_t deviceAddress, uint8_t regA
 MLX_StatusType SS_MLX90393_resetDevice(uint16_t deviceAddress);
 MLX_StatusType SS_MLX90393_cmdExitMode(uint16_t deviceAddress);
 MLX_StatusType SS_MLX90393_cmdReset(uint16_t deviceAddress);
+uint8_t SS_MLX90393_checkStatus(uint16_t deviceAddress);
+MLX_StatusType SS_MLX90393_handleError(uint16_t deviceAddress, MLX_StatusType status);
 
 #ifdef __cplusplus
 }
