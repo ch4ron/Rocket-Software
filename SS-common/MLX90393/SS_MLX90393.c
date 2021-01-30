@@ -37,140 +37,184 @@ static MLX_StatusType SS_MLX90393_transceive(uint16_t deviceAddress, uint8_t *wr
 // Parameters setup for fastest speed, as accuracy is not needed that much
 // DIG = 2, OSR = 0
 //TODO Gain and resolution needs to be set according to values that will be measured
-MLX_StatusType SS_MLX90393_init(uint16_t deviceAddress, MLX_InitParams *params)
+MLX_StatusType SS_MLX90393_init(MLX_HandleType *mlx)
 {
     MLX_StatusType retValue = MLX_ERROR;
     
-    retValue = SS_MLX90393_resetDevice(deviceAddress);
+    retValue = SS_MLX90393_resetDevice(mlx->deviceAddress);
 
     if(MLX_OK == retValue)
     {
-        retValue = SS_MLX90393_setGain(deviceAddress, params->gain);
+        retValue = SS_MLX90393_setHallconf(mlx);
     }
 
     if(MLX_OK == retValue)
     {
-        retValue = SS_MLX90393_setResolution(deviceAddress, MLX_AXIS_ALL, &params->resolutions);
+        retValue = SS_MLX90393_setGain(mlx);
     }
 
     if(MLX_OK == retValue)
     {
-        retValue = SS_MLX90393_setOversampling(deviceAddress, params->oversampling);
+        retValue = SS_MLX90393_setResolution(mlx);
     }
 
     if(MLX_OK == retValue)
     {
-        retValue = SS_MLX90393_setDigitalFiltering(deviceAddress, params->digitalFiltering);
+        retValue = SS_MLX90393_setOversampling(mlx);
     }
 
     if(MLX_OK == retValue)
     {
-        retValue = SS_MLX90393_setBurstDatarate(deviceAddress, params->Burstdatarate);
+        retValue = SS_MLX90393_setDigitalFiltering(mlx);
     }
-
-    return retValue;
-}
-
-MLX_StatusType SS_MLX90393_setGain(uint16_t deviceAddress, uint16_t gain)
-{
-    MLX_StatusType retValue = MLX_ERROR;
-    uint16_t regData = 0u;
-
-    retValue = SS_MLX90393_cmdReadRegister(deviceAddress, MLX_REG_ADDRESS_1, &regData);
 
     if(MLX_OK == retValue)
     {
-        regData |= (gain << MLX_REG_GAIN_SHIFT);
+        retValue = SS_MLX90393_setBurstDatarate(mlx);
+    }
 
-        retValue = SS_MLX90393_cmdWriteRegister(deviceAddress, MLX_REG_ADDRESS_1, regData);
+    if(MLX_OK == retValue)
+    {
+        retValue = SS_MLX90393_setTempCompensation(mlx);
     }
 
     return retValue;
 }
 
-MLX_StatusType SS_MLX90393_getGain(uint16_t deviceAddress, uint16_t *gain)
+MLX_StatusType SS_MLX90393_setHallconf(MLX_HandleType *mlx)
 {
     MLX_StatusType retValue = MLX_ERROR;
     uint16_t regData = 0u;
 
-    retValue = SS_MLX90393_cmdReadRegister(deviceAddress, MLX_REG_ADDRESS_1, &regData);
+    retValue = SS_MLX90393_cmdReadRegister(mlx->deviceAddress, MLX_REG_ADDRESS_1, &regData);
+
+    if(MLX_OK == retValue)
+    {
+        regData |= mlx->settings.hallconf;
+
+        retValue = SS_MLX90393_cmdWriteRegister(mlx->deviceAddress, MLX_REG_ADDRESS_1, regData);
+    }
+
+    return retValue;
+}
+
+MLX_StatusType SS_MLX90393_getHallconf(MLX_HandleType *mlx)
+{
+    MLX_StatusType retValue = MLX_ERROR;
+    uint16_t regData = 0u;
+
+    retValue = SS_MLX90393_cmdReadRegister(mlx->deviceAddress, MLX_REG_ADDRESS_1, &regData);
+
+    if(MLX_OK == retValue)
+    {
+        regData &= MLX_REG_HALLCONF_OFFSET;
+
+        mlx->settings.hallconf = regData;
+    }
+
+    return retValue;
+}
+
+MLX_StatusType SS_MLX90393_setGain(MLX_HandleType *mlx)
+{
+    MLX_StatusType retValue = MLX_ERROR;
+    uint16_t regData = 0u;
+
+    retValue = SS_MLX90393_cmdReadRegister(mlx->deviceAddress, MLX_REG_ADDRESS_1, &regData);
+
+    if(MLX_OK == retValue)
+    {
+        regData |= (mlx->settings.gain << MLX_REG_GAIN_SHIFT);
+
+        retValue = SS_MLX90393_cmdWriteRegister(mlx->deviceAddress, MLX_REG_ADDRESS_1, regData);
+    }
+
+    return retValue;
+}
+
+MLX_StatusType SS_MLX90393_getGain(MLX_HandleType *mlx)
+{
+    MLX_StatusType retValue = MLX_ERROR;
+    uint16_t regData = 0u;
+
+    retValue = SS_MLX90393_cmdReadRegister(mlx->deviceAddress, MLX_REG_ADDRESS_1, &regData);
 
     if(MLX_OK == retValue)
     {
         regData &= MLX_REG_GAIN_OFFSET;
 
-        *gain = (regData >> MLX_REG_GAIN_SHIFT);
+        mlx->settings.gain = (regData >> MLX_REG_GAIN_SHIFT);
     }
 
     return retValue;
 }
 
-MLX_StatusType SS_MLX90393_setResolution(uint16_t deviceAddress, uint8_t axis, MLX_Resolutions *resolutions)
+MLX_StatusType SS_MLX90393_setResolution(MLX_HandleType *mlx)
 {
     MLX_StatusType retValue = MLX_ERROR;
     uint16_t regData = 0u;
 
-    retValue = SS_MLX90393_cmdReadRegister(deviceAddress, MLX_REG_ADDRESS_3, &regData);
+    retValue = SS_MLX90393_cmdReadRegister(mlx->deviceAddress, MLX_REG_ADDRESS_3, &regData);
 
     if(MLX_OK == retValue)
     {
-        switch(axis)
+        switch(mlx->measuredValues)
         {
             case MLX_AXIS_X:
-                regData |= (resolutions->res_x << MLX_REG_RESOLUTION_X_SHIFT);
+                regData |= (mlx->settings.resolutions.res_x << MLX_REG_RESOLUTION_X_SHIFT);
                 break;
 
             case MLX_AXIS_Y:
-                regData |= (resolutions->res_y << MLX_REG_RESOLUTION_Y_SHIFT);
+                regData |= (mlx->settings.resolutions.res_y << MLX_REG_RESOLUTION_Y_SHIFT);
                 break;
 
             case MLX_AXIS_Z:
-                regData |= (resolutions->res_z << MLX_REG_RESOLUTION_Z_SHIFT);
+                regData |= (mlx->settings.resolutions.res_z << MLX_REG_RESOLUTION_Z_SHIFT);
                 break;
 
             case MLX_AXIS_ALL:
-                regData |= (resolutions->res_x << MLX_REG_RESOLUTION_X_SHIFT) | 
-                           (resolutions->res_y << MLX_REG_RESOLUTION_Y_SHIFT) | 
-                           (resolutions->res_z << MLX_REG_RESOLUTION_Z_SHIFT);
+                regData |= (mlx->settings.resolutions.res_x << MLX_REG_RESOLUTION_X_SHIFT) | 
+                           (mlx->settings.resolutions.res_y << MLX_REG_RESOLUTION_Y_SHIFT) | 
+                           (mlx->settings.resolutions.res_z << MLX_REG_RESOLUTION_Z_SHIFT);
                 break;
 
             default:
                 return MLX_PRE_CONDITION;
         }
 
-        retValue = SS_MLX90393_cmdWriteRegister(deviceAddress, MLX_REG_ADDRESS_3, regData);
+        retValue = SS_MLX90393_cmdWriteRegister(mlx->deviceAddress, MLX_REG_ADDRESS_3, regData);
     }
 
     return retValue;
 }
 
-MLX_StatusType SS_MLX90393_getResolution(uint16_t deviceAddress, uint8_t axis, MLX_Resolutions *resolutions)
+MLX_StatusType SS_MLX90393_getResolution(MLX_HandleType *mlx)
 {
     MLX_StatusType retValue = MLX_ERROR;
     uint16_t regData = 0u;
 
-    retValue = SS_MLX90393_cmdReadRegister(deviceAddress, MLX_REG_ADDRESS_3, &regData);
+    retValue = SS_MLX90393_cmdReadRegister(mlx->deviceAddress, MLX_REG_ADDRESS_3, &regData);
 
     if(MLX_OK == retValue)
     {
-        switch(axis)
+        switch(mlx->measuredValues)
         {
             case MLX_AXIS_X:
-                resolutions->res_x = (regData &= MLX_REG_RESOLUTION_X_OFFSET) >> MLX_REG_RESOLUTION_X_SHIFT;
+                mlx->settings.resolutions.res_x = (regData &= MLX_REG_RESOLUTION_X_OFFSET) >> MLX_REG_RESOLUTION_X_SHIFT;
                 break;
 
             case MLX_AXIS_Y:
-                resolutions->res_y = (regData &= MLX_REG_RESOLUTION_Y_OFFSET) >> MLX_REG_RESOLUTION_Y_SHIFT;
+                mlx->settings.resolutions.res_y = (regData &= MLX_REG_RESOLUTION_Y_OFFSET) >> MLX_REG_RESOLUTION_Y_SHIFT;
                 break;
 
             case MLX_AXIS_Z:
-                resolutions->res_z = (regData &= MLX_REG_RESOLUTION_Z_OFFSET) >> MLX_REG_RESOLUTION_Z_SHIFT;
+                mlx->settings.resolutions.res_z = (regData &= MLX_REG_RESOLUTION_Z_OFFSET) >> MLX_REG_RESOLUTION_Z_SHIFT;
                 break;
 
             case MLX_AXIS_ALL:
-                resolutions->res_x = (regData &= MLX_REG_RESOLUTION_X_OFFSET) >> MLX_REG_RESOLUTION_X_SHIFT;
-                resolutions->res_y = (regData &= MLX_REG_RESOLUTION_Y_OFFSET) >> MLX_REG_RESOLUTION_Y_SHIFT;
-                resolutions->res_z = (regData &= MLX_REG_RESOLUTION_Z_OFFSET) >> MLX_REG_RESOLUTION_Z_SHIFT;
+                mlx->settings.resolutions.res_x = (regData &= MLX_REG_RESOLUTION_X_OFFSET) >> MLX_REG_RESOLUTION_X_SHIFT;
+                mlx->settings.resolutions.res_y = (regData &= MLX_REG_RESOLUTION_Y_OFFSET) >> MLX_REG_RESOLUTION_Y_SHIFT;
+                mlx->settings.resolutions.res_z = (regData &= MLX_REG_RESOLUTION_Z_OFFSET) >> MLX_REG_RESOLUTION_Z_SHIFT;
                 break;
 
             default:
@@ -181,182 +225,212 @@ MLX_StatusType SS_MLX90393_getResolution(uint16_t deviceAddress, uint8_t axis, M
     return retValue;
 }
 
-MLX_StatusType SS_MLX90393_setOversampling(uint16_t deviceAddress, uint16_t oversampling)
+MLX_StatusType SS_MLX90393_setOversampling(MLX_HandleType *mlx)
 {
     MLX_StatusType retValue = MLX_ERROR;
     uint16_t regData = 0u;
 
-    retValue = SS_MLX90393_cmdReadRegister(deviceAddress, MLX_REG_ADDRESS_3, &regData);
+    retValue = SS_MLX90393_cmdReadRegister(mlx->deviceAddress, MLX_REG_ADDRESS_3, &regData);
 
     if(MLX_OK == retValue)
     {
-        regData |= oversampling;
+        regData |= mlx->settings.oversampling;
 
-        retValue = SS_MLX90393_cmdWriteRegister(deviceAddress, MLX_REG_ADDRESS_3, regData);
+        retValue = SS_MLX90393_cmdWriteRegister(mlx->deviceAddress, MLX_REG_ADDRESS_3, regData);
     }
 
     return retValue;
 }
 
-MLX_StatusType SS_MLX90393_getOversampling(uint16_t deviceAddress, uint16_t *oversampling)
+MLX_StatusType SS_MLX90393_getOversampling(MLX_HandleType *mlx)
 {
     MLX_StatusType retValue = MLX_ERROR;
     uint16_t regData = 0u;
 
-    retValue = SS_MLX90393_cmdReadRegister(deviceAddress, MLX_REG_ADDRESS_3, &regData);
-
-    if(MLX_OK == retValue)
-    {
-        regData &= MLX_REG_OVERSAMPLING_OFFSET;
-
-        *oversampling = regData;
-    }
-
-    return retValue;
-}
-
-MLX_StatusType SS_MLX90393_setDigitalFiltering(uint16_t deviceAddress, uint16_t digitalFiltering)
-{
-    MLX_StatusType retValue = MLX_ERROR;
-    uint16_t regData = 0u;
-
-    retValue = SS_MLX90393_cmdReadRegister(deviceAddress, MLX_REG_ADDRESS_3, &regData);
-
-    if(MLX_OK == retValue)
-    {
-        regData |= (digitalFiltering << MLX_REG_DIGITAL_FILTER_SHIFT);
-
-        retValue = SS_MLX90393_cmdWriteRegister(deviceAddress, MLX_REG_ADDRESS_3, regData);
-    }
-
-    return retValue;
-}
-
-MLX_StatusType SS_MLX90393_getDigitalFiltering(uint16_t deviceAddress, uint16_t *digitalFiltering)
-{
-    MLX_StatusType retValue = MLX_ERROR;
-    uint16_t regData = 0u;
-
-    retValue = SS_MLX90393_cmdReadRegister(deviceAddress, MLX_REG_ADDRESS_3, &regData);
+    retValue = SS_MLX90393_cmdReadRegister(mlx->deviceAddress, MLX_REG_ADDRESS_3, &regData);
 
     if(MLX_OK == retValue)
     {
         regData &= MLX_REG_OVERSAMPLING_OFFSET;
 
-        *digitalFiltering = (regData >> MLX_REG_DIGITAL_FILTER_SHIFT);
+        mlx->settings.oversampling = regData;
     }
 
     return retValue;
 }
 
-MLX_StatusType SS_MLX90393_setBurstDatarate(uint16_t deviceAddress, uint16_t datarate)
+MLX_StatusType SS_MLX90393_setDigitalFiltering(MLX_HandleType *mlx)
 {
     MLX_StatusType retValue = MLX_ERROR;
     uint16_t regData = 0u;
 
-    retValue = SS_MLX90393_cmdReadRegister(deviceAddress, MLX_REG_ADDRESS_2, &regData);
+    retValue = SS_MLX90393_cmdReadRegister(mlx->deviceAddress, MLX_REG_ADDRESS_3, &regData);
 
     if(MLX_OK == retValue)
     {
-        regData |= datarate;
+        regData |= (mlx->settings.digitalFiltering << MLX_REG_DIGITAL_FILTER_SHIFT);
 
-        retValue = SS_MLX90393_cmdWriteRegister(deviceAddress, MLX_REG_ADDRESS_2, regData);
+        retValue = SS_MLX90393_cmdWriteRegister(mlx->deviceAddress, MLX_REG_ADDRESS_3, regData);
     }
 
     return retValue;
 }
 
-MLX_StatusType SS_MLX90393_getBurstDatarate(uint16_t deviceAddress, uint16_t *datarate)
+MLX_StatusType SS_MLX90393_getDigitalFiltering(MLX_HandleType *mlx)
 {
     MLX_StatusType retValue = MLX_ERROR;
     uint16_t regData = 0u;
 
-    retValue = SS_MLX90393_cmdReadRegister(deviceAddress, MLX_REG_ADDRESS_2, &regData);
+    retValue = SS_MLX90393_cmdReadRegister(mlx->deviceAddress, MLX_REG_ADDRESS_3, &regData);
+
+    if(MLX_OK == retValue)
+    {
+        regData &= MLX_REG_OVERSAMPLING_OFFSET;
+
+        mlx->settings.digitalFiltering = (regData >> MLX_REG_DIGITAL_FILTER_SHIFT);
+    }
+
+    return retValue;
+}
+
+MLX_StatusType SS_MLX90393_setBurstDatarate(MLX_HandleType *mlx)
+{
+    MLX_StatusType retValue = MLX_ERROR;
+    uint16_t regData = 0u;
+
+    retValue = SS_MLX90393_cmdReadRegister(mlx->deviceAddress, MLX_REG_ADDRESS_2, &regData);
+
+    if(MLX_OK == retValue)
+    {
+        regData |= mlx->settings.burstDatarate;
+
+        retValue = SS_MLX90393_cmdWriteRegister(mlx->deviceAddress, MLX_REG_ADDRESS_2, regData);
+    }
+
+    return retValue;
+}
+
+MLX_StatusType SS_MLX90393_getBurstDatarate(MLX_HandleType *mlx)
+{
+    MLX_StatusType retValue = MLX_ERROR;
+    uint16_t regData = 0u;
+
+    retValue = SS_MLX90393_cmdReadRegister(mlx->deviceAddress, MLX_REG_ADDRESS_2, &regData);
 
     if(MLX_OK == retValue)
     {
         regData &= MLX_REG_BURST_DATARATE_OFFSET;
 
-        *datarate = regData;
+        mlx->settings.burstDatarate = regData;
     }
 
     return retValue;
 }
 
-//TODO Maybe change name to readAllAxis and simplify function?
-//then measuredValues is no longer needed, MLX_AXIS_ALL will be passed instead
-//TODO Find out how to pass configurable HALLCONF to lookup table, maybe use InitParams structure?
-MLX_StatusType SS_MLX90393_readAxisMeasurements(uint16_t deviceAddress, uint8_t measuredValues, uint8_t readLen,
-                                                MLX_ConvertedValues *convValues, MLX_Resolutions *resolutions, uint8_t gain)
+MLX_StatusType SS_MLX90393_setTempCompensation(MLX_HandleType *mlx)
+{
+    MLX_StatusType retValue = MLX_ERROR;
+    uint16_t regData = 0u;
+
+    retValue = SS_MLX90393_cmdReadRegister(mlx->deviceAddress, MLX_REG_ADDRESS_2, &regData);
+
+    if(MLX_OK == retValue)
+    {
+        regData |= (mlx->settings.tempCompensation << MLX_REG_TCMP_EN_SHIFT);
+
+        retValue = SS_MLX90393_cmdWriteRegister(mlx->deviceAddress, MLX_REG_ADDRESS_2, regData);
+    }
+
+    return retValue;
+}
+
+MLX_StatusType SS_MLX90393_getTempCompensation(MLX_HandleType *mlx)
+{
+    MLX_StatusType retValue = MLX_ERROR;
+    uint16_t regData = 0u;
+
+    retValue = SS_MLX90393_cmdReadRegister(mlx->deviceAddress, MLX_REG_ADDRESS_2, &regData);
+
+    if(MLX_OK == retValue)
+    {
+        regData &= MLX_REG_TCMP_EN_OFFSET;
+
+        mlx->settings.tempCompensation = (regData >> MLX_REG_TCMP_EN_SHIFT);
+    }
+
+    return retValue;
+}
+
+MLX_StatusType SS_MLX90393_readAxisMeasurements(MLX_HandleType *mlx, uint8_t readLen)
 {
     MLX_StatusType retValue = MLX_ERROR;
     int16_t readData[3];
 
-    if((MLX_AXIS_ALL & measuredValues) == 0u)
+    if((MLX_AXIS_ALL & mlx->measuredValues) == 0u)
     {
         return MLX_PRE_CONDITION;
     }
 
-    retValue = SS_MLX90393_cmdReadMeasurement(deviceAddress, measuredValues, readData, readLen);
+    retValue = SS_MLX90393_cmdReadMeasurement(mlx, readData, readLen);
 
     if(MLX_OK == retValue)
     {
-        if((measuredValues & MLX_AXIS_X) != 0u)
+        if((mlx->measuredValues & MLX_AXIS_X) != 0u)
         {
-            if(MLX_RESOLUTION_3 == resolutions->res_x)
+            if(MLX_RESOLUTION_3 == mlx->settings.resolutions.res_x)
             {
                 readData[MLX_INDEX_X_AXIS] -= 0x4000;
             }
-            else if(MLX_RESOLUTION_2 == resolutions->res_x)
+            else if(MLX_RESOLUTION_2 == mlx->settings.resolutions.res_x)
             {
                 readData[MLX_INDEX_X_AXIS] -= 0x8000;
             }
 
-            convValues->x = (float)readData[MLX_INDEX_X_AXIS] * 
-                mlx90393_sensitivity_lookup[MLX_LOOKUP_HALLCONF_0xC][gain][resolutions->res_x][MLX_LOOKUP_AXIS_XY];
+            mlx->convertedData.x = (float)readData[MLX_INDEX_X_AXIS] * 
+                mlx90393_sensitivity_lookup[mlx->settings.hallconf][mlx->settings.gain][mlx->settings.resolutions.res_x][MLX_LOOKUP_AXIS_XY];
         }
         
-        if((measuredValues & MLX_AXIS_Y) != 0u)
+        if((mlx->measuredValues & MLX_AXIS_Y) != 0u)
         {
-            if(MLX_RESOLUTION_3 == resolutions->res_y)
+            if(MLX_RESOLUTION_3 == mlx->settings.resolutions.res_y)
             {
                 readData[MLX_INDEX_Y_AXIS] -= 0x4000;
             }
-            else if(MLX_RESOLUTION_2 == resolutions->res_y)
+            else if(MLX_RESOLUTION_2 == mlx->settings.resolutions.res_y)
             {
                 readData[MLX_INDEX_Y_AXIS] -= 0x8000;
             }
 
-            convValues->y = (float)readData[MLX_INDEX_Y_AXIS] * 
-                mlx90393_sensitivity_lookup[MLX_LOOKUP_HALLCONF_0xC][gain][resolutions->res_y][MLX_LOOKUP_AXIS_XY];
+            mlx->convertedData.y = (float)readData[MLX_INDEX_Y_AXIS] * 
+                mlx90393_sensitivity_lookup[mlx->settings.hallconf][mlx->settings.gain][mlx->settings.resolutions.res_y][MLX_LOOKUP_AXIS_XY];
         }
 
-        if((measuredValues & MLX_AXIS_Z) != 0u)
+        if((mlx->measuredValues & MLX_AXIS_Z) != 0u)
         {
-            if(MLX_RESOLUTION_3 == resolutions->res_z)
+            if(MLX_RESOLUTION_3 == mlx->settings.resolutions.res_z)
             {
                 readData[MLX_INDEX_Z_AXIS] -= 0x4000;
             }
-            else if(MLX_RESOLUTION_2 == resolutions->res_z)
+            else if(MLX_RESOLUTION_2 == mlx->settings.resolutions.res_z)
             {
                 readData[MLX_INDEX_Z_AXIS] -= 0x8000;
             }
 
-            convValues->z = (float)readData[MLX_INDEX_Z_AXIS] * 
-                mlx90393_sensitivity_lookup[MLX_LOOKUP_HALLCONF_0xC][gain][resolutions->res_z][MLX_LOOKUP_AXIS_Z];
+            mlx->convertedData.z = (float)readData[MLX_INDEX_Z_AXIS] * 
+                mlx90393_sensitivity_lookup[mlx->settings.hallconf][mlx->settings.gain][mlx->settings.resolutions.res_z][MLX_LOOKUP_AXIS_Z];
         }
     }
 
     return retValue;
 }
 
-MLX_StatusType SS_MLX90393_cmdStartBurstMode(uint16_t deviceAddress, uint8_t measuredValues)
+MLX_StatusType SS_MLX90393_cmdStartBurstMode(MLX_HandleType *mlx)
 {
     MLX_StatusType retValue = MLX_ERROR;
-    uint8_t cmd = MLX_CMD_START_BURST_MODE | measuredValues;
+    uint8_t cmd = MLX_CMD_START_BURST_MODE | mlx->measuredValues;
     uint8_t status = 0u;
 
-    retValue = SS_MLX90393_transceive(deviceAddress, &cmd, sizeof(cmd), &status, sizeof(status));
+    retValue = SS_MLX90393_transceive(mlx->deviceAddress, &cmd, sizeof(cmd), &status, sizeof(status));
 
     if(MLX_OK == retValue)
     {
@@ -376,13 +450,13 @@ MLX_StatusType SS_MLX90393_cmdStartBurstMode(uint16_t deviceAddress, uint8_t mea
     return retValue;
 }
 
-MLX_StatusType SS_MLX90393_cmdStartSingleMeasurementMode(uint16_t deviceAddress, uint8_t measuredValues)
+MLX_StatusType SS_MLX90393_cmdStartSingleMeasurementMode(MLX_HandleType *mlx)
 {
     MLX_StatusType retValue = MLX_ERROR;
-    uint8_t cmd = MLX_CMD_START_SINGLE_MODE | measuredValues;
+    uint8_t cmd = MLX_CMD_START_SINGLE_MODE | mlx->measuredValues;
     uint8_t status = 0u;
 
-    retValue = SS_MLX90393_transceive(deviceAddress, &cmd, sizeof(cmd), &status, sizeof(status));
+    retValue = SS_MLX90393_transceive(mlx->deviceAddress, &cmd, sizeof(cmd), &status, sizeof(status));
 
     if(MLX_OK == retValue)
     {
@@ -402,14 +476,13 @@ MLX_StatusType SS_MLX90393_cmdStartSingleMeasurementMode(uint16_t deviceAddress,
     return retValue;
 }
 
-MLX_StatusType SS_MLX90393_cmdReadMeasurement(uint16_t deviceAddress, uint8_t measuredValues, 
-                                              int16_t *readData, uint8_t readLen)
+MLX_StatusType SS_MLX90393_cmdReadMeasurement(MLX_HandleType *mlx, int16_t *readData, uint8_t readLen)
 {
     MLX_StatusType retValue = MLX_ERROR;
-    uint8_t cmd = MLX_CMD_READ_MEASUREMENT | measuredValues;
+    uint8_t cmd = MLX_CMD_READ_MEASUREMENT | mlx->measuredValues;
     uint8_t readBuffer[9];
 
-    retValue = SS_MLX90393_transceive(deviceAddress, &cmd, sizeof(cmd), readBuffer, readLen);
+    retValue = SS_MLX90393_transceive(mlx->deviceAddress, &cmd, sizeof(cmd), readBuffer, readLen);
 
     if(MLX_OK == retValue)
     {
@@ -548,6 +621,7 @@ MLX_StatusType SS_MLX90393_cmdReset(uint16_t deviceAddress)
     return retValue;
 }
 
+//TODO This function will be used/modified after receiving email from Melexis
 uint8_t SS_MLX90393_checkStatus(uint16_t deviceAddress)
 {
     MLX_StatusType retValue = MLX_ERROR;
@@ -559,6 +633,7 @@ uint8_t SS_MLX90393_checkStatus(uint16_t deviceAddress)
     return status;
 }
 
+//TODO This function will be used/modified after receiving email from Melexis
 MLX_StatusType SS_MLX90393_handleError(uint16_t deviceAddress, MLX_StatusType status)
 {
     MLX_StatusType retValue = MLX_ERROR;

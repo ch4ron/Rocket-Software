@@ -125,6 +125,7 @@ typedef struct
 #define MLX_REG_BURST_DATARATE_OFFSET ((uint16_t)0x003Fu)
 #define MLX_REG_BURST_SEL_OFFSET      ((uint16_t)0x03C0u)
 #define MLX_REG_TCMP_EN_OFFSET        ((uint16_t)0x0400u)
+#define MLX_REG_TCMP_EN_SHIFT         10u
 #define MLX_REG_COMM_MODE_OFFSET      ((uint16_t)0x8000u)
 
 #define MLX_REG_OVERSAMPLING_OFFSET   ((uint16_t)0x0003u)
@@ -203,22 +204,25 @@ const float mlx90393_sensitivity_lookup[2][8][4][2] =
 /* ==================== Public function prototypes ==================== */
 /* ==================================================================== */
 
-MLX_StatusType SS_MLX90393_init(uint16_t deviceAddress, MLX_InitParams *params);
-MLX_StatusType SS_MLX90393_setGain(uint16_t deviceAddress, uint16_t gain);
-MLX_StatusType SS_MLX90393_getGain(uint16_t deviceAddress, uint16_t *gain);
-MLX_StatusType SS_MLX90393_setResolution(uint16_t deviceAddress, uint8_t axis, MLX_Resolutions *resolutions);
-MLX_StatusType SS_MLX90393_getResolution(uint16_t deviceAddress, uint8_t axis, MLX_Resolutions *resolutions);
-MLX_StatusType SS_MLX90393_setOversampling(uint16_t deviceAddress, uint16_t oversampling);
-MLX_StatusType SS_MLX90393_getOversampling(uint16_t deviceAddress, uint16_t *oversampling);
-MLX_StatusType SS_MLX90393_setDigitalFiltering(uint16_t deviceAddress, uint16_t digitalFiltering);
-MLX_StatusType SS_MLX90393_getDigitalFiltering(uint16_t deviceAddress, uint16_t *digitalFiltering);
-MLX_StatusType SS_MLX90393_setBurstDatarate(uint16_t deviceAddress, uint16_t datarate);
-MLX_StatusType SS_MLX90393_getBurstDatarate(uint16_t deviceAddress, uint16_t *datarate);
-MLX_StatusType SS_MLX90393_readAxisMeasurements(uint16_t deviceAddress, uint8_t measuredValues, uint8_t readLen,
-                                                MLX_ConvertedValues *convValues, MLX_Resolutions *resolutions, uint8_t gain);
-MLX_StatusType SS_MLX90393_cmdStartBurstMode(uint16_t deviceAddress, uint8_t measuredValues);
-MLX_StatusType SS_MLX90393_cmdStartSingleMeasurementMode(uint16_t deviceAddress, uint8_t measuredValues);
-MLX_StatusType SS_MLX90393_cmdReadMeasurement(uint16_t deviceAddress, uint8_t measuredValues, int16_t *readData, uint8_t readLen);
+MLX_StatusType SS_MLX90393_init(MLX_HandleType *mlx);
+MLX_StatusType SS_MLX90393_setHallconf(MLX_HandleType *mlx);
+MLX_StatusType SS_MLX90393_getHallconf(MLX_HandleType *mlx);
+MLX_StatusType SS_MLX90393_setGain(MLX_HandleType *mlx);
+MLX_StatusType SS_MLX90393_getGain(MLX_HandleType *mlx);
+MLX_StatusType SS_MLX90393_setResolution(MLX_HandleType *mlx);
+MLX_StatusType SS_MLX90393_getResolution(MLX_HandleType *mlx);
+MLX_StatusType SS_MLX90393_setOversampling(MLX_HandleType *mlx);
+MLX_StatusType SS_MLX90393_getOversampling(MLX_HandleType *mlx);
+MLX_StatusType SS_MLX90393_setDigitalFiltering(MLX_HandleType *mlx);
+MLX_StatusType SS_MLX90393_getDigitalFiltering(MLX_HandleType *mlx);
+MLX_StatusType SS_MLX90393_setBurstDatarate(MLX_HandleType *mlx);
+MLX_StatusType SS_MLX90393_getBurstDatarate(MLX_HandleType *mlx);
+MLX_StatusType SS_MLX90393_setTempCompensation(MLX_HandleType *mlx);
+MLX_StatusType SS_MLX90393_getTempCompensation(MLX_HandleType *mlx);
+MLX_StatusType SS_MLX90393_readAxisMeasurements(MLX_HandleType *mlx, uint8_t readLen);
+MLX_StatusType SS_MLX90393_cmdStartBurstMode(MLX_HandleType *mlx);
+MLX_StatusType SS_MLX90393_cmdStartSingleMeasurementMode(MLX_HandleType *mlx);
+MLX_StatusType SS_MLX90393_cmdReadMeasurement(MLX_HandleType *mlx, int16_t *readData, uint8_t readLen);
 MLX_StatusType SS_MLX90393_cmdReadRegister(uint16_t deviceAddress, uint8_t regAddress, uint16_t *regData);
 MLX_StatusType SS_MLX90393_cmdWriteRegister(uint16_t deviceAddress, uint8_t regAddress, uint16_t regData);
 MLX_StatusType SS_MLX90393_resetDevice(uint16_t deviceAddress);
