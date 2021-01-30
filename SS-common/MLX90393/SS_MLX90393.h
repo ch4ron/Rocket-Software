@@ -42,14 +42,14 @@ typedef struct
 
 typedef struct
 {
-    uint16_t gain;
     MLX_Resolutions resolutions;
+    uint16_t hallconf;
+    uint16_t gain;
     uint16_t oversampling;
     uint16_t digitalFiltering;
-    uint16_t Burstdatarate;
-    //TCMP_EN
-    //HALLCONF
-} MLX_InitParams;
+    uint16_t burstDatarate;
+    uint16_t tempCompensation;
+} MLX_Settings;
 
 typedef struct
 {
@@ -58,6 +58,23 @@ typedef struct
     float z;
 } MLX_ConvertedValues;
 
+typedef struct
+{
+    uint16_t deviceAddress; //TODO to be updated when SS_MLX90393_transceive function will be reimplemented
+    
+    //mlx_interface_transmit transmit; //TODO to be updated when SS_MLX90393_transceive function will be reimplemented
+    
+    //mlx_interface_receive receive; //TODO to be updated when SS_MLX90393_transceive function will be reimplemented
+
+    uint8_t measuredValues;
+
+    MLX_Settings settings;
+
+    MLX_ConvertedValues convertedData;
+
+    MLX_StatusType status;
+
+} MLX_HandleType;
 
 /* ==================================================================== */
 /* ============================== Macros ============================== */
