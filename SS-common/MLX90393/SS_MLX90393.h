@@ -35,9 +35,9 @@ typedef enum
 
 typedef struct
 {
-    uint8_t res_x;
-    uint8_t res_y;
-    uint8_t res_z;
+    uint8_t x;
+    uint8_t y;
+    uint8_t z;
 } MLX_Resolutions;
 
 typedef struct
@@ -113,9 +113,9 @@ typedef struct
 #define MLX_BYTES_TO_READ(x)        ((2 * x) + 2)
 
 /* MLX90393 register addresses */
-#define MLX_REG_ADDRESS_1           ((uint8_t)0x00u)
-#define MLX_REG_ADDRESS_2           ((uint8_t)0x01u)
-#define MLX_REG_ADDRESS_3           ((uint8_t)0x02u)
+#define MLX_REG_ADDRESS_0           ((uint8_t)0x00u)
+#define MLX_REG_ADDRESS_1           ((uint8_t)0x01u)
+#define MLX_REG_ADDRESS_2           ((uint8_t)0x02u)
 
 /* MLX90393 register offsets */
 #define MLX_REG_HALLCONF_OFFSET     ((uint16_t)0x000Fu)
