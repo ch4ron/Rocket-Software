@@ -61,6 +61,7 @@ add_subdirectory(MPU9250)
 add_subdirectory(igniter)
 add_subdirectory(LoRa)
 add_subdirectory(MLX90393)
+add_subdirectory(magneto)
 
 
 function(target_link_common TARGET)
@@ -125,6 +126,9 @@ if(COMPILE_DEFS MATCHES SS_USE_LORA)
 endif()
 if(COMPILE_DEFS MATCHES SS_USE_MLX90393)
     target_link_libraries(${TARGET} MLX90393)
+endif()
+if(COMPILE_DEFS MATCHES SS_USE_MAGNETO)
+    target_link_libraries(${TARGET} magneto)
 endif()
 
 # Mandatory
