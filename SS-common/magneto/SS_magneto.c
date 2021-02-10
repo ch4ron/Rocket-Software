@@ -23,7 +23,7 @@ void SS_magneto_handler_task(void *pvParameters)
     MLX_HandleType mlx[MLX_MODULES_QUANTITY];
 
     // init magneto module
-    SS_magneto_init(&mlx);
+    SS_magneto_init(mlx);
 
     while(1)
     {
@@ -34,8 +34,8 @@ void SS_magneto_handler_task(void *pvParameters)
 
 void SS_magneto_init(MLX_HandleType *mlx)
 {
-    uint8_t addresses = {MLX_ADDR_1, MLX_ADDR_2, MLX_ADDR_3, MLX_ADDR_4, MLX_ADDR_5, MLX_ADDR_6, 
-                         MLX_ADDR_7, MLX_ADDR_8, MLX_ADDR_9. MLX_ADDR_10, MLX_ADDR_11};
+    uint8_t addresses[MLX_MODULES_QUANTITY] = {MLX_ADDR_1, MLX_ADDR_2, MLX_ADDR_3, MLX_ADDR_4, MLX_ADDR_5, MLX_ADDR_6, 
+                                               MLX_ADDR_7, MLX_ADDR_8, MLX_ADDR_9, MLX_ADDR_10, MLX_ADDR_11};
 
     for(int i = 0; i < MLX_MODULES_QUANTITY; ++i)
     {
