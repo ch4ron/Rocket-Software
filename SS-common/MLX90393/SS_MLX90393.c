@@ -295,11 +295,21 @@ MLX_StatusType SS_MLX90393_setBurstDatarate(MLX_HandleType *mlx)
     MLX_StatusType retValue = MLX_ERROR;
     uint16_t regData = 0u;
 
+    if(MLX_DATARATE_MS_MAX < mlx->settings.burstDatarateMs)
+    {
+        return MLX_PRE_CONDITION;
+    }
+
     retValue = SS_MLX90393_cmdReadRegister(mlx->deviceAddress, MLX_REG_ADDRESS_1, &regData);
 
     if(MLX_OK == retValue)
     {
-        regData |= mlx->settings.burstDatarate;
+        regData |= mlx->settings.burstDatarateMs / MLX_MS_TO_DATARATE_RATIO;
+
+        if(MLX_MS_TO_DATARATE_RATIO/2 <= mlx->settings.burstDatarateMs % MLX_MS_TO_DATARATE_RATIO)
+        {
+            ++regData;
+        }
 
         retValue = SS_MLX90393_cmdWriteRegister(mlx->deviceAddress, MLX_REG_ADDRESS_1, regData);
     }
@@ -318,7 +328,7 @@ MLX_StatusType SS_MLX90393_getBurstDatarate(MLX_HandleType *mlx)
     {
         regData &= MLX_REG_BURST_DATARATE_OFFSET;
 
-        mlx->settings.burstDatarate = regData;
+        mlx->settings.burstDatarateMs = regData * MLX_MS_TO_DATARATE_RATIO;
     }
 
     return retValue;
@@ -358,6 +368,9 @@ MLX_StatusType SS_MLX90393_getTempCompensation(MLX_HandleType *mlx)
     return retValue;
 }
 
+
+//TODO Decide whether the readLen parameter is needed, maybe it should be chosen based on measuredValues?
+// Maybe refactor this function to be more informative, as it is only used for Axis measurements, not the temperature
 MLX_StatusType SS_MLX90393_readAxisMeasurements(MLX_HandleType *mlx, uint8_t readLen)
 {
     MLX_StatusType retValue = MLX_ERROR;

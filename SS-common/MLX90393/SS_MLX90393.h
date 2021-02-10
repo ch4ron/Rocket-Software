@@ -47,7 +47,7 @@ typedef struct
     uint16_t gain;
     uint16_t oversampling;
     uint16_t digitalFiltering;
-    uint16_t burstDatarate;
+    uint16_t burstDatarateMs;
     uint16_t tempCompensation;
 } MLX_Settings;
 
