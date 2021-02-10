@@ -139,6 +139,38 @@ typedef struct
 #define MLX_REG_RESOLUTION_Z_SHIFT    9u  
 
 /* MLX90393 register values */
+#define MLX_HALLCONF_0x0              ((uint16_t)0x00u)
+#define MLX_HALLCONF_0xC              ((uint16_t)0x0Cu)
+
+#define MLX_GAIN_5X                   ((uint16_t)0x00u)
+#define MLX_GAIN_4X                   ((uint16_t)0x01u)
+#define MLX_GAIN_3X                   ((uint16_t)0x02u)
+#define MLX_GAIN_2_5X                 ((uint16_t)0x03u)
+#define MLX_GAIN_2X                   ((uint16_t)0x04u)
+#define MLX_GAIN_1_67X                ((uint16_t)0x05u)
+#define MLX_GAIN_1_33X                ((uint16_t)0x06u)
+#define MLX_GAIN_1X                   ((uint16_t)0x07u)
+
+#define MLX_DATARATE_MS_MAX           ((uint16_t)MLX_REG_BURST_DATARATE_OFFSET * MLX_MS_TO_DATARATE_RATIO)
+#define MLX_MS_TO_DATARATE_RATIO      ((uint16_t)20u)
+
+#define MLX_TCMP_DISABLED             ((uint16_t)0x00u)
+#define MLX_TCMP_ENABLED              ((uint16_t)0x01u)
+
+#define MLX_OVERSAMPLING_0            ((uint16_t)0x00u)
+#define MLX_OVERSAMPLING_1            ((uint16_t)0x01u)
+#define MLX_OVERSAMPLING_2            ((uint16_t)0x02u)
+#define MLX_OVERSAMPLING_3            ((uint16_t)0x03u)
+
+#define MLX_DIGITAL_FILTER_0          ((uint16_t)0x00u) 
+#define MLX_DIGITAL_FILTER_1          ((uint16_t)0x01u)
+#define MLX_DIGITAL_FILTER_2          ((uint16_t)0x02u)
+#define MLX_DIGITAL_FILTER_3          ((uint16_t)0x03u)
+#define MLX_DIGITAL_FILTER_4          ((uint16_t)0x04u)
+#define MLX_DIGITAL_FILTER_5          ((uint16_t)0x05u)
+#define MLX_DIGITAL_FILTER_6          ((uint16_t)0x06u)
+#define MLX_DIGITAL_FILTER_7          ((uint16_t)0x07u)
+
 #define MLX_RESOLUTION_0              ((uint8_t)0x00u)
 #define MLX_RESOLUTION_1              ((uint8_t)0x01u)
 #define MLX_RESOLUTION_2              ((uint8_t)0x02u)
