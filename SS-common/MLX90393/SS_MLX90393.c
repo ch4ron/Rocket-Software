@@ -374,6 +374,7 @@ MLX_StatusType SS_MLX90393_getTempCompensation(MLX_HandleType *mlx)
 MLX_StatusType SS_MLX90393_readAxisMeasurements(MLX_HandleType *mlx, uint8_t readLen)
 {
     MLX_StatusType retValue = MLX_ERROR;
+    uint16_t hallconf = (mlx->settings.hallconf == MLX_HALLCONF_0x0) ? MLX_LOOKUP_HALLCONF_0x0 : MLX_LOOKUP_HALLCONF_0xC;
     int16_t readData[3];
 
     if((MLX_AXIS_ALL & mlx->measuredValues) == 0u)
@@ -397,7 +398,7 @@ MLX_StatusType SS_MLX90393_readAxisMeasurements(MLX_HandleType *mlx, uint8_t rea
             }
 
             mlx->convertedData.x = (float)readData[MLX_INDEX_X_AXIS] * 
-                mlx90393_sensitivity_lookup[mlx->settings.hallconf][mlx->settings.gain][mlx->settings.resolutions.x][MLX_LOOKUP_AXIS_XY];
+                mlx90393_sensitivity_lookup[hallconf][mlx->settings.gain][mlx->settings.resolutions.x][MLX_LOOKUP_AXIS_XY];
         }
         
         if((mlx->measuredValues & MLX_AXIS_Y) != 0u)
@@ -412,7 +413,7 @@ MLX_StatusType SS_MLX90393_readAxisMeasurements(MLX_HandleType *mlx, uint8_t rea
             }
 
             mlx->convertedData.y = (float)readData[MLX_INDEX_Y_AXIS] * 
-                mlx90393_sensitivity_lookup[mlx->settings.hallconf][mlx->settings.gain][mlx->settings.resolutions.y][MLX_LOOKUP_AXIS_XY];
+                mlx90393_sensitivity_lookup[hallconf][mlx->settings.gain][mlx->settings.resolutions.y][MLX_LOOKUP_AXIS_XY];
         }
 
         if((mlx->measuredValues & MLX_AXIS_Z) != 0u)
@@ -427,7 +428,7 @@ MLX_StatusType SS_MLX90393_readAxisMeasurements(MLX_HandleType *mlx, uint8_t rea
             }
 
             mlx->convertedData.z = (float)readData[MLX_INDEX_Z_AXIS] * 
-                mlx90393_sensitivity_lookup[mlx->settings.hallconf][mlx->settings.gain][mlx->settings.resolutions.z][MLX_LOOKUP_AXIS_Z];
+                mlx90393_sensitivity_lookup[hallconf][mlx->settings.gain][mlx->settings.resolutions.z][MLX_LOOKUP_AXIS_Z];
         }
     }
 
