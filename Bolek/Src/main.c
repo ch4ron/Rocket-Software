@@ -20,6 +20,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "adc.h"
 #include "dma.h"
 #include "i2c.h"
 #include "quadspi.h"
@@ -60,20 +61,24 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-int32_t Dane=100;
-float32_t co2_ppm, temperature, relative_humidity;
+uint32_t adc_dane;  //zmienna do adc
+int32_t Dane=100;   //zmienna do mpu
+float32_t co2_ppm, temperature, relative_humidity; //zmienne do przechowywania danych
 int16_t err;
 uint16_t interval_in_seconds = 2;
+
 int _write(int file, char *ptr, int len) {
     HAL_UART_Transmit(&huart2, (uint8_t*) ptr, (uint16_t) len, 1000);
     return len;
 }
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 void Scd30_task(void *pvParameters);
+void Adc_task(void *pvParameters);
 void led_loop(void *pvParameters);
 /* USER CODE END PFP */
 
@@ -136,22 +141,24 @@ int main(void)
   MX_SPI1_Init();
   MX_QUADSPI_Init();
   MX_I2C3_Init();
+  //MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
 
   SS_platform_init();
+
   xTaskCreate(&Scd30_task, "Scd 30", 2048, NULL, 20, NULL);
   xTaskCreate(&led_loop, " loop led ", 64, NULL, 1, NULL);
-   while (scd30_probe() != STATUS_OK) {
+  //xTaskCreate(&Adc_task, "adc read", 2048, NULL, 21, NULL);
+
+    scd30_set_measurement_interval(interval_in_seconds); //sluży do zmiany czasu pomiedzy pomiarami
+
+ /* while (scd30_probe() != STATUS_OK) {            zabezpiecza przed niepodłączonym czujnikiem
         SS_print("SCD30 sensor probing failed\n");
         sensirion_sleep_usec(1000000u);
     }
     SS_print("SCD30 sensor probing successful\n");
 
-    scd30_set_measurement_interval(interval_in_seconds);
-    sensirion_sleep_usec(20000u);
-    scd30_start_periodic_measurement(0);
-    sensirion_sleep_usec(interval_in_seconds * 1000000u);
-
+*/
   /* SS_MPU_get_accel_data(&mpu); */
   /* SS_MPU_get_gyro_data(&mpu); */
   /* Dane=SS_MPU_who_am_i(&mpu); */
@@ -217,7 +224,7 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLRCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
@@ -229,19 +236,34 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void Adc_task(void *pvParameters)
+{
+    while(1)
+    {
+        HAL_ADC_Start(&hadc1);
+        if(HAL_ADC_PollForConversion(&hadc1, 2) == HAL_OK)
+        {
+            adc_dane = HAL_ADC_GetValue(&hadc1);
+            SS_print("error reading measurement\n");
+            SS_print(adc_dane);
+        }
+        HAL_ADC_Stop(&hadc1);
+        vTaskDelay( 300 / portTICK_RATE_MS );
+    }
+}
 void Scd30_task(void *pvParameters){
     while(1){
-        //scd30_start_periodic_measurement(0);
-       // sensirion_sleep_usec(interval_in_seconds * 1000000u);
-        err = scd30_read_measurement(&co2_ppm, &temperature, &relative_humidity);
+        scd30_start_periodic_measurement(0); //rozpoczęcie pomiarów
+       // sensirion_sleep_usec(interval_in_seconds * 1000000u); wyłącza nam czujnik na jakiś czas
+        err = scd30_read_measurement(&co2_ppm, &temperature, &relative_humidity); //sczytanie wartosci pomiarow
         if (err != STATUS_OK) {
             SS_print("error reading measurement\n");
 
         } else {
             SS_print("%0.2f %0.2f %0.2f\n", co2_ppm, temperature, relative_humidity);
         }
-       // sensirion_sleep_usec(interval_in_seconds * 1000000u);
-      //  scd30_stop_periodic_measurement();
+        sensirion_sleep_usec(interval_in_seconds * 1000000u);
+        scd30_stop_periodic_measurement();  //zakonczenie wykonywania pomiarow
         vTaskDelay( 300 / portTICK_RATE_MS );
     }
 }
@@ -250,7 +272,7 @@ void led_loop(void *pVParameters)
 {
     while(1)
     {
-        HAL_GPIO_TogglePin(LED_BLUE_1_GPIO_Port, LED_BLUE_1_Pin);
+        HAL_GPIO_TogglePin(GPIOE, LED_BLUE_2_Pin);
         vTaskDelay( 300 / portTICK_RATE_MS );
     }
 }

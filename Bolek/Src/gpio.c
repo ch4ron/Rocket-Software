@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under BSD 3-Clause license,
@@ -54,7 +54,7 @@ void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(MPU_CS_GPIO_Port, MPU_CS_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOE, LED_GREEN_1_Pin|LED_ORANGE_Pin|LED_BLUE_1_Pin|LED_GREEN_2_Pin 
+  HAL_GPIO_WritePin(GPIOE, LED_GREEN_1_Pin|LED_ORANGE_Pin|GPIO_PIN_10|LED_GREEN_2_Pin 
                           |LED_BLUE_2_Pin|LED_RGB_GREEN_LOWonly_DO_NOT_USE_Pin|LED_RGB_DO_NOT_WORK_DO_NOT_USE_Pin|LED_RGB_HIGH_only_DO_NOT_USE_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
@@ -76,9 +76,9 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(MPU_INT_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PEPin PEPin PEPin PEPin 
+  /*Configure GPIO pins : PEPin PEPin PE10 PEPin 
                            PEPin PEPin PEPin PEPin */
-  GPIO_InitStruct.Pin = LED_GREEN_1_Pin|LED_ORANGE_Pin|LED_BLUE_1_Pin|LED_GREEN_2_Pin 
+  GPIO_InitStruct.Pin = LED_GREEN_1_Pin|LED_ORANGE_Pin|GPIO_PIN_10|LED_GREEN_2_Pin 
                           |LED_BLUE_2_Pin|LED_RGB_GREEN_LOWonly_DO_NOT_USE_Pin|LED_RGB_DO_NOT_WORK_DO_NOT_USE_Pin|LED_RGB_HIGH_only_DO_NOT_USE_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;

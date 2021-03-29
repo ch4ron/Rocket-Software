@@ -74,8 +74,6 @@ void Error_Handler(void);
 #define LED_GREEN_1_GPIO_Port GPIOE
 #define LED_ORANGE_Pin GPIO_PIN_9
 #define LED_ORANGE_GPIO_Port GPIOE
-#define LED_BLUE_1_Pin GPIO_PIN_10
-#define LED_BLUE_1_GPIO_Port GPIOE
 #define LED_GREEN_2_Pin GPIO_PIN_11
 #define LED_GREEN_2_GPIO_Port GPIOE
 #define LED_BLUE_2_Pin GPIO_PIN_12
