@@ -77,7 +77,7 @@ uint16_t interval_in_seconds = 2;
 void SS_scd30_task(void *pvParameters){
     scd30_start_periodic_measurement(0); //rozpoczęcie pomiarów
     while(1){
-        scd30_start_periodic_measurement(0); //rozpoczęcie pomiarów
+        //scd30_start_periodic_measurement(0); //rozpoczęcie pomiarów
         // sensirion_sleep_usec(interval_in_seconds * 1000000u); wyłącza nam czujnik na jakiś czas
         err = scd30_read_measurement(&co2_ppm, &temperature, &relative_humidity); //sczytanie wartosci pomiarow
         if (err != STATUS_OK) {
