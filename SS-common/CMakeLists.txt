@@ -59,6 +59,7 @@ add_subdirectory(FreeRTOS)
 add_subdirectory(console)
 add_subdirectory(MPU9250)
 add_subdirectory(igniter)
+add_subdirectory(SCD30)
 
 
 function(target_link_common TARGET)
@@ -117,6 +118,9 @@ if(COMPILE_DEFS MATCHES SS_USE_MPU9250)
 endif()
 if(COMPILE_DEFS MATCHES SS_USE_IGNITER)
     target_link_libraries(${TARGET} igniter)
+endif()
+if(COMPILE_DEFS MATCHES SS_USE_SCD30)
+    target_link_libraries(${TARGET} SCD30)
 endif()
 
 

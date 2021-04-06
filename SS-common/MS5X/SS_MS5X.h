@@ -63,7 +63,7 @@ struct MS5607 {
     int32_t average_temp;
     int32_t temp;
     uint32_t uncomp_press;
-    int32_t uncomp_temp;
+    uint32_t uncomp_temp;
     int32_t refPress;
     int32_t altitude;
     enum RESULT result;

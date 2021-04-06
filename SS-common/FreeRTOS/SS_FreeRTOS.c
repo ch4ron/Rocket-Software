@@ -21,6 +21,9 @@
 #include "SS_com.h"
 #include "SS_com_feed.h"
 #endif /* SS_USE_COM */
+#ifdef SS_USE_SCD30
+#include "SS_SCD30.h"
+#endif /* SS_USE_SCD30*/
 #ifdef SS_USE_FLASH
 #include "SS_flash_log.h"
 #endif /* SS_USE_FLASH */
@@ -77,20 +80,10 @@ void SS_run_tests_task(void *pvParameters) {
 
 
 static void vLEDFlashTask(void *pvParameters) {
-    HAL_ADC_Start(&hadc1);
-    uint16_t PomiarADC;
-    float Vsense;
-    const float SupplyVoltage = 3.3; // [Volts]
-    const float ADCResolution = 4095.0;
+
     while(1) {
         vTaskDelay(500);
         SS_platform_toggle_loop_led();
-        if (HAL_ADC_PollForConversion(&hadc1, 10) == HAL_OK) {
-            PomiarADC = HAL_ADC_GetValue(&hadc1);
-            HAL_ADC_Start(&hadc1);
-
-        }
-        //SS_print("%d,", PomiarADC);
     }
 }
 
@@ -122,6 +115,10 @@ static void SS_FreeRTOS_create_tasks(void) {
     assert(res == pdTRUE);
 #endif /* SS_USE_GRAZYNA */
 #endif /* SS_USE_COM */
+#ifdef SS_USE_SCD30
+    res = xTaskCreate(&SS_scd30_task, "Scd 30", 2048, NULL, 20, NULL);
+    assert(res == pdTRUE);
+#endif /* SS_USE_SCD30 */
 #ifdef SS_USE_FLASH
     res = xTaskCreate(SS_flash_log_task, "Flash Log Task", 1024, NULL, 4, NULL);
     assert(res == pdTRUE);

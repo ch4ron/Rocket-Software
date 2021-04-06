@@ -21,6 +21,9 @@
 #ifdef SS_USE_MPU9250
 #include "SS_MPU9250.h"
 #endif
+#ifdef SS_USE_SCD30
+#include "SS_SCD30.h"
+#endif
 #include "tim.h"
 #include "SS_console.h"
 #include "usart.h"

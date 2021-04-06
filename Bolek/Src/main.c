@@ -34,6 +34,8 @@
 /* USER CODE BEGIN Includes */
 #include "SS_platform.h"
 #include "SS_MPU9250.h"
+#include "SS_SCD30.h"
+#include "sensirion_common.h"
 #include "SS_common.h"
 #include "SS_misc.h"
 #include "stdint.h"

@@ -169,7 +169,7 @@ void SS_SYSTICK_callback_task(void *pvParameters) {
             /* SS_sequence_SYSTICK(); */
         #endif
         #ifdef SS_USE_MS5X
-            if(Frequency_counter>=ms5607.pause_time){
+           /* if(Frequency_counter>=ms5607.pause_time){
                 SS_MS56_read_convert(&ms5607);
                 Frequency_counter=0;
                 SS_print("%d,", PomiarADC);
@@ -179,7 +179,7 @@ void SS_SYSTICK_callback_task(void *pvParameters) {
             PomiarADC = HAL_ADC_GetValue(&hadc1);
             HAL_ADC_Start(&hadc1);
 
-        }
+        }*/
         #endif
         #ifdef SS_USE_FLASH
             //SS_flash_ctrl_time_increment_handler();

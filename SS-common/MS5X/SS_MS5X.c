@@ -288,7 +288,6 @@ void SS_MS56_decrement_wait_ready(struct MS5607 *ms5607) {
 void SS_MS56_read_convert(struct MS5607 *ms5607) {
     int64_t dT;
     int64_t OFF, SENS;
-    uint8_t rcv[6];
 
     SS_MS56_convertion_press_start(ms5607);
     SS_MS56_wait(ms5607->pressOSR);
