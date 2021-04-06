@@ -69,14 +69,13 @@ static const uint8_t SCD30_I2C_ADDRESS = 0x61;
     (SENSIRION_COMMAND_SIZE + SENSIRION_WORD_SIZE + CRC8_LEN)
 
 
-uint32_t adc_dane;  //zmienna do adc
-int32_t Dane=100;   //zmienna do mpu
 float32_t co2_ppm, temperature, relative_humidity; //zmienne do przechowywania danych
 int16_t err;
 uint16_t interval_in_seconds = 2;
 
 
 void SS_scd30_task(void *pvParameters){
+    scd30_start_periodic_measurement(0); //rozpoczęcie pomiarów
     while(1){
         scd30_start_periodic_measurement(0); //rozpoczęcie pomiarów
         // sensirion_sleep_usec(interval_in_seconds * 1000000u); wyłącza nam czujnik na jakiś czas
@@ -88,7 +87,7 @@ void SS_scd30_task(void *pvParameters){
             SS_print("%0.2f %0.2f %0.2f\r\n", co2_ppm, temperature, relative_humidity);
         }
         sensirion_sleep_usec(interval_in_seconds * 1000000u);
-        scd30_stop_periodic_measurement();  //zakonczenie wykonywania pomiarow
+        //scd30_stop_periodic_measurement();  //zakonczenie wykonywania pomiarow
         vTaskDelay( 300 / portTICK_RATE_MS );
     }
 }
