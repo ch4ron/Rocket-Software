@@ -36,15 +36,12 @@
 typedef float float32_t;
 
 typedef struct {
-    SPI_HandleTypeDef *hspi;
-    GPIO_TypeDef *CS_Port;
-    uint16_t CS_Pin;
-    uint16_t INT_Pin;
+    I2C_HandleTypeDef *hi2c;
     uint8_t id;
     float32_t co2_ppm;
     float32_t temperature;
     float32_t relative_humidity;
-    int16_t err;
+    int16_t error;
     uint16_t interval_in_seconds ;
 } SCD30;
 

@@ -39,8 +39,8 @@
 
 static int8_t  SS_SCD_i2c_read(uint8_t address, uint8_t *data, uint16_t count);
 static int8_t  SS_SCD_i2c_write(uint8_t address, const uint8_t *data,uint16_t count);
-static uint8_t SS_SCD_common_generate_crc(uint8_t *data, uint16_t count);
-static int8_t  SS_SCD_common_check_crc(uint8_t *data, uint16_t count,uint8_t checksum);
+static uint8_t SS_SCD_generate_crc(uint8_t *data, uint16_t count);
+static int8_t  SS_SCD_check_crc(uint8_t *data, uint16_t count,uint8_t checksum);
 
 static int16_t  SS_SCD_start_periodic_measurement(uint16_t ambient_pressure_mbar);
 static int16_t  SS_SCD_read_measurement(float32_t *co2_ppm, float32_t *temperature,float32_t *humidity);
@@ -75,9 +75,10 @@ SCD30 scd30;
 void SS_SCD_task(void *pvParameters)
 {
     SS_SCD_start_periodic_measurement(0); //rozpoczęcie pomiarów
+    scd30.hi2c = &hi2c3;
     while(1){
-        scd30.err = SS_SCD_read_measurement(&scd30.co2_ppm, &scd30.temperature, &scd30.relative_humidity); //sczytanie wartosci pomiarow
-        if (scd30.err != STATUS_OK) {
+        scd30.error = SS_SCD_read_measurement(&scd30.co2_ppm, &scd30.temperature, &scd30.relative_humidity); //sczytanie wartosci pomiarow
+        if (scd30.error != STATUS_OK) {
             SS_print("error reading measurement\r\n");
 
         } else {
@@ -101,7 +102,7 @@ void SS_SCD_task(void *pvParameters)
  */
 static int8_t SS_SCD_i2c_read(uint8_t address, uint8_t *data, uint16_t count)
 {
-    return (int8_t)HAL_I2C_Master_Receive(&hi2c3, (uint16_t)(address << 1),data, count, 100);
+    return (int8_t)HAL_I2C_Master_Receive(scd30.hi2c, (uint16_t)(address << 1),data, count, 100);
 }
 
 /**
@@ -117,7 +118,7 @@ static int8_t SS_SCD_i2c_read(uint8_t address, uint8_t *data, uint16_t count)
  */
 static int8_t SS_SCD_i2c_write(uint8_t address, const uint8_t *data,uint16_t count)
 {
-    return (int8_t)HAL_I2C_Master_Transmit(&hi2c3, (uint16_t)(address << 1),(uint8_t *)data, count, 100);
+    return (int8_t)HAL_I2C_Master_Transmit(scd30.hi2c, (uint16_t)(address << 1),(uint8_t *)data, count, 100);
 }
 
 /**
@@ -128,7 +129,7 @@ static int8_t SS_SCD_i2c_write(uint8_t address, const uint8_t *data,uint16_t cou
  * @returns 8-Bit checksum
  */
 
-static uint8_t SS_SCD_common_generate_crc(uint8_t *data, uint16_t count)
+static uint8_t SS_SCD_generate_crc(uint8_t *data, uint16_t count)
 {
     uint16_t current_byte;
     uint8_t crc = CRC8_INIT;
@@ -155,9 +156,9 @@ static uint8_t SS_SCD_common_generate_crc(uint8_t *data, uint16_t count)
  * @returns 8-Bit checksum
  */
 
-static int8_t SS_SCD_common_check_crc(uint8_t *data, uint16_t count,uint8_t checksum)
+static int8_t SS_SCD_check_crc(uint8_t *data, uint16_t count,uint8_t checksum)
 {
-    if (SS_SCD_common_generate_crc(data, count) != checksum)
+    if (SS_SCD_generate_crc(data, count) != checksum)
         return STATUS_FAIL;
     return STATUS_OK;
 }
@@ -252,7 +253,7 @@ static int16_t SS_SCD_i2c_read_words_as_bytes(uint8_t address, uint8_t *data,uin
     /* check the CRC for each word */
     for (i = 0, j = 0; i < size; i += SENSIRION_WORD_SIZE + CRC8_LEN) {
 
-        ret = SS_SCD_common_check_crc(&buf8[i], SENSIRION_WORD_SIZE,
+        ret = SS_SCD_check_crc(&buf8[i], SENSIRION_WORD_SIZE,
                                          buf8[i + SENSIRION_WORD_SIZE]);
         if (ret != STATUS_OK)
             return ret;
@@ -316,7 +317,7 @@ static uint16_t SS_SCD_fill_cmd_send_buf(uint8_t *buf, uint16_t cmd,const uint16
         buf[idx++] = (uint8_t)((args[i] & 0xFF00) >> 8);
         buf[idx++] = (uint8_t)((args[i] & 0x00FF) >> 0);
 
-        crc = SS_SCD_common_generate_crc((uint8_t *)&buf[idx - 2],SENSIRION_WORD_SIZE);
+        crc = SS_SCD_generate_crc((uint8_t *)&buf[idx - 2],SENSIRION_WORD_SIZE);
         buf[idx++] = crc;
     }
     return idx;
