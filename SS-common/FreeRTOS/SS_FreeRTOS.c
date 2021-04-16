@@ -116,7 +116,7 @@ static void SS_FreeRTOS_create_tasks(void) {
 #endif /* SS_USE_GRAZYNA */
 #endif /* SS_USE_COM */
 #ifdef SS_USE_SCD30
-    res = xTaskCreate(&SS_scd30_task, "Scd 30", 2048, NULL, 20, NULL);
+    res = xTaskCreate(&SS_SCD_task, "Scd 30", 2048, NULL, 20, NULL);
     assert(res == pdTRUE);
 #endif /* SS_USE_SCD30 */
 #ifdef SS_USE_FLASH

@@ -33,10 +33,24 @@
 #define SCD30_H
 
 
+typedef float float32_t;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+typedef struct {
+    SPI_HandleTypeDef *hspi;
+    GPIO_TypeDef *CS_Port;
+    uint16_t CS_Pin;
+    uint16_t INT_Pin;
+    uint8_t id;
+    float32_t co2_ppm;
+    float32_t temperature;
+    float32_t relative_humidity;
+    int16_t err;
+    uint16_t interval_in_seconds ;
+} SCD30;
+
+
+
+void SS_SCD_task(void *pvParameters);
 
 #define STATUS_OK 0
 #define STATUS_FAIL (-1)
@@ -78,9 +92,30 @@ extern "C" {
 #define SENSIRION_NUM_WORDS(x) (sizeof(x) / SENSIRION_WORD_SIZE)
 #define SENSIRION_MAX_BUFFER_WORDS 32
 
-typedef float float32_t;
+#ifdef SCD30_ADDRESS
+static const uint8_t SCD30_I2C_ADDRESS = SCD30_ADDRESS;
+#else
+static const uint8_t SCD30_I2C_ADDRESS = 0x61;
+#endif
 
-void SS_scd30_task(void *pvParameters);
+#define SCD30_CMD_START_PERIODIC_MEASUREMENT 0x0010
+#define SCD30_CMD_STOP_PERIODIC_MEASUREMENT 0x0104
+#define SCD30_CMD_READ_MEASUREMENT 0x0300
+#define SCD30_CMD_SET_MEASUREMENT_INTERVAL 0x4600
+#define SCD30_CMD_GET_DATA_READY 0x0202
+#define SCD30_CMD_SET_TEMPERATURE_OFFSET 0x5403
+#define SCD30_CMD_SET_ALTITUDE 0x5102
+#define SCD30_CMD_SET_FORCED_RECALIBRATION 0x5204
+#define SCD30_CMD_AUTO_SELF_CALIBRATION 0x5306
+#define SCD30_CMD_READ_SERIAL 0xD033
+#define SCD30_SERIAL_NUM_WORDS 16
+#define SCD30_WRITE_DELAY_US 20000
+
+#define SCD30_MAX_BUFFER_WORDS 24
+#define SCD30_CMD_SINGLE_WORD_BUF_LEN                                          \
+    (SENSIRION_COMMAND_SIZE + SENSIRION_WORD_SIZE + CRC8_LEN)
+
+
 
 /**
  * scd30_probe() - check if the SCD sensor is available and initialize it
@@ -531,10 +566,5 @@ void SS_scd30_task(void *pvParameters);
 /**
  * int16_t sensirion_i2c_read_cmd(uint8_t address, uint16_t cmd,uint16_t *data_words, uint16_t num_words);
  */
-
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* SCD30_H */
