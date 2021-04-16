@@ -31,13 +31,35 @@
 
 #ifndef SCD30_H
 #define SCD30_H
-#include "sensirion_arch_config.h"
-#include "sensirion_common.h"
-#include "sensirion_i2c.h"
+
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define STATUS_OK 0
+#define STATUS_FAIL (-1)
+#define SENSIRION_BIG_ENDIAN 0
+#define NULL ((void *)0)
+#include <stdint.h>
+#if SENSIRION_BIG_ENDIAN
+#define be16_to_cpu(s) (s)
+#define be32_to_cpu(s) (s)
+#define be64_to_cpu(s) (s)
+#define SENSIRION_WORDS_TO_BYTES(a, w) ()
+
+#else /* SENSIRION_BIG_ENDIAN */
+
+#define be16_to_cpu(s) (((uint16_t)(s) << 8) | (0xff & ((uint16_t)(s)) >> 8))
+#define be32_to_cpu(s)                                                         \
+    (((uint32_t)be16_to_cpu(s) << 16) | (0xffff & (be16_to_cpu((s) >> 16))))
+#define be64_to_cpu(s)                                                         \
+    (((uint64_t)be32_to_cpu(s) << 32) |                                        \
+     (0xffffffff & ((uint64_t)be32_to_cpu((s) >> 32))))
+
+
+typedef float float32_t;
 
 void SS_scd30_task(void *pvParameters);
 
@@ -256,6 +278,209 @@ int16_t scd30_set_forced_recalibration(uint16_t co2_ppm);
  * @return          0 if the command was successful, else an error code.
  */
 int16_t scd30_read_serial(char *serial);
+
+/**
+ * Select the current i2c bus by index.
+ * All following i2c operations will be directed at that bus.
+ *
+ * THE IMPLEMENTATION IS OPTIONAL ON SINGLE-BUS SETUPS (all sensors on the same
+ * bus)
+ *
+ * @param bus_idx   Bus index to select
+ * @returns         0 on success, an error code otherwise
+ */
+int16_t sensirion_i2c_select_bus(uint8_t bus_idx);
+
+/**
+ * Initialize all hard- and software components that are needed for the I2C
+ * communication.
+ */
+void sensirion_i2c_init(void);
+
+/**
+ * Release all resources initialized by sensirion_i2c_init().
+ */
+void sensirion_i2c_release(void);
+
+/**
+ * Execute one read transaction on the I2C bus, reading a given number of bytes.
+ * If the device does not acknowledge the read command, an error shall be
+ * returned.
+ *
+ * @param address 7-bit I2C address to read from
+ * @param data    pointer to the buffer where the data is to be stored
+ * @param count   number of bytes to read from I2C and store in the buffer
+ * @returns 0 on success, error code otherwise
+ */
+int8_t sensirion_i2c_read(uint8_t address, uint8_t *data, uint16_t count);
+
+/**
+ * Execute one write transaction on the I2C bus, sending a given number of
+ * bytes. The bytes in the supplied buffer must be sent to the given address. If
+ * the slave device does not acknowledge any of the bytes, an error shall be
+ * returned.
+ *
+ * @param address 7-bit I2C address to write to
+ * @param data    pointer to the buffer containing the data to write
+ * @param count   number of bytes to read from the buffer and send over I2C
+ * @returns 0 on success, error code otherwise
+ */
+int8_t sensirion_i2c_write(uint8_t address, const uint8_t *data,
+                           uint16_t count);
+
+/**
+ * Sleep for a given number of microseconds. The function should delay the
+ * execution approximately, but no less than, the given time.
+ *
+ * When using hardware i2c:
+ * Despite the unit, a <10 millisecond precision is sufficient.
+ *
+ * When using software i2c:
+ * The precision needed depends on the desired i2c frequency, i.e. should be
+ * exact to about half a clock cycle (defined in
+ * `SENSIRION_I2C_CLOCK_PERIOD_USEC` in `sensirion_arch_config.h`).
+ *
+ * Example with 400kHz requires a precision of 1 / (2 * 400kHz) == 1.25usec.
+ *
+ * @param useconds the sleep time in microseconds
+ */
+void sensirion_sleep_usec(uint32_t useconds);
+
+
+// sensirion_common.h
+
+
+/**
+ * Convert a word-array to a bytes-array, effectively reverting the
+ * host-endianness to big-endian
+ * @a:  word array to change (must be (uint16_t *) castable)
+ * @w:  number of word-sized elements in the array (SENSIRION_NUM_WORDS(a)).
+ */
+#define SENSIRION_WORDS_TO_BYTES(a, w)                                         \
+    for (uint16_t *__a = (uint16_t *)(a), __e = (w), __w = 0; __w < __e;       \
+         ++__w) {                                                              \
+        __a[__w] = be16_to_cpu(__a[__w]);                                      \
+    }
+#endif /* SENSIRION_BIG_ENDIAN */
+
+#ifndef ARRAY_SIZE
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x)))
+#endif
+
+#define CRC8_POLYNOMIAL 0x31
+#define CRC8_INIT 0xFF
+#define CRC8_LEN 1
+
+#define SENSIRION_COMMAND_SIZE 2
+#define SENSIRION_WORD_SIZE 2
+#define SENSIRION_NUM_WORDS(x) (sizeof(x) / SENSIRION_WORD_SIZE)
+#define SENSIRION_MAX_BUFFER_WORDS 32
+
+uint8_t sensirion_common_generate_crc(uint8_t *data, uint16_t count);
+
+int8_t sensirion_common_check_crc(uint8_t *data, uint16_t count,
+                                  uint8_t checksum);
+
+/**
+ * sensirion_fill_cmd_send_buf() - create the i2c send buffer for a command and
+ *                                 a set of argument words. The output buffer
+ *                                 interleaves argument words with their
+ *                                 checksums.
+ * @buf:        The generated buffer to send over i2c. Then buffer length must
+ *              be at least SENSIRION_COMMAND_LEN + num_args *
+ *              (SENSIRION_WORD_SIZE + CRC8_LEN).
+ * @cmd:        The i2c command to send. It already includes a checksum.
+ * @args:       The arguments to the command. Can be NULL if none.
+ * @num_args:   The number of word arguments in args.
+ *
+ * @return      The number of bytes written to buf
+ */
+uint16_t sensirion_fill_cmd_send_buf(uint8_t *buf, uint16_t cmd,
+                                     const uint16_t *args, uint8_t num_args);
+
+/**
+ * sensirion_i2c_read_words() - read data words from sensor
+ *
+ * @address:    Sensor i2c address
+ * @data_words: Allocated buffer to store the read words.
+ *              The buffer may also have been modified on STATUS_FAIL return.
+ * @num_words:  Number of data words to read (without CRC bytes)
+ *
+ * @return      STATUS_OK on success, an error code otherwise
+ */
+int16_t sensirion_i2c_read_words(uint8_t address, uint16_t *data_words,
+                                 uint16_t num_words);
+
+/**
+ * sensirion_i2c_read_words_as_bytes() - read data words as byte-stream from
+ *                                       sensor
+ *
+ * Read bytes without adjusting values to the uP's word-order.
+ *
+ * @address:    Sensor i2c address
+ * @data:       Allocated buffer to store the read bytes.
+ *              The buffer may also have been modified on STATUS_FAIL return.
+ * @num_words:  Number of data words(!) to read (without CRC bytes)
+ *              Since only word-chunks can be read from the sensor the size
+ *              is still specified in sensor-words (num_words = num_bytes *
+ *              SENSIRION_WORD_SIZE)
+ *
+ * @return      STATUS_OK on success, an error code otherwise
+ */
+int16_t sensirion_i2c_read_words_as_bytes(uint8_t address, uint8_t *data,
+                                          uint16_t num_words);
+
+/**
+ * sensirion_i2c_write_cmd() - writes a command to the sensor
+ * @address:    Sensor i2c address
+ * @command:    Sensor command
+ *
+ * @return      STATUS_OK on success, an error code otherwise
+ */
+int16_t sensirion_i2c_write_cmd(uint8_t address, uint16_t command);
+
+/**
+ * sensirion_i2c_write_cmd_with_args() - writes a command with arguments to the
+ *                                       sensor
+ * @address:    Sensor i2c address
+ * @command:    Sensor command
+ * @data:       Argument buffer with words to send
+ * @num_words:  Number of data words to send (without CRC bytes)
+ *
+ * @return      STATUS_OK on success, an error code otherwise
+ */
+int16_t sensirion_i2c_write_cmd_with_args(uint8_t address, uint16_t command,
+                                          const uint16_t *data_words,
+                                          uint16_t num_words);
+
+/**
+ * sensirion_i2c_delayed_read_cmd() - send a command, wait for the sensor to
+ *                                    process and read data back
+ * @address:    Sensor i2c address
+ * @cmd:        Command
+ * @delay:      Time in microseconds to delay sending the read request
+ * @data_words: Allocated buffer to store the read data
+ * @num_words:  Data words to read (without CRC bytes)
+ *
+ * @return      STATUS_OK on success, an error code otherwise
+ */
+int16_t sensirion_i2c_delayed_read_cmd(uint8_t address, uint16_t cmd,
+                                       uint32_t delay_us, uint16_t *data_words,
+                                       uint16_t num_words);
+/**
+ * sensirion_i2c_read_cmd() - reads data words from the sensor after a command
+ *                            is issued
+ * @address:    Sensor i2c address
+ * @cmd:        Command
+ * @data_words: Allocated buffer to store the read data
+ * @num_words:  Data words to read (without CRC bytes)
+ *
+ * @return      STATUS_OK on success, an error code otherwise
+ */
+int16_t sensirion_i2c_read_cmd(uint8_t address, uint16_t cmd,
+                               uint16_t *data_words, uint16_t num_words);
+
+
 
 #ifdef __cplusplus
 }
