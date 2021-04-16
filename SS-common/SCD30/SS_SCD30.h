@@ -42,7 +42,6 @@ extern "C" {
 #define STATUS_FAIL (-1)
 #define SENSIRION_BIG_ENDIAN 0
 #define NULL ((void *)0)
-#include <stdint.h>
 #if SENSIRION_BIG_ENDIAN
 #define be16_to_cpu(s) (s)
 #define be32_to_cpu(s) (s)
@@ -59,6 +58,26 @@ extern "C" {
      (0xffffffff & ((uint64_t)be32_to_cpu((s) >> 32))))
 
 
+#define SENSIRION_WORDS_TO_BYTES(a, w)                                         \
+    for (uint16_t *__a = (uint16_t *)(a), __e = (w), __w = 0; __w < __e;       \
+         ++__w) {                                                              \
+        __a[__w] = be16_to_cpu(__a[__w]);                                      \
+    }
+#endif /* SENSIRION_BIG_ENDIAN */
+
+#ifndef ARRAY_SIZE
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x)))
+#endif
+
+#define CRC8_POLYNOMIAL 0x31
+#define CRC8_INIT 0xFF
+#define CRC8_LEN 1
+
+#define SENSIRION_COMMAND_SIZE 2
+#define SENSIRION_WORD_SIZE 2
+#define SENSIRION_NUM_WORDS(x) (sizeof(x) / SENSIRION_WORD_SIZE)
+#define SENSIRION_MAX_BUFFER_WORDS 32
+
 typedef float float32_t;
 
 void SS_scd30_task(void *pvParameters);
@@ -68,21 +87,30 @@ void SS_scd30_task(void *pvParameters);
  *
  * @return  0 on success, an error code otherwise.
  */
-int16_t scd30_probe(void);
+
+ /**
+ *int16_t scd30_probe(void);
+ */
 
 /**
  * scd30_get_driver_version() - Returns the driver version
  *
  * @return  Driver version string
  */
-const char *scd30_get_driver_version(void);
+
+ /**
+ *const char *scd30_get_driver_version(void);
+ */
 
 /**
  * scd30_get_configured_address() - Returns the configured I2C address
  *
  * @return      uint8_t I2C address
  */
-uint8_t scd30_get_configured_address(void);
+
+ /**
+ *uint8_t scd30_get_configured_address(void);
+ */
 
 /**
  * scd30_start_periodic_measurement() - Start continuous measurement to measure
@@ -105,14 +133,16 @@ uint8_t scd30_get_configured_address(void);
  * @return                      0 if the command was successful, an error code
  *                              otherwise
  */
-int16_t scd30_start_periodic_measurement(uint16_t ambient_pressure_mbar);
 
 /**
  * scd30_stop_periodic_measurement() - Stop the continuous measurement
  *
  * @return  0 if the command was successful, else an error code
  */
-int16_t scd30_stop_periodic_measurement(void);
+
+ /**
+ *int16_t scd30_stop_periodic_measurement(void);
+ */
 
 /**
  * scd30_read_measurement() - Read out an available measurement when new
@@ -128,8 +158,7 @@ int16_t scd30_stop_periodic_measurement(void);
  *
  * @return              0 if the command was successful, an error code otherwise
  */
-int16_t scd30_read_measurement(float32_t *co2_ppm, float32_t *temperature,
-                               float32_t *humidity);
+
 
 /**
  * scd30_set_measurement_interval() - Sets the measurement interval in
@@ -144,7 +173,10 @@ int16_t scd30_read_measurement(float32_t *co2_ppm, float32_t *temperature,
  *
  * @return              0 if the command was successful, an error code otherwise
  */
-int16_t scd30_set_measurement_interval(uint16_t interval_sec);
+
+ /**
+ *int16_t scd30_set_measurement_interval(uint16_t interval_sec);
+ */
 
 /**
  * scd30_get_data_ready() - Get data ready status
@@ -162,7 +194,7 @@ int16_t scd30_set_measurement_interval(uint16_t interval_sec);
  *
  * @return              0 if the command was successful, an error code otherwise
  */
-int16_t scd30_get_data_ready(uint16_t *data_ready);
+
 
 /**
  * scd30_set_temperature_offset() - Set the temperature offset
@@ -182,7 +214,10 @@ int16_t scd30_get_data_ready(uint16_t *data_ready);
  * @return                      0 if the command was successful, an error code
  *                              otherwise
  */
-int16_t scd30_set_temperature_offset(uint16_t temperature_offset);
+
+ /**
+ *int16_t scd30_set_temperature_offset(uint16_t temperature_offset);
+ */
 
 /**
  * scd30_set_altitude() - Set the altitude above sea level
@@ -199,8 +234,9 @@ int16_t scd30_set_temperature_offset(uint16_t temperature_offset);
  *
  * @return          0 if the command was successful, an error code otherwise
  */
-int16_t scd30_set_altitude(uint16_t altitude);
-
+ /**
+ *int16_t scd30_set_altitude(uint16_t altitude);
+ */
 /**
  * scd30_get_automatic_self_calibration() - Read if the sensor's automatic self
  * calibration is enabled or disabled
@@ -213,7 +249,10 @@ int16_t scd30_set_altitude(uint16_t altitude);
  *
  * @return              0 if the command was successful, an error code otherwise
  */
-int16_t scd30_get_automatic_self_calibration(uint8_t *asc_enabled);
+
+ /**
+ *int16_t scd30_get_automatic_self_calibration(uint8_t *asc_enabled);
+ */
 
 /**
  * scd30_enable_automatic_self_calibration() - Enable or disable the sensor's
@@ -232,8 +271,9 @@ int16_t scd30_get_automatic_self_calibration(uint8_t *asc_enabled);
  *
  * @return              0 if the command was successful, an error code otherwise
  */
-int16_t scd30_enable_automatic_self_calibration(uint8_t enable_asc);
-
+ /**
+ *int16_t scd30_enable_automatic_self_calibration(uint8_t enable_asc);
+ */
 /**
  * scd30_set_forced_recalibration() - Forcibly recalibrate the sensor to a known
  * value.
@@ -256,7 +296,10 @@ int16_t scd30_enable_automatic_self_calibration(uint8_t enable_asc);
  *
  * @return          0 if the command was successful, an error code otherwise
  */
-int16_t scd30_set_forced_recalibration(uint16_t co2_ppm);
+
+ /**
+ *int16_t scd30_set_forced_recalibration(uint16_t co2_ppm);
+ */
 
 /**
  * Read out the serial number
@@ -277,8 +320,9 @@ int16_t scd30_set_forced_recalibration(uint16_t co2_ppm);
  *                  Contains a zero-terminated string.
  * @return          0 if the command was successful, else an error code.
  */
-int16_t scd30_read_serial(char *serial);
-
+ /**
+ *int16_t scd30_read_serial(char *serial);
+ */
 /**
  * Select the current i2c bus by index.
  * All following i2c operations will be directed at that bus.
@@ -289,18 +333,27 @@ int16_t scd30_read_serial(char *serial);
  * @param bus_idx   Bus index to select
  * @returns         0 on success, an error code otherwise
  */
-int16_t sensirion_i2c_select_bus(uint8_t bus_idx);
+
+ /**
+ *int16_t sensirion_i2c_select_bus(uint8_t bus_idx);
+ */
 
 /**
  * Initialize all hard- and software components that are needed for the I2C
  * communication.
  */
-void sensirion_i2c_init(void);
+/**
+ * void sensirion_i2c_init(void);
+ */
+
 
 /**
  * Release all resources initialized by sensirion_i2c_init().
  */
-void sensirion_i2c_release(void);
+ /**\
+  * void sensirion_i2c_release(void);
+  */
+
 
 /**
  * Execute one read transaction on the I2C bus, reading a given number of bytes.
@@ -312,7 +365,10 @@ void sensirion_i2c_release(void);
  * @param count   number of bytes to read from I2C and store in the buffer
  * @returns 0 on success, error code otherwise
  */
-int8_t sensirion_i2c_read(uint8_t address, uint8_t *data, uint16_t count);
+ /**
+  * int8_t sensirion_i2c_read(uint8_t address, uint8_t *data, uint16_t count);
+  */
+
 
 /**
  * Execute one write transaction on the I2C bus, sending a given number of
@@ -325,8 +381,9 @@ int8_t sensirion_i2c_read(uint8_t address, uint8_t *data, uint16_t count);
  * @param count   number of bytes to read from the buffer and send over I2C
  * @returns 0 on success, error code otherwise
  */
-int8_t sensirion_i2c_write(uint8_t address, const uint8_t *data,
-                           uint16_t count);
+ /**
+  * int8_t sensirion_i2c_write(uint8_t address, const uint8_t *data,uint16_t count);
+  */
 
 /**
  * Sleep for a given number of microseconds. The function should delay the
@@ -344,7 +401,9 @@ int8_t sensirion_i2c_write(uint8_t address, const uint8_t *data,
  *
  * @param useconds the sleep time in microseconds
  */
-void sensirion_sleep_usec(uint32_t useconds);
+/**
+ * void sensirion_sleep_usec(uint32_t useconds);
+ */
 
 
 // sensirion_common.h
@@ -356,30 +415,12 @@ void sensirion_sleep_usec(uint32_t useconds);
  * @a:  word array to change (must be (uint16_t *) castable)
  * @w:  number of word-sized elements in the array (SENSIRION_NUM_WORDS(a)).
  */
-#define SENSIRION_WORDS_TO_BYTES(a, w)                                         \
-    for (uint16_t *__a = (uint16_t *)(a), __e = (w), __w = 0; __w < __e;       \
-         ++__w) {                                                              \
-        __a[__w] = be16_to_cpu(__a[__w]);                                      \
-    }
-#endif /* SENSIRION_BIG_ENDIAN */
 
-#ifndef ARRAY_SIZE
-#define ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x)))
-#endif
 
-#define CRC8_POLYNOMIAL 0x31
-#define CRC8_INIT 0xFF
-#define CRC8_LEN 1
-
-#define SENSIRION_COMMAND_SIZE 2
-#define SENSIRION_WORD_SIZE 2
-#define SENSIRION_NUM_WORDS(x) (sizeof(x) / SENSIRION_WORD_SIZE)
-#define SENSIRION_MAX_BUFFER_WORDS 32
-
-uint8_t sensirion_common_generate_crc(uint8_t *data, uint16_t count);
-
-int8_t sensirion_common_check_crc(uint8_t *data, uint16_t count,
-                                  uint8_t checksum);
+/**
+ * uint8_t sensirion_common_generate_crc(uint8_t *data, uint16_t count);
+ * int8_t sensirion_common_check_crc(uint8_t *data, uint16_t count,uint8_t checksum);
+ */
 
 /**
  * sensirion_fill_cmd_send_buf() - create the i2c send buffer for a command and
@@ -395,8 +436,9 @@ int8_t sensirion_common_check_crc(uint8_t *data, uint16_t count,
  *
  * @return      The number of bytes written to buf
  */
-uint16_t sensirion_fill_cmd_send_buf(uint8_t *buf, uint16_t cmd,
-                                     const uint16_t *args, uint8_t num_args);
+ /**
+  * uint16_t sensirion_fill_cmd_send_buf(uint8_t *buf, uint16_t cmd,const uint16_t *args, uint8_t num_args)
+  */
 
 /**
  * sensirion_i2c_read_words() - read data words from sensor
@@ -408,8 +450,9 @@ uint16_t sensirion_fill_cmd_send_buf(uint8_t *buf, uint16_t cmd,
  *
  * @return      STATUS_OK on success, an error code otherwise
  */
-int16_t sensirion_i2c_read_words(uint8_t address, uint16_t *data_words,
-                                 uint16_t num_words);
+ /**
+  * int16_t sensirion_i2c_read_words(uint8_t address, uint16_t *data_words,uint16_t num_words);
+  */
 
 /**
  * sensirion_i2c_read_words_as_bytes() - read data words as byte-stream from
@@ -427,8 +470,10 @@ int16_t sensirion_i2c_read_words(uint8_t address, uint16_t *data_words,
  *
  * @return      STATUS_OK on success, an error code otherwise
  */
-int16_t sensirion_i2c_read_words_as_bytes(uint8_t address, uint8_t *data,
-                                          uint16_t num_words);
+
+/**
+ * int16_t sensirion_i2c_read_words_as_bytes(uint8_t address, uint8_t *data,uint16_t num_words);
+ */
 
 /**
  * sensirion_i2c_write_cmd() - writes a command to the sensor
@@ -437,7 +482,10 @@ int16_t sensirion_i2c_read_words_as_bytes(uint8_t address, uint8_t *data,
  *
  * @return      STATUS_OK on success, an error code otherwise
  */
-int16_t sensirion_i2c_write_cmd(uint8_t address, uint16_t command);
+
+/**
+ * int16_t sensirion_i2c_write_cmd(uint8_t address, uint16_t command);
+ */
 
 /**
  * sensirion_i2c_write_cmd_with_args() - writes a command with arguments to the
@@ -449,10 +497,10 @@ int16_t sensirion_i2c_write_cmd(uint8_t address, uint16_t command);
  *
  * @return      STATUS_OK on success, an error code otherwise
  */
-int16_t sensirion_i2c_write_cmd_with_args(uint8_t address, uint16_t command,
-                                          const uint16_t *data_words,
-                                          uint16_t num_words);
 
+/**
+ * int16_t sensirion_i2c_write_cmd_with_args(uint8_t address, uint16_t command,const uint16_t *data_words,uint16_t num_words);
+ */
 /**
  * sensirion_i2c_delayed_read_cmd() - send a command, wait for the sensor to
  *                                    process and read data back
@@ -464,9 +512,11 @@ int16_t sensirion_i2c_write_cmd_with_args(uint8_t address, uint16_t command,
  *
  * @return      STATUS_OK on success, an error code otherwise
  */
-int16_t sensirion_i2c_delayed_read_cmd(uint8_t address, uint16_t cmd,
-                                       uint32_t delay_us, uint16_t *data_words,
-                                       uint16_t num_words);
+
+/**
+ * int16_t sensirion_i2c_delayed_read_cmd(uint8_t address, uint16_t cmd,uint32_t delay_us, uint16_t *data_words,uint16_t num_words);
+ */
+
 /**
  * sensirion_i2c_read_cmd() - reads data words from the sensor after a command
  *                            is issued
@@ -477,9 +527,10 @@ int16_t sensirion_i2c_delayed_read_cmd(uint8_t address, uint16_t cmd,
  *
  * @return      STATUS_OK on success, an error code otherwise
  */
-int16_t sensirion_i2c_read_cmd(uint8_t address, uint16_t cmd,
-                               uint16_t *data_words, uint16_t num_words);
 
+/**
+ * int16_t sensirion_i2c_read_cmd(uint8_t address, uint16_t cmd,uint16_t *data_words, uint16_t num_words);
+ */
 
 
 #ifdef __cplusplus

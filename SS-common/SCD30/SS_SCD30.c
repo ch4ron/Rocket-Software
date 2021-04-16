@@ -30,6 +30,7 @@
  */
 
 #include <stm32f4xx_hal.h>
+#include <stdint.h>
 #include "FreeRTOS.h"
 #include "task.h"
 #include "i2c.h"
@@ -59,13 +60,46 @@ static const uint8_t SCD30_I2C_ADDRESS = 0x61;
 #define SCD30_CMD_SINGLE_WORD_BUF_LEN                                          \
     (SENSIRION_COMMAND_SIZE + SENSIRION_WORD_SIZE + CRC8_LEN)
 
+static int8_t sensirion_i2c_read(uint8_t address, uint8_t *data, uint16_t count);
+static int8_t sensirion_i2c_write(uint8_t address, const uint8_t *data,uint16_t count);
+static int8_t sensirion_common_check_crc(uint8_t *data, uint16_t count,uint8_t checksum);
+static uint8_t sensirion_common_generate_crc(uint8_t *data, uint16_t count);
+
+static int16_t scd30_read_measurement(float32_t *co2_ppm, float32_t *temperature,float32_t *humidity);
+static int16_t scd30_start_periodic_measurement(uint16_t ambient_pressure_mbar);
+static int16_t sensirion_i2c_read_words_as_bytes(uint8_t address, uint8_t *data,uint16_t num_words);
+static int16_t sensirion_i2c_write_cmd(uint8_t address, uint16_t command);
+static int16_t sensirion_i2c_write_cmd_with_args(uint8_t address, uint16_t command,const uint16_t *data_words,uint16_t num_words);
+static uint16_t sensirion_fill_cmd_send_buf(uint8_t *buf, uint16_t cmd,const uint16_t *args, uint8_t num_args);
+
+static void sensirion_sleep_usec(uint32_t useconds);
+
+/**
+*static uint8_t scd30_get_configured_address();
+*static int16_t sensirion_i2c_read_words(uint8_t address, uint16_t *data_words,uint16_t num_words);
+*static int16_t sensirion_i2c_delayed_read_cmd(uint8_t address, uint16_t cmd,uint32_t delay_us, uint16_t *data_words,uint16_t num_words);
+*static int16_t scd30_stop_periodic_measurement();
+*static int16_t sensirion_i2c_read_cmd(uint8_t address, uint16_t cmd,uint16_t *data_words, uint16_t num_words);
+*static int16_t scd30_get_data_ready(uint16_t *data_ready);
+*static int16_t scd30_set_temperature_offset(uint16_t temperature_offset);
+*static int16_t scd30_set_altitude(uint16_t altitude);
+*static int16_t scd30_get_automatic_self_calibration(uint8_t *asc_enabled);
+*static int16_t scd30_enable_automatic_self_calibration(uint8_t enable_asc);
+*static int16_t scd30_set_forced_recalibration(uint16_t co2_ppm);
+*static int16_t scd30_read_serial(char *serial);
+*static int16_t sensirion_i2c_select_bus(uint8_t bus_idx);
+*static int16_t scd30_probe()
+*static void sensirion_i2c_init(void);
+*static void sensirion_i2c_release(void);
+*/
 
 float32_t co2_ppm, temperature, relative_humidity; //zmienne do przechowywania danych
 int16_t err;
 uint16_t interval_in_seconds = 2;
 
 
-void SS_scd30_task(void *pvParameters){
+void SS_scd30_task(void *pvParameters)
+{
     scd30_start_periodic_measurement(0); //rozpoczęcie pomiarów
     while(1){
         //scd30_start_periodic_measurement(0); //rozpoczęcie pomiarów
@@ -84,7 +118,8 @@ void SS_scd30_task(void *pvParameters){
 }
 
 
-int16_t scd30_start_periodic_measurement(uint16_t ambient_pressure_mbar) {
+static int16_t scd30_start_periodic_measurement(uint16_t ambient_pressure_mbar)
+{
     if (ambient_pressure_mbar &&
         (ambient_pressure_mbar < 700 || ambient_pressure_mbar > 1400)) {
         /* out of allowable range */
@@ -92,17 +127,12 @@ int16_t scd30_start_periodic_measurement(uint16_t ambient_pressure_mbar) {
     }
 
     return sensirion_i2c_write_cmd_with_args(
-        SCD30_I2C_ADDRESS, SCD30_CMD_START_PERIODIC_MEASUREMENT,
-        &ambient_pressure_mbar, SENSIRION_NUM_WORDS(ambient_pressure_mbar));
+        SCD30_I2C_ADDRESS, SCD30_CMD_START_PERIODIC_MEASUREMENT,&ambient_pressure_mbar,
+        SENSIRION_NUM_WORDS(ambient_pressure_mbar));
 }
 
-int16_t scd30_stop_periodic_measurement() {
-    return sensirion_i2c_write_cmd(SCD30_I2C_ADDRESS,
-                                   SCD30_CMD_STOP_PERIODIC_MEASUREMENT);
-}
-
-int16_t scd30_read_measurement(float32_t *co2_ppm, float32_t *temperature,
-                               float32_t *humidity) {
+static int16_t scd30_read_measurement(float32_t *co2_ppm, float32_t *temperature,float32_t *humidity)
+{
     int16_t ret;
     union {
         uint32_t u32_value;
@@ -115,8 +145,7 @@ int16_t scd30_read_measurement(float32_t *co2_ppm, float32_t *temperature,
     if (ret != STATUS_OK)
         return ret;
 
-    ret = sensirion_i2c_read_words_as_bytes(SCD30_I2C_ADDRESS, data->bytes,
-                                            SENSIRION_NUM_WORDS(data));
+    ret = sensirion_i2c_read_words_as_bytes(SCD30_I2C_ADDRESS, data->bytes,SENSIRION_NUM_WORDS(data));
     if (ret != STATUS_OK)
         return ret;
 
@@ -132,120 +161,9 @@ int16_t scd30_read_measurement(float32_t *co2_ppm, float32_t *temperature,
     return STATUS_OK;
 }
 
-int16_t scd30_set_measurement_interval(uint16_t interval_sec) {
-    int16_t ret;
-
-    if (interval_sec < 2 || interval_sec > 1800) {
-        /* out of allowable range */
-        return STATUS_FAIL;
-    }
-
-    ret = sensirion_i2c_write_cmd_with_args(
-        SCD30_I2C_ADDRESS, SCD30_CMD_SET_MEASUREMENT_INTERVAL, &interval_sec,
-        SENSIRION_NUM_WORDS(interval_sec));
-    sensirion_sleep_usec(SCD30_WRITE_DELAY_US);
-
-    return ret;
-}
-
-int16_t scd30_get_data_ready(uint16_t *data_ready) {
-    return sensirion_i2c_read_cmd(SCD30_I2C_ADDRESS, SCD30_CMD_GET_DATA_READY,
-                                  data_ready, SENSIRION_NUM_WORDS(*data_ready));
-}
-
-int16_t scd30_set_temperature_offset(uint16_t temperature_offset) {
-    int16_t ret;
-
-    ret = sensirion_i2c_write_cmd_with_args(
-        SCD30_I2C_ADDRESS, SCD30_CMD_SET_TEMPERATURE_OFFSET,
-        &temperature_offset, SENSIRION_NUM_WORDS(temperature_offset));
-    sensirion_sleep_usec(SCD30_WRITE_DELAY_US);
-
-    return ret;
-}
-
-int16_t scd30_set_altitude(uint16_t altitude) {
-    int16_t ret;
-
-    ret = sensirion_i2c_write_cmd_with_args(SCD30_I2C_ADDRESS,
-                                            SCD30_CMD_SET_ALTITUDE, &altitude,
-                                            SENSIRION_NUM_WORDS(altitude));
-    sensirion_sleep_usec(SCD30_WRITE_DELAY_US);
-
-    return ret;
-}
-
-int16_t scd30_get_automatic_self_calibration(uint8_t *asc_enabled) {
-    uint16_t word;
-    int16_t ret;
-
-    ret = sensirion_i2c_read_cmd(SCD30_I2C_ADDRESS,
-                                 SCD30_CMD_AUTO_SELF_CALIBRATION, &word,
-                                 SENSIRION_NUM_WORDS(word));
-    if (ret != STATUS_OK)
-        return ret;
-
-    *asc_enabled = (uint8_t)word;
-
-    return STATUS_OK;
-}
-
-int16_t scd30_enable_automatic_self_calibration(uint8_t enable_asc) {
-    int16_t ret;
-    uint16_t asc = !!enable_asc;
-
-    ret = sensirion_i2c_write_cmd_with_args(SCD30_I2C_ADDRESS,
-                                            SCD30_CMD_AUTO_SELF_CALIBRATION,
-                                            &asc, SENSIRION_NUM_WORDS(asc));
-    sensirion_sleep_usec(SCD30_WRITE_DELAY_US);
-
-    return ret;
-}
-
-int16_t scd30_set_forced_recalibration(uint16_t co2_ppm) {
-    int16_t ret;
-
-    ret = sensirion_i2c_write_cmd_with_args(
-        SCD30_I2C_ADDRESS, SCD30_CMD_SET_FORCED_RECALIBRATION, &co2_ppm,
-        SENSIRION_NUM_WORDS(co2_ppm));
-    sensirion_sleep_usec(SCD30_WRITE_DELAY_US);
-
-    return ret;
-}
-
-int16_t scd30_read_serial(char *serial) {
-    int16_t ret;
-
-    ret = sensirion_i2c_write_cmd(SCD30_I2C_ADDRESS, SCD30_CMD_READ_SERIAL);
-    if (ret)
-        return ret;
-
-    sensirion_sleep_usec(SCD30_WRITE_DELAY_US);
-    ret = sensirion_i2c_read_words_as_bytes(
-        SCD30_I2C_ADDRESS, (uint8_t *)serial, SCD30_SERIAL_NUM_WORDS);
-    serial[2 * SCD30_SERIAL_NUM_WORDS] = '\0';
-    return ret;
-}
-
-const char *scd30_get_driver_version() {
+const char *scd30_get_driver_version()
+{
     return "awesome version";
-}
-
-uint8_t scd30_get_configured_address() {
-    return SCD30_I2C_ADDRESS;
-}
-
-int16_t scd30_probe() {
-    uint16_t data_ready;
-
-    /* try to read data-ready state */
-    return scd30_get_data_ready(&data_ready);
-}
-
-/**
- * Release all resources initialized by sensirion_i2c_init().
- */
-void sensirion_i2c_release(void) {
 }
 
 /**
@@ -258,10 +176,10 @@ void sensirion_i2c_release(void) {
  * @param count   number of bytes to read from I2C and store in the buffer
  * @returns 0 on success, error code otherwise
  */
-int8_t sensirion_i2c_read(uint8_t address, uint8_t *data, uint16_t count) {
-    return (int8_t)HAL_I2C_Master_Receive(&hi2c3, (uint16_t)(address << 1),
-                                          data, count, 100);
-}
+static int8_t sensirion_i2c_read(uint8_t address, uint8_t *data, uint16_t count)
+ {
+    return (int8_t)HAL_I2C_Master_Receive(&hi2c3, (uint16_t)(address << 1),data, count, 100);
+ }
 
 /**
  * Execute one write transaction on the I2C bus, sending a given number of
@@ -274,10 +192,9 @@ int8_t sensirion_i2c_read(uint8_t address, uint8_t *data, uint16_t count) {
  * @param count   number of bytes to read from the buffer and send over I2C
  * @returns 0 on success, error code otherwise
  */
-int8_t sensirion_i2c_write(uint8_t address, const uint8_t *data,
-                           uint16_t count) {
-    return (int8_t)HAL_I2C_Master_Transmit(&hi2c3, (uint16_t)(address << 1),
-                                           (uint8_t *)data, count, 100);
+static int8_t sensirion_i2c_write(uint8_t address, const uint8_t *data,uint16_t count)
+{
+    return (int8_t)HAL_I2C_Master_Transmit(&hi2c3, (uint16_t)(address << 1),(uint8_t *)data, count, 100);
 }
 
 /**
@@ -286,7 +203,8 @@ int8_t sensirion_i2c_write(uint8_t address, const uint8_t *data,
  *
  * @param useconds the sleep time in microseconds
  */
-void sensirion_sleep_usec(uint32_t useconds) {
+static void sensirion_sleep_usec(uint32_t useconds)
+{
     uint32_t msec = useconds / 1000;
     if (useconds % 1000 > 0) {
         msec++;
@@ -305,45 +223,8 @@ void sensirion_sleep_usec(uint32_t useconds) {
     HAL_Delay(msec);
 }
 
-//sensirio_common.c
-/*
- * Copyright (c) 2018, Sensirion AG
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
- *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
- *
- * * Neither the name of Sensirion AG nor the names of its
- *   contributors may be used to endorse or promote products derived from
- *   this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
-
-/**
- * \file
- *
- * This module provides functionality that is common to all Sensirion drivers
- */
-
-uint8_t sensirion_common_generate_crc(uint8_t *data, uint16_t count) {
+static uint8_t sensirion_common_generate_crc(uint8_t *data, uint16_t count)
+{
     uint16_t current_byte;
     uint8_t crc = CRC8_INIT;
     uint8_t crc_bit;
@@ -361,15 +242,15 @@ uint8_t sensirion_common_generate_crc(uint8_t *data, uint16_t count) {
     return crc;
 }
 
-int8_t sensirion_common_check_crc(uint8_t *data, uint16_t count,
-                                  uint8_t checksum) {
+static int8_t sensirion_common_check_crc(uint8_t *data, uint16_t count,uint8_t checksum)
+{
     if (sensirion_common_generate_crc(data, count) != checksum)
         return STATUS_FAIL;
     return STATUS_OK;
 }
 
-uint16_t sensirion_fill_cmd_send_buf(uint8_t *buf, uint16_t cmd,
-                                     const uint16_t *args, uint8_t num_args) {
+static uint16_t sensirion_fill_cmd_send_buf(uint8_t *buf, uint16_t cmd,const uint16_t *args, uint8_t num_args)
+{
     uint8_t crc;
     uint8_t i;
     uint16_t idx = 0;
@@ -381,15 +262,14 @@ uint16_t sensirion_fill_cmd_send_buf(uint8_t *buf, uint16_t cmd,
         buf[idx++] = (uint8_t)((args[i] & 0xFF00) >> 8);
         buf[idx++] = (uint8_t)((args[i] & 0x00FF) >> 0);
 
-        crc = sensirion_common_generate_crc((uint8_t *)&buf[idx - 2],
-                                            SENSIRION_WORD_SIZE);
+        crc = sensirion_common_generate_crc((uint8_t *)&buf[idx - 2],SENSIRION_WORD_SIZE);
         buf[idx++] = crc;
     }
     return idx;
 }
 
-int16_t sensirion_i2c_read_words_as_bytes(uint8_t address, uint8_t *data,
-                                          uint16_t num_words) {
+static int16_t sensirion_i2c_read_words_as_bytes(uint8_t address, uint8_t *data,uint16_t num_words)
+{
     int16_t ret;
     uint16_t i, j;
     uint16_t size = num_words * (SENSIRION_WORD_SIZE + CRC8_LEN);
@@ -415,32 +295,16 @@ int16_t sensirion_i2c_read_words_as_bytes(uint8_t address, uint8_t *data,
     return STATUS_OK;
 }
 
-int16_t sensirion_i2c_read_words(uint8_t address, uint16_t *data_words,
-                                 uint16_t num_words) {
-    int16_t ret;
-    uint8_t i;
-
-    ret = sensirion_i2c_read_words_as_bytes(address, (uint8_t *)data_words,
-                                            num_words);
-    if (ret != STATUS_OK)
-        return ret;
-
-    for (i = 0; i < num_words; ++i)
-        data_words[i] = be16_to_cpu(data_words[i]);
-
-    return STATUS_OK;
-}
-
-int16_t sensirion_i2c_write_cmd(uint8_t address, uint16_t command) {
+static int16_t sensirion_i2c_write_cmd(uint8_t address, uint16_t command)
+{
     uint8_t buf[SENSIRION_COMMAND_SIZE];
 
     sensirion_fill_cmd_send_buf(buf, command, NULL, 0);
     return sensirion_i2c_write(address, buf, SENSIRION_COMMAND_SIZE);
 }
 
-int16_t sensirion_i2c_write_cmd_with_args(uint8_t address, uint16_t command,
-                                          const uint16_t *data_words,
-                                          uint16_t num_words) {
+static int16_t sensirion_i2c_write_cmd_with_args(uint8_t address, uint16_t command,const uint16_t *data_words,uint16_t num_words)
+{
     uint8_t buf[SENSIRION_MAX_BUFFER_WORDS];
     uint16_t buf_size;
 
@@ -448,26 +312,185 @@ int16_t sensirion_i2c_write_cmd_with_args(uint8_t address, uint16_t command,
     return sensirion_i2c_write(address, buf, buf_size);
 }
 
-int16_t sensirion_i2c_delayed_read_cmd(uint8_t address, uint16_t cmd,
-                                       uint32_t delay_us, uint16_t *data_words,
-                                       uint16_t num_words) {
-    int16_t ret;
-    uint8_t buf[SENSIRION_COMMAND_SIZE];
-    sensirion_fill_cmd_send_buf(buf, cmd, NULL, 0);
-    ret = sensirion_i2c_write(address, buf, SENSIRION_COMMAND_SIZE);
-    if (ret != STATUS_OK)
-        return ret;
 
-    if (delay_us)
-        sensirion_sleep_usec(delay_us);
 
-    return sensirion_i2c_read_words(address, data_words, num_words);
-}
 
-int16_t sensirion_i2c_read_cmd(uint8_t address, uint16_t cmd,
-                               uint16_t *data_words, uint16_t num_words) {
-    return sensirion_i2c_delayed_read_cmd(address, cmd, 0, data_words,
-                                          num_words);
-}
+/**
+ *
+ *static int16_t sensirion_i2c_read_cmd(uint8_t address, uint16_t cmd,uint16_t *data_words, uint16_t num_words)
+ *{
+ *    return sensirion_i2c_delayed_read_cmd(address, cmd, 0, data_words,num_words);
+ *}
+ */
 
+/**static uint8_t scd30_get_configured_address()
+*{
+*   return SCD30_I2C_ADDRESS;
+*}
+*/
+
+/**
+ *static int16_t scd30_set_measurement_interval(uint16_t interval_sec)
+ *{
+ *   int16_t ret;
+ *
+ *   if (interval_sec < 2 || interval_sec > 1800) {
+ *return STATUS_FAIL;
+ *}
+ *
+ *ret = sensirion_i2c_write_cmd_with_args(
+ *   SCD30_I2C_ADDRESS, SCD30_CMD_SET_MEASUREMENT_INTERVAL, &interval_sec,SENSIRION_NUM_WORDS(interval_sec));
+ *sensirion_sleep_usec(SCD30_WRITE_DELAY_US);
+ *
+ *return ret;
+ *}
+ */
+
+ /**
+ *static int16_t sensirion_i2c_read_words(uint8_t address, uint16_t *data_words,uint16_t num_words)
+ *{
+ *   int16_t ret;
+ *   uint8_t i;
+ *
+ *   ret = sensirion_i2c_read_words_as_bytes(address, (uint8_t *)data_words,num_words);
+ *   if (ret != STATUS_OK)
+ *       return ret;
+ *
+ *   for (i = 0; i < num_words; ++i)
+ *       data_words[i] = be16_to_cpu(data_words[i]);
+ *
+ *   return STATUS_OK;
+ *}
+*/
+/**
+ *static int16_t sensirion_i2c_delayed_read_cmd(uint8_t address, uint16_t cmd,uint32_t delay_us, uint16_t *data_words,uint16_t num_words)
+ *{
+ *   int16_t ret;
+ *   uint8_t buf[SENSIRION_COMMAND_SIZE];
+ *   sensirion_fill_cmd_send_buf(buf, cmd, NULL, 0);
+ *   ret = sensirion_i2c_write(address, buf, SENSIRION_COMMAND_SIZE);
+ *   if (ret != STATUS_OK)
+ *       return ret;
+ *
+ *   if (delay_us)
+ *       sensirion_sleep_usec(delay_us);
+ *
+ *   return sensirion_i2c_read_words(address, data_words, num_words);
+ *}
+ */
+
+/**
+ * static int16_t scd30_stop_periodic_measurement()
+ *{
+ *    return sensirion_i2c_write_cmd(SCD30_I2C_ADDRESS,SCD30_CMD_STOP_PERIODIC_MEASUREMENT);
+ *}
+ */
+
+/**
+ * static int16_t scd30_get_data_ready(uint16_t *data_ready)
+ *{
+ *   return sensirion_i2c_read_cmd(SCD30_I2C_ADDRESS, SCD30_CMD_GET_DATA_READY,data_ready,
+ *                                 SENSIRION_NUM_WORDS(*data_ready));
+ *}
+ */
+
+/**
+ * static int16_t scd30_set_temperature_offset(uint16_t temperature_offset)
+ *{
+ *   int16_t ret;
+ *
+ *   ret = sensirion_i2c_write_cmd_with_args(SCD30_I2C_ADDRESS, SCD30_CMD_SET_TEMPERATURE_OFFSET,&temperature_offset,
+ *                                           SENSIRION_NUM_WORDS(temperature_offset));
+ *   sensirion_sleep_usec(SCD30_WRITE_DELAY_US);
+ *
+ *   return ret;
+ *}
+ */
+
+ /**
+ * static int16_t scd30_set_altitude(uint16_t altitude)
+ *{
+ *   int16_t ret;
+ *
+ *   ret = sensirion_i2c_write_cmd_with_args(SCD30_I2C_ADDRESS,SCD30_CMD_SET_ALTITUDE, &altitude,
+ *                                           SENSIRION_NUM_WORDS(altitude));
+ *   sensirion_sleep_usec(SCD30_WRITE_DELAY_US);
+ *
+ *   return ret;
+ *}
+ */
+
+/**
+ * static int16_t scd30_get_automatic_self_calibration(uint8_t *asc_enabled)
+ *{
+ *   uint16_t word;
+ *   int16_t ret;
+ *   ret = sensirion_i2c_read_cmd(SCD30_I2C_ADDRESS,SCD30_CMD_AUTO_SELF_CALIBRATION, &word,
+ *                                SENSIRION_NUM_WORDS(word));
+ *   if (ret != STATUS_OK)
+ *       return ret;
+ *
+ *   *asc_enabled = (uint8_t)word;
+ *
+ *   return STATUS_OK;
+ *}
+ */
+
+/**
+ * static int16_t scd30_enable_automatic_self_calibration(uint8_t enable_asc)
+ *{
+ *   int16_t ret;
+ *  uint16_t asc = !!enable_asc;
+ *
+ *    ret = sensirion_i2c_write_cmd_with_args(SCD30_I2C_ADDRESS,SCD30_CMD_AUTO_SELF_CALIBRATION,
+ *                                           &asc, SENSIRION_NUM_WORDS(asc));
+ *   sensirion_sleep_usec(SCD30_WRITE_DELAY_US);
+ *
+ *    return ret;
+ *}
+ */
+
+/**
+ * static int16_t scd30_set_forced_recalibration(uint16_t co2_ppm)
+ *{
+ *   int16_t ret;
+ *
+ *   ret = sensirion_i2c_write_cmd_with_args(SCD30_I2C_ADDRESS, SCD30_CMD_SET_FORCED_RECALIBRATION,
+ *                                           &co2_ppm,SENSIRION_NUM_WORDS(co2_ppm));
+ *   sensirion_sleep_usec(SCD30_WRITE_DELAY_US);
+ *
+ *   return ret;
+ *}
+ */
+
+/**
+ * static int16_t scd30_read_serial(char *serial)
+ *{
+ *   int16_t ret;
+ *
+ *   ret = sensirion_i2c_write_cmd(SCD30_I2C_ADDRESS, SCD30_CMD_READ_SERIAL);
+ *   if (ret)
+ *        return ret;
+ *
+ *   sensirion_sleep_usec(SCD30_WRITE_DELAY_US);
+ *  ret = sensirion_i2c_read_words_as_bytes(
+ *      SCD30_I2C_ADDRESS, (uint8_t *)serial, SCD30_SERIAL_NUM_WORDS);
+ *    serial[2 * SCD30_SERIAL_NUM_WORDS] = '\0';
+ *    return ret;
+ *}
+ */
+/**
+ * static int16_t scd30_probe()
+ *{
+ *   uint16_t data_ready;
+ * return scd30_get_data_ready(&data_ready);
+ *}
+ */
+
+/**
+ * Release all resources initialized by sensirion_i2c_init().
+ */
+/**
+ * static void sensirion_i2c_release(void){}
+ */
 
