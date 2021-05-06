@@ -17,7 +17,9 @@
 #include "semphr.h"
 #include "string.h"
 #include "task.h"
+#ifdef SS_USE_FLASH
 #include "SS_flash_log.h"
+#endif
 
 #include "SS_log.h"
 #include "SS_FreeRTOS.h"

@@ -8,7 +8,7 @@
 #ifndef SS_COM_DEBUG_H_
 #define SS_COM_DEBUG_H_
 
-//#define SS_DEBUG_ENABLED
+#define SS_DEBUG_ENABLED
 
 /* ==================================================================== */
 /* ============================= Includes ============================= */

@@ -23,6 +23,7 @@
 
 ComStatus SS_flash_com_service(ComFrame *frame) {
     ComFlashID msgID = frame->operation;
+    SS_println("test-frame received");
     switch(msgID) {
         case COM_FLASH_ERASE:
             SS_println("Purge");

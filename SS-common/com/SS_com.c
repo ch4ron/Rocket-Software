@@ -151,6 +151,7 @@ ComStatus SS_com_handle_action(ComFrame *frame) {
         case COM_REQUEST:
             return SS_com_handle_request(frame);
         case COM_SERVICE:
+            SS_println("service received");
             return SS_com_handle_service(frame);
 #ifdef SS_USE_SEQUENCE
         case COM_SEQUENCE:

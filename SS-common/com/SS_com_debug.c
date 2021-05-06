@@ -115,6 +115,10 @@ static char *SS_com_action_str(ComActionID action) {
             return "ack";
         case COM_NACK:
             return "nack";
+        case COM_SACK:
+            return "sack";
+        case COM_SNACK:
+            return "snack";
         case COM_HEARTBEAT:
             return "beat";
         case COM_REQUEST:
@@ -124,11 +128,13 @@ static char *SS_com_action_str(ComActionID action) {
         case COM_SEQUENCE:
             return "seq";
         default:
+            SS_println("%d", action);
             return COLOR_RED(err);
     }
 }
 
 static char *SS_com_device_str(ComDeviceID device) {
+
     switch(device) {
         case COM_SERVO_ID:
             return "servo";

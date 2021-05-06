@@ -61,6 +61,7 @@ typedef enum {
     COM_CZAPLA_ID     = 0x04,
     COM_PAUEK_ID      = 0x05,
     COM_KROMEK_ID     = 0x06,
+    COM_ANTEK_ID      = 0x07,
     COM_LAST_BOARD,
     COM_BROADCAST_ID  = 0x1F
 } ComBoardID;

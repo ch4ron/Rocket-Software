@@ -148,7 +148,7 @@ static void SS_sequence_run(void) {
         return;
     }
     SS_debugln("Sequence started");
-    SS_flash_stream_start("vars.bin");
+    //SS_flash_stream_start("vars.bin");
     for(uint8_t i = 0; i < sequence.size; i++) {
         SequenceItem item = sequence.items[i];
         int16_t delay = i == 0 ? item.time : item.time - sequence.items[i - 1].time;
@@ -171,7 +171,7 @@ static void SS_sequence_run(void) {
     if(close_on_finish) {
         SS_sequence_finish();
     }
-    SS_flash_stream_stop("vars.bin");
+    //SS_flash_stream_stop("vars.bin");
     SS_debugln("Sequence finished");
 }
 

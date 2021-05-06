@@ -155,6 +155,12 @@ static void SS_platform_relays_init() {
 
 /********** ADS1258 *********/
 
+//Measurement measurements[] = {
+//        {.channel_id = STATUS_CHID_REF,
+//            .a_coefficient = 0.251004016064257028112449799196787148f,
+//            .b_coefficient = 0.75f},
+//};
+
 Measurement measurements[] = {
     {.channel_id = STATUS_CHID_REF,
             .a_coefficient = 0.251004016064257028112449799196787148f,

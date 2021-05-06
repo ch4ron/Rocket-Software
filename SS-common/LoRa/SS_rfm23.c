@@ -179,7 +179,7 @@ void SS_LoRa_EXTI_Callback(uint16_t GPIO_Pin) {
             HAL_GPIO_WritePin(SPI1_NSS_GPIO_Port,SPI1_NSS_Pin,0);
             uint8_t addr = 0x7f;
             HAL_SPI_Transmit(&hspi1, &addr,1, 100);
-            HAL_SPI_TransmitReceive(&hspi1, &addr,RF_BUFF, PACKET_LENGTH, 100);
+            HAL_SPI_TransmitReceive_DMA(&hspi1, &addr,RF_BUFF, PACKET_LENGTH);
             HAL_GPIO_WritePin(SPI1_NSS_GPIO_Port,SPI1_NSS_Pin,1);
 
             /*

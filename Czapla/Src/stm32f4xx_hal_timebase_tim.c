@@ -45,13 +45,11 @@ HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
   uint32_t              uwTimclock = 0;
   uint32_t              uwPrescalerValue = 0;
   uint32_t              pFLatency;
-
   /*Configure the TIM14 IRQ priority */
   HAL_NVIC_SetPriority(TIM8_TRG_COM_TIM14_IRQn, TickPriority ,0);
 
   /* Enable the TIM14 global Interrupt */
   HAL_NVIC_EnableIRQ(TIM8_TRG_COM_TIM14_IRQn);
-
   /* Enable TIM14 clock */
   __HAL_RCC_TIM14_CLK_ENABLE();
 
