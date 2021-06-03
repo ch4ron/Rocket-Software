@@ -37,7 +37,7 @@ ComStatus SS_dynamixel_com_service(ComFrame *frame) {
             }
             break;
         case COM_DYNAMIXEL_OPENED_POSITION:
-            if(SS_dynamixel_set_opened_position(&dynamixel, value) != DYNAMIXEL_RESULT_OK) {
+            if (SS_dynamixel_set_opened_position(&dynamixel, value) != DYNAMIXEL_RESULT_OK) {
                 return COM_ERROR;
             }
             break;
@@ -83,7 +83,7 @@ ComStatus SS_dynamixel_com_request(ComFrame *frame) {
 #ifdef SS_USE_SEQUENCE
 
 ComStatus SS_dynamixel_com_sequence_validate(ComFrame *frame) {
-    Com2xInt16 value;
+    ComUInt16Int16 value;
     memcpy(&value, &frame->payload, sizeof(uint32_t));
     switch(frame->operation) {
         case COM_DYNAMIXEL_OPEN:

@@ -181,7 +181,7 @@ static ComStatus SS_com_handle_service(ComFrame *frame) {
 static ComStatus SS_com_handle_sequence(ComFrame *frame) {
     ComFunction function = SS_com_get_handler(sequence_handlers, frame->device);
     ComStatus res = function ? function(frame) : COM_ERROR;
-    Com2xInt16 val;
+    ComUInt16Int16 val;
     memcpy(&val, &frame->payload, sizeof(uint32_t));
     if(SS_sequence_add(frame->device, frame->id, frame->operation, val.val, val.time) != 0) {
         res = COM_ERROR;

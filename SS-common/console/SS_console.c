@@ -10,12 +10,13 @@
 /* ==================================================================== */
 
 #include "SS_console.h"
-
+#include "stdlib.h"
 #include "FreeRTOS.h"
 #include "assert.h"
 #include "portmacro.h"
 #include "semphr.h"
 #include "string.h"
+#include "SS_dynamixel.h"
 #include "task.h"
 #ifdef SS_USE_FLASH
 #include "SS_flash_log.h"
@@ -46,6 +47,7 @@ static void SS_handle_console_input(char *buf);
 static void _SS_flash_log_toggle(char *buf);
 static void SS_flash_erase(char *buf);
 static void SS_flash_purge(char *buf);
+static void SS_dynamixel_setpos(char* buf);
 /* ==================================================================== */
 /* ======================== Private variables ========================= */
 /* ==================================================================== */
@@ -68,6 +70,7 @@ ConsoleCommand commands[] = {
     {"purge", "Erase flash", SS_flash_purge},
     {"dump", "Dump flash", SS_flash_print_logs},
     {"dumpd", "Dump Debug", SS_flash_print_logs_debug},
+    {"dynset", "Dynamixel open", SS_dynamixel_setpos},
 #endif
     {"help", "Print help", SS_console_print_help},
 };
@@ -122,7 +125,7 @@ static void SS_handle_console_input(char *buf) {
         if(memcmp(command->command, buf, len) == 0 &&
            (buf[len] == ' ' || buf[len] == '\r' || buf[len] == '\n')) {
             assert(command->fun != NULL);
-            command->fun(buf + sizeof(command->command));
+            command->fun(buf + len + 1);
             return;
         }
     }
@@ -182,6 +185,15 @@ static void SS_flash_purge(char *args) {
     SS_println("Purge flash");
     SS_s25fl_erase_all();
     SS_println("Flash purged");
+}
+
+static void SS_dynamixel_setpos(char* buf) {
+    int pos = atoi(buf);
+    SS_dynamixel_set_closed_position(&dynamixel, dynamixel.closed_position);
+    SS_dynamixel_set_opened_position(&dynamixel, dynamixel.opened_position);
+    SS_dynamixel_set_goal_position(&dynamixel, pos);
+    SS_println("%d", pos);
+    SS_println("%s", buf);
 }
 
 /* ==================================================================== */

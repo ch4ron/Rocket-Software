@@ -61,7 +61,7 @@ ComStatus SS_relays_com_request(ComFrame *frame) {
 ComStatus SS_relays_com_sequence_validate(ComFrame *frame) {
     Relay *relay = SS_relay_get(frame->id);
     if(relay == NULL) return COM_ERROR;
-    Com2xInt16 value;
+    ComUInt16Int16 value;
     memcpy(&value, &frame->payload, sizeof(uint32_t));
     switch(frame->operation) {
         case COM_RELAY_OPEN:

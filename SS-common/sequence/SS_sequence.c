@@ -5,7 +5,7 @@
  *      Author: maciek
  */
 
-#define SS_DEBUG_ENABLED
+//#define SS_DEBUG_ENABLED
 
 /* ==================================================================== */
 /* ============================= Includes ============================= */
@@ -171,12 +171,15 @@ static void SS_sequence_run(void) {
     if(close_on_finish) {
         SS_sequence_finish();
     }
-    //SS_flash_stream_stop("vars.bin");
+    vTaskDelay(pdMS_TO_TICKS(35000));
+    SS_flash_stream_stop("vars.bin");
     SS_debugln("Sequence finished");
+    SS_println("Stop logging");
+    //SS_sequence_finish();
 }
 
 static void SS_sequence_ack_item(SequenceItem item) {
-    Com2xInt16 val = {
+    ComUInt16Int16 val = {
         .val = item.value,
         .time = item.time};
     uint32_t payload;
