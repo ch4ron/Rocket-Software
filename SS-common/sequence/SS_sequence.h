@@ -37,7 +37,7 @@ typedef enum {
 /* ==================================================================== */
 
 void SS_sequence_init(void);
-int8_t SS_sequence_add(ComDeviceID device, uint8_t id, uint8_t operation, int16_t value, int16_t time);
+int8_t SS_sequence_add(ComDeviceID device, uint8_t id, uint8_t operation, int16_t value, uint16_t time);
 ComStatus SS_sequence_com_service(ComFrame *frame);
 void SS_sequence_task(void *pvParameters);
 
