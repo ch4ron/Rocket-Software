@@ -7,3 +7,6 @@
 [submodule "External/littlefs"]
 	path = External/littlefs
 	url = https://github.com/ARMmbed/littlefs
+[submodule "CMock"]
+	path = External/CMock
+	url = https://github.com/ThrowTheSwitch/CMock
