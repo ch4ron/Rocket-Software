@@ -16,12 +16,13 @@
 #include "tim.h"
 #include "SS_misc.h"
 
-//roboczo
-#include "spi.h"
 
 #ifdef SS_USE_MS5X
 #include "SS_MS5X.h"
-#endif
+#endif  /* SS_MS5X.h */
+#ifdef RADEKS_TESTER
+#include "SS_tester.h"
+#endif  /* RADEKS_TESTER */
 #ifdef SS_USE_COM
 #include "SS_com.h"
 #include "SS_com_feed.h"
@@ -51,8 +52,8 @@
 
 static void vLEDFlashTask(void *pvParameters);
 static void SS_FreeRTOS_create_tasks(void);
-static void SS_FreeRTOS_1ms_tick(void);
-static void SS_TesterMainTask(void);
+
+
 #ifdef SS_RUN_TESTS
 static void run_tests_task(void *pvParameters);
 #endif
@@ -60,7 +61,6 @@ static void run_tests_task(void *pvParameters);
 /* ==================================================================== */
 /* ========================= Public functions ========================= */
 /* ==================================================================== */
-
 
 void SS_FreeRTOS_init(void) {
     SS_FreeRTOS_create_tasks();
@@ -96,20 +96,29 @@ static void SS_FreeRTOS_create_tasks(void) {
     res = xTaskCreate(SS_run_tests_task, "Tests Task", 512, NULL, 4, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
 #endif /* defined(SS_RUN_TESTS) && !defined(SS_RUN_TESTS_FROM_CONSOLE) */
+
     res = xTaskCreate(vLEDFlashTask, "LED Task", 64, NULL, 2, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
+    res = xTaskCreate(SS_console_task, "Console Task", 256, NULL, 3, (TaskHandle_t *) NULL);
+    assert(res == pdTRUE);
+
 #ifdef SS_USE_MS5X
-    res = xTaskCreate(SS_barometerTask, "Barometer Task", 256, NULL, 3, (TaskHandle_t *) NULL);
+    res = xTaskCreate(SS_MS5X_readBarometersTask, "Read From Barometers Task", 256, NULL, 3, (TaskHandle_t *) NULL);
+    assert(res == pdTRUE);
+    res = xTaskCreate(SS_MS5X_calculateBarometersTask, "Read From Barometers Task", 512, NULL, 3, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
 #endif
+
 #ifdef RADEKS_TESTER
-    res = xTaskCreate(SS_TesterMainTask, "Tester Main Task", 256, NULL, 31, (TaskHandle_t *) NULL);
+    res = xTaskCreate(SS_tester_MainTask, "Tester Main Task", 256, NULL, 3, (TaskHandle_t *) NULL);
+    assert(res == pdTRUE);
+    res = xTaskCreate(SS_tester_SPIHandlerTask, "SPIHandler Task", 256, NULL, 10, (TaskHandle_t *) NULL);
+    assert(res == pdTRUE);
+    res = xTaskCreate(SS_tester_BinDataDecoder_decodeHandlerTask, "decodeHandler Task", 256, NULL, 9, (TaskHandle_t *) NULL);
+    assert(res == pdTRUE);
+    res = xTaskCreate(SS_tester_simDataManagementTask, "checkBufContents Task", 256, NULL, 3, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
 #endif
-    res = xTaskCreate(SS_FreeRTOS_1ms_tick, "1ms Tick Task", 256, NULL, 31, (TaskHandle_t *) NULL);
-    assert(res == pdTRUE);
-
-
 
 #ifdef SS_USE_COM
     res = xTaskCreate(SS_com_rx_handler_task, "Com Rx Task", 256, NULL, 5, NULL);
@@ -129,37 +138,16 @@ static void SS_FreeRTOS_create_tasks(void) {
     assert(res == pdTRUE);
 #endif /* SS_USE_GRAZYNA */
 #endif /* SS_USE_COM */
+
 #ifdef SS_USE_FLASH
     res = xTaskCreate(SS_flash_log_task, "Flash Log Task", 1024, NULL, 4, NULL);
     assert(res == pdTRUE);
 #endif /* SS_USE_FLASH */
+
 #ifdef SS_USE_SEQUENCE
     res = xTaskCreate(SS_sequence_task, "Sequence Task", 256, NULL, 4, NULL);
 #endif
-    res = xTaskCreate(SS_console_task, "Console Task", 256, NULL, 3, (TaskHandle_t *) NULL);
-    assert(res == pdTRUE);
-}
 
-static void SS_FreeRTOS_1ms_tick(void)
-{
-    while(1)
-    {
-        vTaskDelay(pdMS_TO_TICKS( 1));
-#ifdef SS_USE_MS5X
-        //SS_MS5X_SYSTICK_Callback();
-#endif
-    }
-}
-
-static void SS_TesterMainTask(void)
-{
-
-    while(1)
-    {
-        vTaskDelay(pdMS_TO_TICKS( 1));
-//        HAL_SPI_TransmitReceive(&hspi1, &txbuff, &rxbuff, 1, 100);
-//        HAL_Delay(10);
-    }
 }
 
 /* ==================================================================== */

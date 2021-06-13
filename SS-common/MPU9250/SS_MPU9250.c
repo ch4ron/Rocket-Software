@@ -330,6 +330,7 @@ static void SS_MPU_CS_DISABLE(MPU9250 *mpu9250) {
 /* DMA Communication */
 
 /* TODO Remove sensor argument */
+//TO DO
 static MPU_STATUS SS_MPU_read_multiple_DMA(MPU9250 *mpu9250, uint8_t RegAdr, uint8_t *RegDat, uint8_t nbr, uint8_t sensor) {
     uint8_t temp = 0x80 | RegAdr;
     SS_MPU_CS_ENABLE(mpu9250);

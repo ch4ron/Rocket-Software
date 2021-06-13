@@ -37,9 +37,16 @@
 #ifdef SS_USE_MPU9250
 #include "SS_MPU9250.h"
 #endif
+#ifdef SS_USE_MS5X
+#include "SS_MS5X.h"
+#endif
 #include "stm32f4xx_hal.h"
 #include "SS_log.h"
 #include "SS_console.h"
+#include "main.h"
+#ifdef RADEKS_TESTER
+#include "SS_tester.h"
+#endif  /* RADEKS_TESTER */
 
 /* ==================================================================== */
 /* ========================= Global variables ========================= */
@@ -73,15 +80,17 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
 }
 
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
-#ifdef SS_USE_MS5X
-    SS_MS56_TxCpltCallback(hspi);
-#endif
+
+#ifdef RADEKS_TESTER
+    SS_tester_SPIReceiveIT();
+#endif /* RADEKS_TESTER */
 }
 
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
-#ifdef SS_USE_MS5X
-    SS_MS56_RxCpltCallback(hspi);
-#endif
+
+#ifdef RADEKS_TESTER
+    SS_tester_SPI_ISR();
+#endif /* RADEKS_TESTER */
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
@@ -95,6 +104,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
+
 #ifdef SS_USE_DYNAMIXEL
     SS_dynamixel_UART_TxCpltCallback(huart);
 #endif
@@ -126,7 +136,6 @@ void HAL_SYSTICK_Callback() {
     /* SS_sequence_SYSTICK(); */
 #endif
 #ifdef SS_USE_MS5X
-    SS_MS56_SYSTICK_Callback();
 #endif
 #ifdef SS_USE_S25FL
     SS_flash_ctrl_time_increment_handler();

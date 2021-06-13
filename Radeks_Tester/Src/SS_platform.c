@@ -4,6 +4,8 @@
 
 #include "SS_platform.h"
 #include "main.h"
+#include "SS_tester.h"
+
 
 #ifdef SS_USE_CAN
 #include "SS_can.h"
@@ -42,8 +44,8 @@
 //    HAL_GPIO_WritePin(MEAS_BLUE_GPIO_Port, MEAS_BLUE_Pin, !blue);
 //}
 //
-void SS_platform_toggle_loop_led() {
-    HAL_GPIO_TogglePin(LOOP_LED_GPIO_Port, LOOP_LED_Pin);
+void SS_platform_toggle_loop_led(void) {
+    HAL_GPIO_TogglePin(T_LOOP_LED_GPIO_Port, T_LOOP_LED_Pin);
 }
 
 /********** SERVOS *********/
@@ -99,11 +101,10 @@ static void SS_platform_ADS1258_init(void) {
 //    .gyro_id = 10,
 //    .accel_id = 11,
 //    .mgnt_id = 12,
-//    .CS_Port = MPU2_CS_GPIO_Port,
-//    .CS_Pin = MPU2_CS_Pin,
-//    .INT_Pin = MPU2_INT_Pin,
-//    .IRQn = EXTI9_5_IRQn,
-//    .hspi = &hspi1,
+//    .CS_Port = MPU_CS_GPIO_Port,
+//    .CS_Pin = MPU_CS_Pin,
+//    .INT_Pin = MPU_INT_Pin,
+//    .hspi = &hspi4,
 //    .accel_scale = MPU_ACCEL_SCALE_2,
 //    .gyro_scale = MPU_GYRO_SCALE_250,
 //
@@ -117,31 +118,34 @@ static void SS_platform_ADS1258_init(void) {
 //};
 
 //static void SS_platform_init_MPU(void) {
-//    HAL_GPIO_WritePin(MPU1_CS_GPIO_Port, MPU1_CS_Pin, GPIO_PIN_SET);
 //    MPU_STATUS result = MPU_OK;
+//    /* HAL_NVIC_DisableIRQ(MPU_INT_EXTI_IRQn); */
 //    /* HAL_Delay(50); */
 //    /* result |= SS_AK8963_set_calibration_values(&mpu, 38, 217, 92, 1.040606, 1.018278, 0.946424); */
 //    result |= SS_MPU_init(&mpu);
-//    assert(result == MPU_OK);
 //    /* result |= SS_MPU_init(&mpu2); */
 //    /* int32_t bias1[] = {-15, -11, 72, 230, 300, 537}; */
 //    /* result |= SS_MPU_set_calibration(&mpu1, bias1); */
+//    /* HAL_NVIC_EnableIRQ(MPU_INT_EXTI_IRQn); */
 //}
 
 /********** MAIN INIT *********/
 
-void SS_platform_init() {
+void SS_platform_init()
+{
     SS_log_init(&huart1);
     SS_console_init(&huart1);
-    SS_MS5X_init(&ms5607, 0, MS56_CS_GPIO_Port, MS56_CS_Pin, MS56_PRESS_4096, MS56_TEMP_4096);
-    SS_MS5X_init(&ms5803, 1, MS58_CS_GPIO_Port, MS58_CS_Pin, MS56_PRESS_4096, MS56_TEMP_4096);
+    SS_tester_init();
 
+
+#ifdef SS_USE_ADS1258
+    SS_platform_ADS1258_init();
+#endif
 #ifdef SS_USE_S25FL
     SS_s25fl_init();
 #endif
-//    SS_platform_init_MPU();
 //    SS_can_init(&hcan2, COM_STASZEK_ID);
 //    HAL_Delay(100);
 //    SS_platform_init_MPU();
-    HAL_Delay(100);
+//    HAL_Delay(100);
 }
