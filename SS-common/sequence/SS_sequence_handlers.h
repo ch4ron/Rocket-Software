@@ -10,6 +10,8 @@
 /* ==================================================================== */
 
 #ifdef SS_USE_RELAYS
+
+
 #include "SS_relays_com.h"
 #endif
 #ifdef SS_USE_SERVOS
@@ -20,6 +22,9 @@
 #endif
 #ifdef SS_USE_IGNITER
 #include "SS_igniter_com.h"
+#endif
+#ifdef SS_USE_FLASH
+#include <SS_flash_com.h>
 #endif
 
 /* ==================================================================== */
@@ -51,5 +56,8 @@ static SequenceHandler sequence_handlers[] = {
 #endif
 #ifdef SS_USE_IGNITER
     {COM_IGNITER_ID, SS_igniter_sequence, SS_igniter_sequence_finish},
+#endif
+#ifdef SS_USE_FLASH
+    {COM_FLASH_ID, SS_flash_sequence, SS_flash_sequence_finish},
 #endif
 };

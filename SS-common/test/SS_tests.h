@@ -5,5 +5,6 @@
 
 int SS_run_all_tests(void);
 void SS_run_tests_task(void *pvParameters);
+bool SS_get_are_tests_running(void);
 
 #endif /* SS_TESTS_H */

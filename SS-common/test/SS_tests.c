@@ -9,6 +9,8 @@
 
 #include "unity_fixture.h"
 
+static bool are_tests_running = false;
+
 /* TODO remove this header */
 #ifdef SS_USE_ADS1258
 #include "SS_ADS1258_unit_tests.h"
@@ -19,6 +21,8 @@
 #endif
 
 static void tests(void) {
+    are_tests_running = true;
+
 #ifdef SS_USE_ADS1258
     SS_ADS1258_run_tests();
     RUN_TEST_GROUP(measurements);
@@ -63,6 +67,7 @@ static void tests(void) {
 #ifdef SS_USE_MPU9250
     RUN_TEST_GROUP(MPU);
 #endif
+    are_tests_running = false;
 #ifdef SS_USE_SEQUENCE
     RUN_TEST_GROUP(sequence);
 #endif
@@ -75,7 +80,7 @@ int SS_run_all_tests(void) {
     SS_usb_stop();
 #endif
 
-#ifdef VERBOSE_TEST_OUTPUT
+#if 1
     const char* args[] = {"unity", "-v"};
     int unity_code = UnityMain(2, args, tests);
 #else
@@ -88,4 +93,9 @@ int SS_run_all_tests(void) {
 #endif
 
     return unity_code;
+}
+
+bool SS_get_are_tests_running(void)
+{
+    return are_tests_running;
 }

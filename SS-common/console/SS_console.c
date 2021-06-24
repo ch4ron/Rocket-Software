@@ -10,13 +10,17 @@
 /* ==================================================================== */
 
 #include "SS_console.h"
-
+#include "stdlib.h"
 #include "FreeRTOS.h"
 #include "assert.h"
 #include "portmacro.h"
 #include "semphr.h"
 #include "string.h"
+#include "SS_dynamixel.h"
 #include "task.h"
+#ifdef SS_USE_FLASH
+#include "SS_flash_log.h"
+#endif
 
 #include "SS_log.h"
 #include "SS_FreeRTOS.h"
@@ -40,7 +44,10 @@ static void SS_print_tasks_info(char *args);
 static void SS_print_runtime_stats(char *args);
 static void SS_console_run_all_tests(char *args);
 static void SS_handle_console_input(char *buf);
-
+static void _SS_flash_log_toggle(char *buf);
+static void SS_flash_erase(char *buf);
+static void SS_flash_purge(char *buf);
+static void SS_dynamixel_setpos(char* buf);
 /* ==================================================================== */
 /* ======================== Private variables ========================= */
 /* ==================================================================== */
@@ -55,7 +62,16 @@ ConsoleCommand commands[] = {
     {"test", "Run tests", SS_console_run_all_tests},
 #endif /* defined(SS_RUN_TESTS) && defined(SS_RUN_TESTS_FROM_CONSOLE) */
     {"tasks", "Print task info", SS_print_tasks_info},
-    {"stats", "Print task info", SS_print_runtime_stats},
+    {"stats", "Print task runtime stats", SS_print_runtime_stats},
+#ifdef SS_USE_FLASH
+/* TODO add flash subcommand */
+    {"log", "Start / Stop logging to flash", _SS_flash_log_toggle},
+    {"erase", "Erase flash", SS_flash_erase},
+    {"purge", "Erase flash", SS_flash_purge},
+    {"dump", "Dump flash", SS_flash_print_logs},
+    {"dumpd", "Dump Debug", SS_flash_print_logs_debug},
+    {"dynset", "Dynamixel open", SS_dynamixel_setpos},
+#endif
     {"help", "Print help", SS_console_print_help},
 };
 
@@ -109,7 +125,7 @@ static void SS_handle_console_input(char *buf) {
         if(memcmp(command->command, buf, len) == 0 &&
            (buf[len] == ' ' || buf[len] == '\r' || buf[len] == '\n')) {
             assert(command->fun != NULL);
-            command->fun(buf + sizeof(command->command));
+            command->fun(buf + len + 1);
             return;
         }
     }
@@ -138,12 +154,46 @@ static void SS_console_run_all_tests(char *args) {
     assert(res == pdTRUE);
 }
 
+#ifdef SS_USE_FLASH
+#include "SS_flash_log.h"
+
+static void _SS_flash_log_toggle(char *args) {
+    if(SS_flash_stream_toggle(FLASH_LOG_VARS_FILENAME)) {
+        SS_println("Log Started");
+    } else {
+        SS_println("Log Stopped");
+    }
+}
+
+#endif
+
 static void SS_console_print_help(char *args) {
     SS_println("Available commands:");
     for(int i = 0; i < sizeof(commands) / sizeof(commands[0]); i++) {
         ConsoleCommand *command = commands + i;
         SS_println("    - %s\t\t%s", command->command, command->help);
     }
+}
+
+static void SS_flash_erase(char *args) {
+    SS_println("Erase flash");
+    SS_flash_stream_erase_all();
+    SS_println("Flash erased");
+}
+
+static void SS_flash_purge(char *args) {
+    SS_println("Purge flash");
+    SS_s25fl_erase_all();
+    SS_println("Flash purged");
+}
+
+static void SS_dynamixel_setpos(char* buf) {
+    int pos = atoi(buf);
+    SS_dynamixel_set_closed_position(&dynamixel, dynamixel.closed_position);
+    SS_dynamixel_set_opened_position(&dynamixel, dynamixel.opened_position);
+    SS_dynamixel_set_goal_position(&dynamixel, pos);
+    SS_println("%d", pos);
+    SS_println("%s", buf);
 }
 
 /* ==================================================================== */

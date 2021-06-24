@@ -8,7 +8,14 @@
 #ifndef SS_FLASH_CTRL_H
 #define SS_FLASH_CTRL_H
 
-/*#include "SS_flash.h"
+typedef enum
+{
+    FLASH_STREAM_VAR,
+    FLASH_STREAM_TEXT,
+    FLASH_STREAM_COUNT,
+}FlashStream;
+
+#include "SS_flash.h"
 
 #define FLASH_CTRL_CONFIG_FILE_SIZE (8*1024)
 
@@ -31,6 +38,7 @@ FlashStatus SS_flash_ctrl_read_page_dma_wait(uint32_t first_page, uint8_t *data)
 FlashStatus SS_flash_ctrl_set_is_emulating(bool is_emulating_);
 bool SS_flash_ctrl_get_is_page_emulated(uint32_t page);
 
-void SS_flash_ctrl_time_increment_handler(void);*/
+void SS_flash_ctrl_time_increment_handler(void);
+FlashStatus SS_flash_control_log_bytes(uint8_t *data, uint16_t size);
 
 #endif

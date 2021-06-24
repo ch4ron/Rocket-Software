@@ -8,7 +8,7 @@ static int sync(const struct lfs_config *c);
 
 static lfs_t lfs;
 static struct lfs_config cfg;
-static bool mounted = false;
+static bool is_mounted = false;
 
 static uint8_t read_buffer[FLASH_PAGE_BUF_SIZE];
 static uint8_t prog_buffer[FLASH_PAGE_BUF_SIZE];
@@ -44,12 +44,12 @@ FlashStatus SS_flash_lfs_start(void)
 {
     bool status = FLASH_STATUS_OK;
 
-    if (!mounted) {
+    if (!is_mounted) {
         if (lfs_mount(&lfs, &cfg)) {
             status = SS_flash_lfs_format_and_remount();
         }
 
-        mounted = true;
+        is_mounted = true;
     }
 
     return status;
@@ -80,12 +80,14 @@ lfs_t *SS_flash_lfs_get(void)
 static int read(const struct lfs_config *c, lfs_block_t block, lfs_off_t off, void *buffer, lfs_size_t size)
 {
     SS_s25fl_read_bytes_dma_wait(block*SS_s25fl_get_sector_size()+off, buffer, size);
+    //SS_s25fl_read_bytes(block*SS_s25fl_get_sector_size() + off, buffer, size);
     return 0;
 }
 
 static int prog(const struct lfs_config *c, lfs_block_t block, lfs_off_t off, const void *buffer, lfs_size_t size)
 {
     SS_s25fl_write_bytes_dma_wait(block*SS_s25fl_get_sector_size()+off, buffer, size);
+    //SS_s25fl_write_bytes(block*SS_s25fl_get_sector_size() + off, buffer, size);
     return 0;
 }
 

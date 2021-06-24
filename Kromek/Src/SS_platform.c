@@ -15,6 +15,7 @@
 #include "SS_s25fl.h"
 #include "SS_flash_caching.h"
 #include "SS_flash_ctrl.h"
+#include "SS_flash_log.h"
 #endif
 #ifdef SS_USE_IGNITER
 #include "SS_igniter.h"
@@ -154,11 +155,59 @@ static void SS_platform_relays_init() {
 
 /********** ADS1258 *********/
 
+//Measurement measurements[] = {
+//        {.channel_id = STATUS_CHID_DIFF5,
+//            .a_coefficient = 23.865426f,
+//            .b_coefficient = -25.315998f},
+//};
+
 Measurement measurements[] = {
+    {.channel_id = STATUS_CHID_DIFF1,
+            .a_coefficient = 23.865426f,
+            .b_coefficient = -25.315998f},
+    {.channel_id = STATUS_CHID_DIFF2,
+            .a_coefficient = 470660.6052f,
+            .b_coefficient = 1477.833558f},
+    {.channel_id = STATUS_CHID_DIFF3,
+            .a_coefficient = 23.865426f,
+            .b_coefficient = -25.315998f},
+    {.channel_id = STATUS_CHID_DIFF5,
+            .a_coefficient = 23.865426f,
+            .b_coefficient = -25.315998f},
     {.channel_id = STATUS_CHID_DIFF0,
-     .a_coefficient = 0.251004016064257028112449799196787148f,
-     .b_coefficient = 0.75f},
+            .a_coefficient = 23.865426f,
+            .b_coefficient = -25.315998f},
 };
+//Measurement measurements[] = {
+//        {.channel_id = STATUS_CHID_REF,
+//                .a_coefficient = 1.0f,
+//                .b_coefficient = 0.0f},
+//        {.channel_id = STATUS_CHID_DIFF0,
+//                .a_coefficient = 1.0f,
+//                .b_coefficient = 0.0f},
+//        {.channel_id = STATUS_CHID_DIFF1,
+//                .a_coefficient = 1.0f,
+//                .b_coefficient = 0.0f},
+//        {.channel_id = STATUS_CHID_DIFF2,
+//                .a_coefficient = 1.0f,
+//                .b_coefficient = 0.0f},
+//        {.channel_id = STATUS_CHID_DIFF3,
+//                .a_coefficient = 1.0f,
+//                .b_coefficient = 0.0f},
+//        {.channel_id = STATUS_CHID_DIFF4,
+//                .a_coefficient = 1.0f,
+//                .b_coefficient = 0.0f},
+//        {.channel_id = STATUS_CHID_DIFF5,
+//                .a_coefficient = 1.0f,
+//                .b_coefficient = 0.0f},
+//        {.channel_id = STATUS_CHID_DIFF6,
+//                .a_coefficient = 1.0f,
+//                .b_coefficient = 0.0f},
+//        {.channel_id = STATUS_CHID_DIFF7,
+//                .a_coefficient = 1.0f,
+//                .b_coefficient = 0.0f},
+//};
+
 
 static void
 SS_platform_ADS1258_init() {
@@ -170,7 +219,7 @@ SS_platform_ADS1258_init() {
 Dynamixel dynamixel = {
     .id = 0x01,
     .opened_position = 4095,
-    .closed_position = 0,
+    .closed_position = -4095,
     .huart = &huart1,
     .DE_Port = RS485_DE_GPIO_Port,
     .DE_Pin = RS485_DE_Pin,
@@ -191,13 +240,15 @@ void SS_platform_init() {
     SS_platform_ADS1258_init();
     SS_can_init(&hcan1, COM_KROMEK_ID);
     SS_grazyna_init(&huart2);
-    SS_igniter_init(RELAY2_GPIO_Port, RELAY2_Pin);
+    SS_igniter_init(RELAY3_GPIO_Port, RELAY3_Pin);
 #ifdef SS_USE_DYNAMIXEL
     SS_dynamixel_init(&dynamixel);
 #endif
 #ifdef SS_USE_FLASH
+    SS_flash_ctrl_init();
     assert(SS_s25fl_init(FLASH_RESET_GPIO_Port, FLASH_RESET_Pin, 64*1024*1024, 256*1024, 512, true, 4, 1) == S25FL_STATUS_OK);
-    SS_println("flash init: %d", SS_flash_init(&hqspi, FLASH_RESET_GPIO_Port, FLASH_RESET_Pin));
-    SS_enable_supply(&relay_supply);
+    /* assert(SS_flash_init(&hqspi, FLASH_RESET_GPIO_Port, FLASH_RESET_Pin) == FLASH_STATUS_OK); */
+    HAL_Delay(100);
 #endif
+    SS_enable_supply(&relay_supply);
 }

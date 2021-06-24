@@ -29,6 +29,14 @@ typedef enum {
 
 ComStatus SS_flash_com_service(ComFrame *frame);
 
+#ifdef SS_USE_SEQUENCE
+
+ComStatus SS_flash_com_sequence_validate(ComFrame *frame);
+ComStatus SS_flash_sequence(uint8_t id, uint8_t operation, int16_t value);
+void SS_flash_sequence_finish(uint8_t id);
+
+#endif
+
 #endif
 
 #endif

@@ -8,19 +8,37 @@
 #ifndef SS_FLASH_LOG_H
 #define SS_FLASH_LOG_H
 
+/* ==================================================================== */
+/* ============================= Includes ============================= */
+/* ==================================================================== */
+
+#include "FreeRTOS.h"
 #include "SS_flash.h"
 
-#define FLASH_LOG_MAX_VAR_DATA_SIZE 8
+/* ==================================================================== */
+/* ============================= Macros =============================== */
+/* ==================================================================== */
 
-FlashStatus SS_flash_log_init(void);
+#define FLASH_LOG_MAX_VAR_DATA_SIZE 4
+#define FLASH_LOG_VARS_FILENAME "vars.bin"
+#define FLASH_LOG_TEXT_FILENAME "text.txt"
 
-FlashStatus SS_flash_log_erase(void);
-FlashStatus SS_flash_log_start(void);
-FlashStatus SS_flash_log_stop(void);
+/* ==================================================================== */
+/* ==================== Public function prototypes ==================== */
+/* ==================================================================== */
 
-FlashStatus SS_flash_log_var(uint8_t id, uint8_t *data, uint32_t size);
+void SS_flash_create_tasks(UBaseType_t priority);
+FlashStatus SS_flash_stream_start(char *filename);
+FlashStatus SS_flash_stream_stop(char *filename);
+bool SS_flash_stream_toggle(char *filename);
+FlashStatus SS_flash_stream_erase(char *filename);
+FlashStatus SS_flash_stream_erase_all(void);
+
+FlashStatus SS_flash_log_var(uint8_t id, uint8_t *data, uint16_t size);
+void SS_flash_log_var_fromISR(uint8_t id, uint8_t *data, uint16_t size);
 FlashStatus SS_flash_log_text(const char *str);
+void SS_flash_print_logs(char *args);
+void SS_flash_print_logs_debug(char *args);
+void SS_flash_log_25khz_timer_isr(void);
 
-void SS_flash_log_task(void *pvParameters);
-
-#endif // SS_FLASH_LOG_H
+#endif /* SS_FLASH_LOG_H */

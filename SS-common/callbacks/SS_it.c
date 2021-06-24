@@ -15,6 +15,7 @@
 #include "SS_console.h"
 #include "adc.h"
 
+
 /* ==================================================================== */
 /* ============================= Includes ============================= */
 /* ==================================================================== */
@@ -26,6 +27,7 @@
 #include "SS_s25fl.h"
 #include "SS_flash_ctrl.h"
 #include "SS_flash_caching.h"
+#include "SS_flash_log.h"
 #endif
 #ifdef SS_USE_ADS1258
 #include "SS_ADS1258.h"
@@ -45,6 +47,9 @@
 #endif
 #ifdef SS_USE_MPU9250
 #include "SS_MPU9250.h"
+#endif
+#ifdef SS_USE_LORA
+#include "SS_rfm23.h"
 #endif
 #include "stm32f4xx_hal.h"
 #include "SS_log.h"
@@ -70,6 +75,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 #ifdef SS_USE_MPU9250
     SS_MPU_GPIO_EXTI_Callback(GPIO_Pin);
 
+#endif
+#ifdef SS_USE_LORA
+    SS_LoRa_EXTI_Callback(GPIO_Pin);
 #endif
 }
 
@@ -189,6 +197,7 @@ void SS_SYSTICK_callback_task(void *pvParameters) {
 
 void SS_25khz_timer_callback(void) {
 #ifdef SS_USE_FLASH
+    SS_flash_log_25khz_timer_isr();
     /* SS_flash_ctrl_time_increment_handler(); */
 #endif
 }

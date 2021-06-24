@@ -56,17 +56,17 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-extern CAN_HandleTypeDef hcan1;
-extern TIM_HandleTypeDef htim1;
+extern DMA_HandleTypeDef hdma_spi1_rx;
+extern TIM_HandleTypeDef htim13;
 extern DMA_HandleTypeDef hdma_uart5_rx;
-extern UART_HandleTypeDef huart5;
-extern UART_HandleTypeDef huart2;
+extern TIM_HandleTypeDef htim14;
+
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
 
 /******************************************************************************/
-/*           Cortex-M4 Processor Interruption and Exception Handlers          */ 
+/*           Cortex-M4 Processor Interruption and Exception Handlers          */
 /******************************************************************************/
 /**
   * @brief This function handles Non maskable interrupt.
@@ -142,19 +142,6 @@ void UsageFault_Handler(void)
 }
 
 /**
-  * @brief This function handles System service call via SWI instruction.
-  */
-void SVC_Handler(void)
-{
-  /* USER CODE BEGIN SVCall_IRQn 0 */
-
-  /* USER CODE END SVCall_IRQn 0 */
-  /* USER CODE BEGIN SVCall_IRQn 1 */
-
-  /* USER CODE END SVCall_IRQn 1 */
-}
-
-/**
   * @brief This function handles Debug monitor.
   */
 void DebugMon_Handler(void)
@@ -167,67 +154,12 @@ void DebugMon_Handler(void)
   /* USER CODE END DebugMonitor_IRQn 1 */
 }
 
-/**
-  * @brief This function handles Pendable request for system service.
-  */
-void PendSV_Handler(void)
-{
-  /* USER CODE BEGIN PendSV_IRQn 0 */
-
-  /* USER CODE END PendSV_IRQn 0 */
-  /* USER CODE BEGIN PendSV_IRQn 1 */
-
-  /* USER CODE END PendSV_IRQn 1 */
-}
-
-/**
-  * @brief This function handles System tick timer.
-  */
-void SysTick_Handler(void)
-{
-  /* USER CODE BEGIN SysTick_IRQn 0 */
-
-  /* USER CODE END SysTick_IRQn 0 */
-  HAL_IncTick();
-  /* USER CODE BEGIN SysTick_IRQn 1 */
-
-  /* USER CODE END SysTick_IRQn 1 */
-}
-
 /******************************************************************************/
 /* STM32F4xx Peripheral Interrupt Handlers                                    */
 /* Add here the Interrupt Handlers for the used peripherals.                  */
 /* For the available peripheral interrupt handler names,                      */
 /* please refer to the startup file (startup_stm32f4xx.s).                    */
 /******************************************************************************/
-
-/**
-  * @brief This function handles EXTI line 0 interrupt.
-  */
-void EXTI0_IRQHandler(void)
-{
-  /* USER CODE BEGIN EXTI0_IRQn 0 */
-
-  /* USER CODE END EXTI0_IRQn 0 */
-  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_0);
-  /* USER CODE BEGIN EXTI0_IRQn 1 */
-
-  /* USER CODE END EXTI0_IRQn 1 */
-}
-
-/**
-  * @brief This function handles EXTI line 1 interrupt.
-  */
-void EXTI1_IRQHandler(void)
-{
-  /* USER CODE BEGIN EXTI1_IRQn 0 */
-
-  /* USER CODE END EXTI1_IRQn 0 */
-  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_1);
-  /* USER CODE BEGIN EXTI1_IRQn 1 */
-
-  /* USER CODE END EXTI1_IRQn 1 */
-}
 
 /**
   * @brief This function handles DMA1 stream0 global interrupt.
@@ -244,143 +176,45 @@ void DMA1_Stream0_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles CAN1 TX interrupt.
+  * @brief This function handles TIM8 update interrupt and TIM13 global interrupt.
   */
-void CAN1_TX_IRQHandler(void)
+void TIM8_UP_TIM13_IRQHandler(void)
 {
-  /* USER CODE BEGIN CAN1_TX_IRQn 0 */
+  /* USER CODE BEGIN TIM8_UP_TIM13_IRQn 0 */
 
-  /* USER CODE END CAN1_TX_IRQn 0 */
-  HAL_CAN_IRQHandler(&hcan1);
-  /* USER CODE BEGIN CAN1_TX_IRQn 1 */
+  /* USER CODE END TIM8_UP_TIM13_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim13);
+  /* USER CODE BEGIN TIM8_UP_TIM13_IRQn 1 */
 
-  /* USER CODE END CAN1_TX_IRQn 1 */
+  /* USER CODE END TIM8_UP_TIM13_IRQn 1 */
 }
 
 /**
-  * @brief This function handles CAN1 RX0 interrupt.
+  * @brief This function handles TIM8 trigger and commutation interrupts and TIM14 global interrupt.
   */
-void CAN1_RX0_IRQHandler(void)
+void TIM8_TRG_COM_TIM14_IRQHandler(void)
 {
-  /* USER CODE BEGIN CAN1_RX0_IRQn 0 */
+  /* USER CODE BEGIN TIM8_TRG_COM_TIM14_IRQn 0 */
 
-  /* USER CODE END CAN1_RX0_IRQn 0 */
-  HAL_CAN_IRQHandler(&hcan1);
-  /* USER CODE BEGIN CAN1_RX0_IRQn 1 */
+  /* USER CODE END TIM8_TRG_COM_TIM14_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim14);
+  /* USER CODE BEGIN TIM8_TRG_COM_TIM14_IRQn 1 */
 
-  /* USER CODE END CAN1_RX0_IRQn 1 */
+  /* USER CODE END TIM8_TRG_COM_TIM14_IRQn 1 */
 }
 
 /**
-  * @brief This function handles CAN1 RX1 interrupt.
+  * @brief This function handles DMA2 stream2 global interrupt.
   */
-void CAN1_RX1_IRQHandler(void)
+void DMA2_Stream2_IRQHandler(void)
 {
-  /* USER CODE BEGIN CAN1_RX1_IRQn 0 */
+  /* USER CODE BEGIN DMA2_Stream2_IRQn 0 */
 
-  /* USER CODE END CAN1_RX1_IRQn 0 */
-  HAL_CAN_IRQHandler(&hcan1);
-  /* USER CODE BEGIN CAN1_RX1_IRQn 1 */
+  /* USER CODE END DMA2_Stream2_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_spi1_rx);
+  /* USER CODE BEGIN DMA2_Stream2_IRQn 1 */
 
-  /* USER CODE END CAN1_RX1_IRQn 1 */
-}
-
-/**
-  * @brief This function handles CAN1 SCE interrupt.
-  */
-void CAN1_SCE_IRQHandler(void)
-{
-  /* USER CODE BEGIN CAN1_SCE_IRQn 0 */
-
-  /* USER CODE END CAN1_SCE_IRQn 0 */
-  HAL_CAN_IRQHandler(&hcan1);
-  /* USER CODE BEGIN CAN1_SCE_IRQn 1 */
-
-  /* USER CODE END CAN1_SCE_IRQn 1 */
-}
-
-/**
-  * @brief This function handles TIM1 break interrupt and TIM9 global interrupt.
-  */
-void TIM1_BRK_TIM9_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM1_BRK_TIM9_IRQn 0 */
-
-  /* USER CODE END TIM1_BRK_TIM9_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim1);
-  /* USER CODE BEGIN TIM1_BRK_TIM9_IRQn 1 */
-
-  /* USER CODE END TIM1_BRK_TIM9_IRQn 1 */
-}
-
-/**
-  * @brief This function handles TIM1 update interrupt and TIM10 global interrupt.
-  */
-void TIM1_UP_TIM10_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM1_UP_TIM10_IRQn 0 */
-
-  /* USER CODE END TIM1_UP_TIM10_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim1);
-  /* USER CODE BEGIN TIM1_UP_TIM10_IRQn 1 */
-
-  /* USER CODE END TIM1_UP_TIM10_IRQn 1 */
-}
-
-/**
-  * @brief This function handles TIM1 trigger and commutation interrupts and TIM11 global interrupt.
-  */
-void TIM1_TRG_COM_TIM11_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM1_TRG_COM_TIM11_IRQn 0 */
-
-  /* USER CODE END TIM1_TRG_COM_TIM11_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim1);
-  /* USER CODE BEGIN TIM1_TRG_COM_TIM11_IRQn 1 */
-
-  /* USER CODE END TIM1_TRG_COM_TIM11_IRQn 1 */
-}
-
-/**
-  * @brief This function handles TIM1 capture compare interrupt.
-  */
-void TIM1_CC_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM1_CC_IRQn 0 */
-
-  /* USER CODE END TIM1_CC_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim1);
-  /* USER CODE BEGIN TIM1_CC_IRQn 1 */
-
-  /* USER CODE END TIM1_CC_IRQn 1 */
-}
-
-/**
-  * @brief This function handles USART2 global interrupt.
-  */
-void USART2_IRQHandler(void)
-{
-  /* USER CODE BEGIN USART2_IRQn 0 */
-
-  /* USER CODE END USART2_IRQn 0 */
-  HAL_UART_IRQHandler(&huart2);
-  /* USER CODE BEGIN USART2_IRQn 1 */
-
-  /* USER CODE END USART2_IRQn 1 */
-}
-
-/**
-  * @brief This function handles UART5 global interrupt.
-  */
-void UART5_IRQHandler(void)
-{
-  /* USER CODE BEGIN UART5_IRQn 0 */
-
-  /* USER CODE END UART5_IRQn 0 */
-  HAL_UART_IRQHandler(&huart5);
-  /* USER CODE BEGIN UART5_IRQn 1 */
-
-  /* USER CODE END UART5_IRQn 1 */
+  /* USER CODE END DMA2_Stream2_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

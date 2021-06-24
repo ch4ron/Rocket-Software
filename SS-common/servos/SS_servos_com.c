@@ -92,7 +92,7 @@ ComStatus SS_servos_com_request(ComFrame *frame) {
 ComStatus SS_servos_com_sequence_validate(ComFrame *frame) {
     Servo *servo = SS_servo_get(frame->id);
     if(servo == NULL) return COM_ERROR;
-    Com2xInt16 value;
+    ComUInt16Int16 value;
     memcpy(&value, &frame->payload, sizeof(uint32_t));
     switch(frame->operation) {
         case COM_SERVO_OPEN:

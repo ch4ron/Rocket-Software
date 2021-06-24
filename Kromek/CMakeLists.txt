@@ -9,11 +9,18 @@ project(kromek C ASM)
 file(GLOB_RECURSE SOURCES
   "Inc/*.*"
   "Src/*.*"
-  "startup/*.*")
+  "startup/*.*"
+  # Middlewares/*.*
+  # USB_DEVICE/*.*
+  )
 
 add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
 
 target_include_directories(${PROJECT_NAME}.elf PRIVATE
+  # USB_DEVICE/App
+  # USB_DEVICE/Target
+  # Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc
+  # Middlewares/ST/STM32_USB_Device_Library/Core/Inc
   Inc)
 
 # DEFINE YOUR LIBRARIES HERE
@@ -30,6 +37,7 @@ add_compile_definitions(SS_USE_SEQUENCE)
 add_compile_definitions(SS_USE_JSON_SETTINGS)
 add_compile_definitions(SS_USE_CAN)
 add_compile_definitions(SS_USE_FLASH)
+# add_compile_definitions(SS_USE_USB)
 add_compile_definitions(SS_USE_IGNITER)
 add_compile_definitions(DEBUG)
 

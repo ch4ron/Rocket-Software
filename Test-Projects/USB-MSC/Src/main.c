@@ -32,6 +32,7 @@
 #include "SS_init.h"
 #include "SS_log.h"
 #include "SS_console.h"
+#include "SS_usb.h"
 #include "SS_s25fl.h"
 #include "SS_flash_caching.h"
 #include "SS_flash_ctrl.h"
@@ -113,6 +114,7 @@ int main(void)
     SS_console_init(&huart2);
     assert(SS_s25fl_init(GPIOA, GPIO_PIN_0, 256*256*1024, 256*1024, 512, true, 4, 1) == S25FL_STATUS_OK);
     assert(SS_flash_init(&hqspi, GPIOA, GPIO_PIN_0) == FLASH_STATUS_OK);
+    assert(SS_usb_init() == USB_STATUS_OK);
     SS_init();
   /* USER CODE END 2 */
 

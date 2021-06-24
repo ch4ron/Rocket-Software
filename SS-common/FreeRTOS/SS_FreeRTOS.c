@@ -27,6 +27,9 @@
 #ifdef SS_USE_FLASH
 #include "SS_flash_log.h"
 #endif /* SS_USE_FLASH */
+#ifdef SS_USE_USB
+#include "SS_usb.h"
+#endif /* SS_USE_FLASH */
 #ifdef SS_RUN_TESTS
 #include "SS_tests.h"
 #endif /* SS_RUN_TESTS */
@@ -48,12 +51,14 @@
 /* ==================================================================== */
 
 static void vLEDFlashTask(void *pvParameters);
+static void logging_test_task(void *pvParameters);
 static void SS_FreeRTOS_create_tasks(void);
 
 /* ==================================================================== */
 /* ========================= Public functions ========================= */
 /* ==================================================================== */
 
+uint8_t ignstate;
 
 void SS_FreeRTOS_init(void) {
     SS_FreeRTOS_create_tasks();
@@ -82,8 +87,11 @@ void SS_run_tests_task(void *pvParameters) {
 static void vLEDFlashTask(void *pvParameters) {
 
     while(1) {
-        vTaskDelay(500);
+        vTaskDelay(pdMS_TO_TICKS(500));
         SS_platform_toggle_loop_led();
+        //ignstate = HAL_GPIO_ReadPin(IGN_GPIO_Port, IGN_Pin);
+        //HAL_GPIO_WritePin(IGN_GPIO_Port,IGN_Pin, 1);
+        
     }
 }
 
@@ -111,7 +119,7 @@ static void SS_FreeRTOS_create_tasks(void) {
 #ifdef SS_USE_GRAZYNA
     res = xTaskCreate(SS_grazyna_tx_handler_task, "Grazyna Tx Task", 64, NULL, 5, NULL);
     assert(res == pdTRUE);
-    res = xTaskCreate(SS_com_feed_task, "Feed Task", 256, NULL, 5, (TaskHandle_t *) &com_feed_task);
+     res = xTaskCreate(SS_com_feed_task, "Feed Task", 256, NULL, 5, (TaskHandle_t *) &com_feed_task);
     assert(res == pdTRUE);
 #endif /* SS_USE_GRAZYNA */
 #endif /* SS_USE_COM */
@@ -120,14 +128,18 @@ static void SS_FreeRTOS_create_tasks(void) {
     assert(res == pdTRUE);
 #endif /* SS_USE_SCD30 */
 #ifdef SS_USE_FLASH
-    res = xTaskCreate(SS_flash_log_task, "Flash Log Task", 1024, NULL, 4, NULL);
-    assert(res == pdTRUE);
+    SS_flash_create_tasks(10);
+    SS_flash_create_tasks(6);
 #endif /* SS_USE_FLASH */
 #ifdef SS_USE_SEQUENCE
     res = xTaskCreate(SS_sequence_task, "Sequence Task", 256, NULL, 4, NULL);
 #endif
     res = xTaskCreate(SS_console_task, "Console Task", 256, NULL, 3, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
+/* #if !defined(SS_RUN_TESTS) || defined(SS_RUN_TESTS_FROM_CONSOLE) */
+/*     res = xTaskCreate(SS_usb_start_task, "Usb start task", 300, NULL, 2, (TaskHandle_t *) NULL); */
+/*     assert(res == pdTRUE); */
+/* #endif */
 }
 
 /* ==================================================================== */

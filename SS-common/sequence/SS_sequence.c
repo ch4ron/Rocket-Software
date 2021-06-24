@@ -5,12 +5,13 @@
  *      Author: maciek
  */
 
-#define SS_DEBUG_ENABLED
+//#define SS_DEBUG_ENABLED
 
 /* ==================================================================== */
 /* ============================= Includes ============================= */
 /* ==================================================================== */
 
+#include <SS_flash_log.h>
 #include "SS_sequence.h"
 
 #include "FreeRTOS.h"
@@ -30,7 +31,7 @@ typedef struct {
     uint8_t id;
     uint8_t operation;
     int16_t value;
-    int16_t time;
+    uint16_t time;
 } SequenceItem;
 
 typedef struct {
@@ -69,7 +70,7 @@ void SS_sequence_init(void) {
     assert(sequence_mutex != NULL);
 }
 
-int8_t SS_sequence_add(ComDeviceID device, uint8_t id, uint8_t operation, int16_t value, int16_t time) {
+int8_t SS_sequence_add(ComDeviceID device, uint8_t id, uint8_t operation, int16_t value, uint16_t time) {
     if(sequence.size >= MAX_SEQUENCE_ITEMS) {
         SS_error("Sequence is full, dropping");
         return -1;
@@ -147,9 +148,10 @@ static void SS_sequence_run(void) {
         return;
     }
     SS_debugln("Sequence started");
+    //SS_flash_stream_start("vars.bin");
     for(uint8_t i = 0; i < sequence.size; i++) {
         SequenceItem item = sequence.items[i];
-        int16_t delay = i == 0 ? item.time : item.time - sequence.items[i - 1].time;
+        uint16_t delay = i == 0 ? item.time : item.time - sequence.items[i - 1].time;
         if(abort_sequence) {
             abort_sequence = false;
             return;
@@ -169,11 +171,15 @@ static void SS_sequence_run(void) {
     if(close_on_finish) {
         SS_sequence_finish();
     }
+    //vTaskDelay(pdMS_TO_TICKS(35000));
+    //SS_flash_stream_stop("vars.bin");
     SS_debugln("Sequence finished");
+    //SS_println("Stop logging");
+    //SS_sequence_finish();
 }
 
 static void SS_sequence_ack_item(SequenceItem item) {
-    Com2xInt16 val = {
+    ComUInt16Int16 val = {
         .val = item.value,
         .time = item.time};
     uint32_t payload;
