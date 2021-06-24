@@ -85,7 +85,7 @@ void SS_SCD_task(void *pvParameters)
             SS_print("%0.2f %0.2f %0.2f\r\n", scd30.co2_ppm, scd30.temperature, scd30.relative_humidity);
         }
         SS_SCD_sleep_usec(scd30.interval_in_seconds * 1000000u);
-        vTaskDelay( 3000 / portTICK_RATE_MS );
+        vTaskDelay( 10000 / portTICK_RATE_MS );
     }
     SS_SCD_stop_periodic_measurement();
 }
