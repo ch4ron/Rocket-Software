@@ -37,6 +37,8 @@
 #include "SS_flash.h"
 #endif
 
+
+
 static int8_t  SS_SCD_i2c_read(uint8_t address, uint8_t *data, uint16_t count);
 static int8_t  SS_SCD_i2c_write(uint8_t address, const uint8_t *data,uint16_t count);
 static uint8_t SS_SCD_generate_crc(uint8_t *data, uint16_t count);
@@ -79,12 +81,14 @@ void SS_SCD_task(void *pvParameters)
     while(1){
         scd30.error = SS_SCD_read_measurement(&scd30.co2_ppm, &scd30.temperature, &scd30.relative_humidity); //sczytanie wartosci pomiarow
         if (scd30.error != STATUS_OK) {
-            SS_print("error reading measurement\r\n");
+            //SS_print("error reading measurement\r\n");
 
         } else {
-            SS_print("%0.2f %0.2f %0.2f\r\n", scd30.co2_ppm, scd30.temperature, scd30.relative_humidity);
+            //SS_print("%0.2f %0.2f %0.2f\r\n", scd30.co2_ppm, scd30.temperature, scd30.relative_humidity);
         }
+        //int32_t scd_co2_ppm = scd30.co2_ppm;
         SS_SCD_sleep_usec(scd30.interval_in_seconds * 1000000u);
+        //print_data(scd_co2_ppm);
         vTaskDelay( 3000 / portTICK_RATE_MS );
     }
     SS_SCD_stop_periodic_measurement();

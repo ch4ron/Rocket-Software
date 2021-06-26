@@ -41,7 +41,7 @@
 #ifdef SS_USE_GRAZYNA
 #include "SS_grazyna.h"
 #endif
-
+#include "SS_MPU9250.h"
 /* ==================================================================== */
 /* =================== Private function prototypes ==================== */
 /* ==================================================================== */
@@ -90,7 +90,8 @@ static void vLEDFlashTask(void *pvParameters) {
         /* SS_println("%d, %d, %d", mpu.accel_raw_x, mpu.accel_raw_y, mpu.accel_raw_z); */
         SS_platform_toggle_loop_led();
         SS_MS56_read_convert(&ms5607);
-        SS_print("%d,", ms5607.temp);
+        print_data(ms5607.temp,ms5607.press);
+        //SS_print("%d,", ms5607.temp);
         /* SS_MPU_math_scaled_accel(&mpu); */
         /* SS_println("%f, %f, %f", mpu.accel_scaled_x, mpu.accel_scaled_y, mpu.accel_scaled_z); */
         /* SS_println("%d, %d, %d", mpu.accel_raw_x, mpu.accel_raw_y, mpu.accel_raw_z); */

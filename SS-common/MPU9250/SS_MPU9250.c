@@ -684,6 +684,7 @@ static MPU_STATUS SS_MPU_self_test(MPU9250 *mpu9250) {  //Not tested
 /* ==================================================================== */
 
 extern SCD30 scd30;
+//extern int32_t scd_co2_ppm;
 extern struct MS5607 ms5607;
 int32_t data[3];
 
@@ -717,11 +718,11 @@ static void SS_MPU_spi_tx_rx_isr(MPU9250 *mpu9250) {
     if (is_logging && counter >= 5) {
         /* uint8_t array[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32}; */
         /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 11, array, 12, &hptw); */
-        data[0]= (int32_t)&scd30.co2_ppm;
+        data[0]= (int32_t)scd30.co2_ppm;
         data[1]= ms5607.temp;
         data[2]= ms5607.press;
         SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 11, (uint8_t *) &data, 12, &hptw);
-        //SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 11, (uint8_t *) &mpu9250->accel_raw_x, 12, &hptw);
+        SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 12, (uint8_t *) &mpu9250->accel_raw_x, 12, &hptw);
         counter = 0;
 /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 12, array, 6, &hptw); */
         /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 13, array, 6, &hptw); */
@@ -734,6 +735,12 @@ static void SS_MPU_spi_tx_rx_isr(MPU9250 *mpu9250) {
         /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x06, (uint8_t *)&mpu9250->gyro_raw_z, 2, &hptw); */
     }
 }
+
+void print_data(int32_t data1,int32_t data2){
+    //SS_MS56_read_convert(&ms5607);
+    SS_print("%d %d %d\r\n",data[0],data[1],data[2]);
+}
+
 
 MPU_STATUS SS_MPU_set_is_logging(bool is_logging_) {
     is_logging = is_logging_;

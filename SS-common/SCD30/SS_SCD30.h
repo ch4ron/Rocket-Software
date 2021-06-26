@@ -33,6 +33,7 @@
 #define SCD30_H
 
 
+
 typedef float float32_t;
 
 typedef struct {
