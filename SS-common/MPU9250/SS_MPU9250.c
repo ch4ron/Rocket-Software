@@ -21,7 +21,10 @@
 /* TODO Remove math */
 #include "math.h"
 #include "spi.h"
+#include "SS_SCD30.h"
 
+#include "SS_MS5X.h"
+extern struct MS5607 ms5607;
 /* ==================================================================== */
 /* =================== Private function prototypes ==================== */
 /* ==================================================================== */
@@ -680,6 +683,10 @@ static MPU_STATUS SS_MPU_self_test(MPU9250 *mpu9250) {  //Not tested
 /* ============================ Callbacks ============================= */
 /* ==================================================================== */
 
+extern SCD30 scd30;
+extern struct MS5607 ms5607;
+int32_t data[3];
+
 uint32_t mpu_counter;
 static void SS_MPU_spi_tx_rx_isr(MPU9250 *mpu9250) {
     static uint8_t counter;
@@ -710,9 +717,13 @@ static void SS_MPU_spi_tx_rx_isr(MPU9250 *mpu9250) {
     if (is_logging && counter >= 5) {
         /* uint8_t array[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32}; */
         /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 11, array, 12, &hptw); */
-        SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 11, (uint8_t *) &mpu9250->accel_raw_x, 12, &hptw);
+        data[0]= (int32_t)&scd30.co2_ppm;
+        data[1]= ms5607.temp;
+        data[2]= ms5607.press;
+        SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 11, (uint8_t *) &data, 12, &hptw);
+        //SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 11, (uint8_t *) &mpu9250->accel_raw_x, 12, &hptw);
         counter = 0;
-        /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 12, array, 6, &hptw); */
+/* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 12, array, 6, &hptw); */
         /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 13, array, 6, &hptw); */
         /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x01, (uint8_t *)&mpu9250->accel_raw_x, 18, &hptw); */
         /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x02, (uint8_t *)&mpu9250->accel_raw_y, 2, &hptw); */

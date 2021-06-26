@@ -65,7 +65,14 @@ static void SS_platform_adc_init(void) {
     SS_adc_init(adc, sizeof(adc) / sizeof(adc[0]));
 }
 #endif
+/********** MS5X *********/
+extern struct MS5607 ms5607;
+static void SS_platform_init_MS5X(void) {
+    ms5607.hspi=&hspi3;
+    ms5607.pause_time=1000;
+    SS_MS56_init(&ms5607,MS56_PRESS_256,MS56_TEMP_256);
 
+}
 
 /********** MPU9250 *********/
 
@@ -108,6 +115,7 @@ void SS_platform_init() {
     SS_log_init(&huart2);
     SS_console_init(&huart2);
     SS_platform_init_MPU();
+    SS_platform_init_MS5X();
 #ifdef SS_USE_FLASH
     /* assert(SS_s25fl_init() == FLASH_STATUS_OK); */
     assert(SS_flash_init(&hqspi, FLASH_RESET_GPIO_Port, FLASH_RESET_Pin) == FLASH_STATUS_OK);

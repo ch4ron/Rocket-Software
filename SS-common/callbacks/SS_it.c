@@ -112,7 +112,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 }
 #endif
 
-
+int32_t Frequency_counter=0;
 /* void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) { */
 /* printf("uart error callback: %d\r\n", huart->ErrorCode); */
 /* } */
@@ -159,15 +159,18 @@ void HAL_SYSTICK_Callback() {
     /* SS_sequence_SYSTICK(); */
 #endif
 #ifdef SS_USE_MS5X
-    SS_MS56_SYSTICK_Callback();
+    //SS_MS56_SYSTICK_Callback();
+
 #endif
 #ifdef SS_USE_FLASH
-    SS_flash_ctrl_time_increment_handler();
+SS_flash_ctrl_time_increment_handler();
 #endif
 }
 
 void SS_25khz_timer_callback(void) {
 #ifdef SS_USE_FLASH
-    SS_flash_ctrl_time_increment_handler();
+SS_flash_ctrl_time_increment_handler();
+
+
 #endif
 }

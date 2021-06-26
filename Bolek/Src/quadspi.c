@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under BSD 3-Clause license,
@@ -58,18 +58,18 @@ void HAL_QSPI_MspInit(QSPI_HandleTypeDef* qspiHandle)
   /* USER CODE END QUADSPI_MspInit 0 */
     /* QUADSPI clock enable */
     __HAL_RCC_QSPI_CLK_ENABLE();
-  
+
     __HAL_RCC_GPIOE_CLK_ENABLE();
     __HAL_RCC_GPIOA_CLK_ENABLE();
     __HAL_RCC_GPIOB_CLK_ENABLE();
     __HAL_RCC_GPIOD_CLK_ENABLE();
-    /**QUADSPI GPIO Configuration    
+    /**QUADSPI GPIO Configuration
     PE2     ------> QUADSPI_BK1_IO2
     PA1     ------> QUADSPI_BK1_IO3
     PB2     ------> QUADSPI_CLK
     PD11     ------> QUADSPI_BK1_IO0
     PD12     ------> QUADSPI_BK1_IO1
-    PB6     ------> QUADSPI_BK1_NCS 
+    PB6     ------> QUADSPI_BK1_NCS
     */
     GPIO_InitStruct.Pin = GPIO_PIN_2;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -144,14 +144,14 @@ void HAL_QSPI_MspDeInit(QSPI_HandleTypeDef* qspiHandle)
   /* USER CODE END QUADSPI_MspDeInit 0 */
     /* Peripheral clock disable */
     __HAL_RCC_QSPI_CLK_DISABLE();
-  
-    /**QUADSPI GPIO Configuration    
+
+    /**QUADSPI GPIO Configuration
     PE2     ------> QUADSPI_BK1_IO2
     PA1     ------> QUADSPI_BK1_IO3
     PB2     ------> QUADSPI_CLK
     PD11     ------> QUADSPI_BK1_IO0
     PD12     ------> QUADSPI_BK1_IO1
-    PB6     ------> QUADSPI_BK1_NCS 
+    PB6     ------> QUADSPI_BK1_NCS
     */
     HAL_GPIO_DeInit(GPIOE, GPIO_PIN_2);
 
@@ -170,7 +170,7 @@ void HAL_QSPI_MspDeInit(QSPI_HandleTypeDef* qspiHandle)
 
   /* USER CODE END QUADSPI_MspDeInit 1 */
   }
-} 
+}
 
 /* USER CODE BEGIN 1 */
 

@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under BSD 3-Clause license,
@@ -31,12 +31,14 @@
 /* USER CODE END Includes */
 
 extern SPI_HandleTypeDef hspi1;
+extern SPI_HandleTypeDef hspi3;
 
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
 
 void MX_SPI1_Init(void);
+void MX_SPI3_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 

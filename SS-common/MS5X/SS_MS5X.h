@@ -20,7 +20,9 @@
 
 /*	Check if it coincides with pointer to a SPI_HandleTypeDef structure that
  * 	contains the configuration information for proper SPI module. */
-#define HSPI_MS56 hspi4
+
+#define HSPI_MS56 hspi3
+
 
 #define MS56_PRESS_256 0x40
 #define MS56_PRESS_512 0x42
@@ -34,9 +36,9 @@
 #define MS56_TEMP_2048 0x56
 #define MS56_TEMP_4096 0x58
 
-#define MS56_RESET 0x1E
-#define MS56_ADC_READ 0x00
-#define MS56_PROM_READ_BASE 0xA0
+#define MS56_RESET 0x1E               // commend that makes MS56 o reset
+#define MS56_ADC_READ 0x00            // 24 bits pressure and 24 bits temp so put this in uint32_t
+#define MS56_PROM_READ_BASE 0xA0      // 128 bit of calibration words
 
 extern struct MS5607 ms5607;
 
@@ -61,12 +63,13 @@ struct MS5607 {
     int32_t average_temp;
     int32_t temp;
     uint32_t uncomp_press;
-    int32_t uncomp_temp;
+    uint32_t uncomp_temp;
     int32_t refPress;
     int32_t altitude;
     enum RESULT result;
     uint8_t stage;
     SPI_HandleTypeDef *hspi;
+    int32_t pause_time;
 
 /*Used in DMA mode*/
     uint8_t sequence_flag;
@@ -74,6 +77,8 @@ struct MS5607 {
     uint8_t uncomp_press_buff[3];
     uint8_t uncomp_temp_buff[3];
 };
+
+void SS_MS5X_task(void *pvParameters);
 
 void SS_MS56_init(struct MS5607 *ms5607, uint8_t MS56_PRESS_mode, uint8_t MS56_TEMP_mode);
 void SS_MS56_CS_ENABLE(void);

@@ -23,6 +23,12 @@
 #ifdef SS_USE_FLASH
 #include "SS_flash.h"
 #endif /* SS_USE_FLASH */
+#ifdef SS_USE_SCD30
+#include "SS_SCD30.h"
+#endif /* SS_USE_SCD30 */
+#ifdef SS_USE_MS5X
+#include "SS_MS5X.h"
+#endif /* SS_USE_MS5X */
 #ifdef SS_RUN_TESTS
 #include "SS_tests.h"
 #endif /* SS_RUN_TESTS */
@@ -83,6 +89,8 @@ static void vLEDFlashTask(void *pvParameters) {
         vTaskDelay(500);
         /* SS_println("%d, %d, %d", mpu.accel_raw_x, mpu.accel_raw_y, mpu.accel_raw_z); */
         SS_platform_toggle_loop_led();
+        SS_MS56_read_convert(&ms5607);
+        SS_print("%d,", ms5607.temp);
         /* SS_MPU_math_scaled_accel(&mpu); */
         /* SS_println("%f, %f, %f", mpu.accel_scaled_x, mpu.accel_scaled_y, mpu.accel_scaled_z); */
         /* SS_println("%d, %d, %d", mpu.accel_raw_x, mpu.accel_raw_y, mpu.accel_raw_z); */
@@ -121,6 +129,14 @@ static void SS_FreeRTOS_create_tasks(void) {
     res = xTaskCreate(SS_flash_log_task, "Flash Log Task", 256, NULL, 6, NULL);
     assert(res == pdTRUE);
 #endif /* SS_USE_FLASH */
+#ifdef SS_USE_SCD30
+    res = xTaskCreate(SS_SCD_task, "SCD30 Task", 256, NULL, 6, NULL);
+    assert(res == pdTRUE);
+#endif /* SS_USE_SCD30 */
+#ifdef SS_USE_MS5Xs
+    res = xTaskCreate(SS_MS5X_task, "MS5X Task", 256, NULL, 6, NULL);
+    assert(res == pdTRUE);
+#endif /* SS_USE_SCD30 */
     res = xTaskCreate(SS_console_task, "Console Task", 256, NULL, 3, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
 }
