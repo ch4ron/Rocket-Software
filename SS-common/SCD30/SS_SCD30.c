@@ -79,10 +79,10 @@ void SS_SCD_task(void *pvParameters)
     while(1){
         scd30.error = SS_SCD_read_measurement(&scd30.co2_ppm, &scd30.temperature, &scd30.relative_humidity); //sczytanie wartosci pomiarow
         if (scd30.error != STATUS_OK) {
-            SS_print("error reading measurement\r\n");
+            //SS_print("error reading measurement\r\n");
 
         } else {
-            SS_print("%0.2f %0.2f %0.2f\r\n", scd30.co2_ppm, scd30.temperature, scd30.relative_humidity);
+            //SS_print("%0.2f %0.2f %0.2f\r\n", scd30.co2_ppm, scd30.temperature, scd30.relative_humidity);
         }
         SS_SCD_sleep_usec(scd30.interval_in_seconds * 1000000u);
         vTaskDelay( 10000 / portTICK_RATE_MS );

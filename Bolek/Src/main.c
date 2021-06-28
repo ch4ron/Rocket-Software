@@ -37,17 +37,9 @@
 #include "SS_platform.h"
 #include "SS_MPU9250.h"
 #include "SS_common.h"
-<<<<<<< HEAD
 #include "SS_misc.h"
 #include "stdint.h"
-=======
-#include "SS_init.h"
-#include "scd30.h"
-#include "sensirion_common.h"
-#include "task.h"
-#include "SS_log.h"
-#include "timers.h"
->>>>>>> kromek_flash
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -67,18 +59,6 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-<<<<<<< HEAD
-
-=======
-int32_t Dane=100;
-float32_t co2_ppm, temperature, relative_humidity;
-int16_t err;
-uint16_t interval_in_seconds = 2;
-int _write(int file, char *ptr, int len) {
-    HAL_UART_Transmit(&huart2, (uint8_t*) ptr, (uint16_t) len, 1000);
-    return len;
-}
->>>>>>> kromek_flash
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -216,32 +196,6 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-void Scd30_task(void *pvParameters){
-    while(1){
-        //scd30_start_periodic_measurement(0);
-       // sensirion_sleep_usec(interval_in_seconds * 1000000u);
-        err = scd30_read_measurement(&co2_ppm, &temperature, &relative_humidity);
-        if (err != STATUS_OK) {
-            SS_print("error reading measurement\n");
-
-        } else {
-            SS_print("%0.2f %0.2f %0.2f\n", co2_ppm, temperature, relative_humidity);
-        }
-       // sensirion_sleep_usec(interval_in_seconds * 1000000u);
-      //  scd30_stop_periodic_measurement();
-        vTaskDelay( 300 / portTICK_RATE_MS );
-    }
-}
-
-void led_loop(void *pVParameters)
-{
-    while(1)
-    {
-        HAL_GPIO_TogglePin(LED_BLUE_1_GPIO_Port, LED_BLUE_1_Pin);
-        vTaskDelay( 300 / portTICK_RATE_MS );
-    }
-}
-
 
 
 extern void SS_FreeRTOS_25khz_timer_callback(TIM_HandleTypeDef *htim);

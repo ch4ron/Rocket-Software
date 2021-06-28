@@ -43,6 +43,7 @@
 #include "stm32f4xx_hal_cortex.h"
 #ifdef SS_USE_FLASH
 #include "SS_flash.h"
+#include "SS_flash_log.h"
 #endif
 #include "SS_log.h"
 /* TODO Remove math */
@@ -837,6 +838,7 @@ static void SS_MPU_spi_tx_rx_isr(MPU9250 *mpu9250) {
         /* uint8_t array[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32}; */
         /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 11, array, 12, &hptw); */
         /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 11, (uint8_t *) &mpu9250->accel_raw_x, 12, &hptw); */
+        SS_flash_log_var_fromISR(11,(uint8_t *) &mpu9250->accel_raw_x, 12);//sizeof(meas->value));
         counter = 0;
         /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 12, array, 6, &hptw); */
         /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 13, array, 6, &hptw); */

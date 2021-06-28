@@ -26,6 +26,7 @@
 #endif /* SS_USE_SCD30*/
 #ifdef SS_USE_FLASH
 #include "SS_flash_log.h"
+#include "SS_flash_ctrl.h"
 #endif /* SS_USE_FLASH */
 #ifdef SS_USE_USB
 #include "SS_usb.h"
@@ -45,6 +46,8 @@
 #ifdef SS_USE_SEQUENCE
 #include "SS_sequence.h"
 #endif
+
+#include "SS_MPU9250.h"
 
 /* ==================================================================== */
 /* =================== Private function prototypes ==================== */
@@ -85,7 +88,8 @@ void SS_run_tests_task(void *pvParameters) {
 
 
 static void vLEDFlashTask(void *pvParameters) {
-
+    //SS_flash_ctrl_start_logging();
+    SS_MPU_set_is_logging(true);
     while(1) {
         vTaskDelay(pdMS_TO_TICKS(500));
         SS_platform_toggle_loop_led();

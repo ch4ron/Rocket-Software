@@ -8,6 +8,7 @@
 #include "SS_flash.h"
 #include "SS_flash_ctrl.h"
 #include "SS_s25fl.h"
+#include "SS_flash_caching.h"
 
 #define NULL_PAGE (~0UL)
 #define TIMEOUT_ms 100
