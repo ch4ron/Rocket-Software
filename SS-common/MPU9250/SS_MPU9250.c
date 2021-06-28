@@ -738,7 +738,7 @@ static void SS_MPU_spi_tx_rx_isr(MPU9250 *mpu9250) {
 
 void print_data(int32_t data1,int32_t data2){
     //SS_MS56_read_convert(&ms5607);
-    SS_print("%d %d %d\r\n",data[0],data[1],data[2]);
+   // SS_print("%d %d %d\r\n",data[0],data[1],data[2]);
 }
 
 
