@@ -264,7 +264,7 @@ static volatile uint32_t cur_page_buf_pos[FLASH_STREAM_COUNT];
 static volatile uint32_t cur_page[FLASH_STREAM_COUNT];
 
 static volatile uint8_t config_file_buf[CONFIG_FILE_LEN*S25FL_PAGE_SIZE];
-static volatile uint64_t time;
+volatile uint64_t time;
 static volatile bool is_config_file_open;
 
 static volatile bool is_flush_required[FLASH_STREAM_COUNT];

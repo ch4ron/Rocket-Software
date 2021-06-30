@@ -686,8 +686,8 @@ static MPU_STATUS SS_MPU_self_test(MPU9250 *mpu9250) {  //Not tested
 extern SCD30 scd30;
 //extern int32_t scd_co2_ppm;
 extern struct MS5607 ms5607;
-int32_t data[3];
-
+int32_t data[6];
+ extern volatile uint64_t time;
 uint32_t mpu_counter;
 static void SS_MPU_spi_tx_rx_isr(MPU9250 *mpu9250) {
     static uint8_t counter;
@@ -721,6 +721,13 @@ static void SS_MPU_spi_tx_rx_isr(MPU9250 *mpu9250) {
         data[0]= (int32_t)scd30.co2_ppm;
         data[1]= ms5607.temp;
         data[2]= ms5607.press;
+        data[3]= mpu9250->accel_raw_x;
+        data[4]= mpu9250->accel_raw_y;
+        data[5]= mpu9250->accel_raw_z;
+        if(data[0] !=0)
+            HAL_GPIO_TogglePin(LED_GREEN_1_GPIO_Port,LED_GREEN_1_Pin);
+        else
+            HAL_GPIO_WritePin(LED_GREEN_1_GPIO_Port,LED_GREEN_1_Pin,GPIO_PIN_RESET);
         SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 11, (uint8_t *) &data, 12, &hptw);
         SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 12, (uint8_t *) &mpu9250->accel_raw_x, 12, &hptw);
         counter = 0;
@@ -738,7 +745,9 @@ static void SS_MPU_spi_tx_rx_isr(MPU9250 *mpu9250) {
 
 void print_data(int32_t data1,int32_t data2){
     //SS_MS56_read_convert(&ms5607);
-   // SS_print("%d %d %d\r\n",data[0],data[1],data[2]);
+    SS_print("%d %d %d %d %d %d2 %u \r\n",data[0],data[1],data[2],data[3],data[4],data[5],HAL_GetTick());
+   // SS_print("%u \r\n",HAL_GetTick());
+
 }
 
 
