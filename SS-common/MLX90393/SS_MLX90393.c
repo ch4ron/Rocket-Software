@@ -12,6 +12,54 @@
 #include "SS_MLX90393.h"
 
 /* ==================================================================== */
+/* ========================= Local datatypes ========================== */
+/* ==================================================================== */
+
+/* Lookup table to convert raw values to uT based on [HALLCONF][GAIN_SEL][RES][AXIS] */
+static const float mlx90393_sensitivity_lookup[2][8][4][2] =
+{
+    /* HALLCONF = 0x0 */
+    {
+        /* GAIN_SEL = 0, 5x gain */
+        {{0.787, 1.267}, {1.573, 2.534}, {3.146, 5.068}, {6.292, 10.137}},
+        /* GAIN_SEL = 1, 4x gain */
+        {{0.629, 1.014}, {1.258, 2.027}, {2.517, 4.055}, {5.034, 8.109}},
+        /* GAIN_SEL = 2, 3x gain */
+        {{0.472, 0.760}, {0.944, 1.521}, {1.888, 3.041}, {3.775, 6.082}},
+        /* GAIN_SEL = 3, 2.5x gain */
+        {{0.393, 0.634}, {0.787, 1.267}, {1.573, 2.534}, {3.146, 5.068}},
+        /* GAIN_SEL = 4, 2x gain */
+        {{0.315, 0.507}, {0.629, 1.014}, {1.258, 2.027}, {2.517, 4.055}},
+        /* GAIN_SEL = 5, 1.667x gain */
+        {{0.262, 0.422}, {0.524, 0.845}, {1.049, 1.689}, {2.097, 3.379}},
+        /* GAIN_SEL = 6, 1.333x gain */
+        {{0.210, 0.338}, {0.419, 0.676}, {0.839, 1.352}, {1.678, 2.703}},
+        /* GAIN_SEL = 7, 1x gain */
+        {{0.157, 0.253}, {0.315, 0.507}, {0.629, 1.014}, {1.258, 2.027}},
+    },
+
+    /* HALLCONF = 0xC (default) */
+    {
+        /* GAIN_SEL = 0, 5x gain */
+        {{0.751, 1.210}, {1.502, 2.420}, {3.004, 4.840}, {6.009, 9.680}},
+        /* GAIN_SEL = 1, 4x gain */
+        {{0.601, 0.968}, {1.202, 1.936}, {2.403, 3.872}, {4.840, 7.744}},
+        /* GAIN_SEL = 2, 3x gain */
+        {{0.451, 0.726}, {0.901, 1.452}, {1.803, 2.904}, {3.605, 5.808}},
+        /* GAIN_SEL = 3, 2.5x gain */
+        {{0.376, 0.605}, {0.751, 1.210}, {1.502, 2.420}, {3.004, 4.840}},
+        /* GAIN_SEL = 4, 2x gain */
+        {{0.300, 0.484}, {0.601, 0.968}, {1.202, 1.936}, {2.403, 3.872}},
+        /* GAIN_SEL = 5, 1.667x gain */
+        {{0.250, 0.403}, {0.501, 0.807}, {1.001, 1.613}, {2.003, 3.227}},
+        /* GAIN_SEL = 6, 1.333x gain */
+        {{0.200, 0.323}, {0.401, 0.645}, {0.801, 1.291}, {1.602, 2.581}},
+        /* GAIN_SEL = 7, 1x gain */
+        {{0.150, 0.242}, {0.300, 0.484}, {0.601, 0.968}, {1.202, 1.936}},
+    }
+};
+
+/* ==================================================================== */
 /* =================== Private function prototypes ==================== */
 /* ==================================================================== */
 
@@ -29,8 +77,6 @@ static MLX_StatusType SS_MLX90393_transceive(MLX_HandleType *mlx, uint8_t *write
  * Move new functions to proper places in code - DONE
 
    Less important:
- * Reimplement SS_MLX90393_transceive function, to be more independent from i2c instance and
-   its functions (or to be independent from whole interface)
  * Check other TODOs in code
  */
 
@@ -388,59 +434,13 @@ MLX_StatusType SS_MLX90393_getTempCompensation(MLX_HandleType *mlx)
     return retValue;
 }
 
-
 //TODO Decide whether the readLen parameter is needed, maybe it should be chosen based on measuredValues?
 // Maybe refactor this function to be more informative, as it is only used for Axis measurements, not the temperature
-//TODO To be refactored because of mlx90393_sensitivity_lookup table
 MLX_StatusType SS_MLX90393_readAxisMeasurements(MLX_HandleType *mlx, uint8_t readLen)
 {
     MLX_StatusType retValue = MLX_ERROR;
     uint16_t hallconf = (mlx->settings.hallconf == MLX_HALLCONF_0x0) ? MLX_LOOKUP_HALLCONF_0x0 : MLX_LOOKUP_HALLCONF_0xC;
     int16_t readData[3];
-
-    /* Lookup table to convert raw values to uT based on [HALLCONF][GAIN_SEL][RES][AXIS] */
-    static const float mlx90393_sensitivity_lookup[2][8][4][2] =
-    {
-        /* HALLCONF = 0x0 */
-        {
-            /* GAIN_SEL = 0, 5x gain */
-            {{0.787, 1.267}, {1.573, 2.534}, {3.146, 5.068}, {6.292, 10.137}},
-            /* GAIN_SEL = 1, 4x gain */
-            {{0.629, 1.014}, {1.258, 2.027}, {2.517, 4.055}, {5.034, 8.109}},
-            /* GAIN_SEL = 2, 3x gain */
-            {{0.472, 0.760}, {0.944, 1.521}, {1.888, 3.041}, {3.775, 6.082}},
-            /* GAIN_SEL = 3, 2.5x gain */
-            {{0.393, 0.634}, {0.787, 1.267}, {1.573, 2.534}, {3.146, 5.068}},
-            /* GAIN_SEL = 4, 2x gain */
-            {{0.315, 0.507}, {0.629, 1.014}, {1.258, 2.027}, {2.517, 4.055}},
-            /* GAIN_SEL = 5, 1.667x gain */
-            {{0.262, 0.422}, {0.524, 0.845}, {1.049, 1.689}, {2.097, 3.379}},
-            /* GAIN_SEL = 6, 1.333x gain */
-            {{0.210, 0.338}, {0.419, 0.676}, {0.839, 1.352}, {1.678, 2.703}},
-            /* GAIN_SEL = 7, 1x gain */
-            {{0.157, 0.253}, {0.315, 0.507}, {0.629, 1.014}, {1.258, 2.027}},
-        },
-
-        /* HALLCONF = 0xC (default) */
-        {
-            /* GAIN_SEL = 0, 5x gain */
-            {{0.751, 1.210}, {1.502, 2.420}, {3.004, 4.840}, {6.009, 9.680}},
-            /* GAIN_SEL = 1, 4x gain */
-            {{0.601, 0.968}, {1.202, 1.936}, {2.403, 3.872}, {4.840, 7.744}},
-            /* GAIN_SEL = 2, 3x gain */
-            {{0.451, 0.726}, {0.901, 1.452}, {1.803, 2.904}, {3.605, 5.808}},
-            /* GAIN_SEL = 3, 2.5x gain */
-            {{0.376, 0.605}, {0.751, 1.210}, {1.502, 2.420}, {3.004, 4.840}},
-            /* GAIN_SEL = 4, 2x gain */
-            {{0.300, 0.484}, {0.601, 0.968}, {1.202, 1.936}, {2.403, 3.872}},
-            /* GAIN_SEL = 5, 1.667x gain */
-            {{0.250, 0.403}, {0.501, 0.807}, {1.001, 1.613}, {2.003, 3.227}},
-            /* GAIN_SEL = 6, 1.333x gain */
-            {{0.200, 0.323}, {0.401, 0.645}, {0.801, 1.291}, {1.602, 2.581}},
-            /* GAIN_SEL = 7, 1x gain */
-            {{0.150, 0.242}, {0.300, 0.484}, {0.601, 0.968}, {1.202, 1.936}},
-        }
-    };
 
     if((MLX_AXIS_ALL & mlx->measuredValues) == 0u)
     {
@@ -719,7 +719,7 @@ MLX_StatusType SS_MLX90393_handleError(MLX_HandleType *mlx)
         {
             break;
         }
-        
+
         // In case of pre condition, we want from upper layer to log that incorrect parameter
         // was entered, then we can track the source of the problem during debugging
         case MLX_PRE_CONDITION:
