@@ -17,11 +17,14 @@ extern "C" {
 /* ==================================================================== */
 
 #include "stdint.h"
-#include "i2c.h"
 
 /* ==================================================================== */
 /* ============================ Datatypes ============================= */
 /* ==================================================================== */
+
+/* Function pointers for communication interface */
+typedef uint8_t (*MLX_Write)(uint16_t deviceAddress, uint8_t *writeData, uint8_t writeLen);
+typedef uint8_t (*MLX_Read)(uint16_t deviceAddress, uint8_t *readData, uint8_t readLen);
 
 typedef enum
 {
@@ -29,8 +32,8 @@ typedef enum
     MLX_ERROR,
     MLX_PRE_CONDITION,
     MLX_CMD_REJECTED,
-    MLX_HAL_ERROR,
-    MLX_I2C_BUSY
+    MLX_WRITE_ERROR,
+    MLX_READ_ERROR
 } MLX_StatusType;
 
 typedef struct
@@ -60,11 +63,11 @@ typedef struct
 
 typedef struct
 {
-    uint16_t deviceAddress; //TODO to be updated when SS_MLX90393_transceive function will be reimplemented
+    uint16_t deviceAddress;
     
-    //mlx_interface_transmit transmit; //TODO to be updated when SS_MLX90393_transceive function will be reimplemented
+    MLX_Write write;
     
-    //mlx_interface_receive receive; //TODO to be updated when SS_MLX90393_transceive function will be reimplemented
+    MLX_Read read;
 
     uint8_t measuredValues;
 
@@ -181,8 +184,6 @@ typedef struct
 #define MLX_INDEX_Y_AXIS              1u
 #define MLX_INDEX_Z_AXIS              2u
 
-#define I2C_DEFAULT_TIMEOUT           ((uint32_t)300u)
-
 /* Macros used in mlx90393_sensitivity_lookup table */
 #define MLX_LOOKUP_HALLCONF_0x0       ((uint8_t)0x00u)
 #define MLX_LOOKUP_HALLCONF_0xC       ((uint8_t)0x01u)
@@ -212,13 +213,13 @@ MLX_StatusType SS_MLX90393_readAxisMeasurements(MLX_HandleType *mlx, uint8_t rea
 MLX_StatusType SS_MLX90393_cmdStartBurstMode(MLX_HandleType *mlx);
 MLX_StatusType SS_MLX90393_cmdStartSingleMeasurementMode(MLX_HandleType *mlx);
 MLX_StatusType SS_MLX90393_cmdReadMeasurement(MLX_HandleType *mlx, int16_t *readData, uint8_t readLen);
-MLX_StatusType SS_MLX90393_cmdReadRegister(uint16_t deviceAddress, uint8_t regAddress, uint16_t *regData);
-MLX_StatusType SS_MLX90393_cmdWriteRegister(uint16_t deviceAddress, uint8_t regAddress, uint16_t regData);
-MLX_StatusType SS_MLX90393_resetDevice(uint16_t deviceAddress);
-MLX_StatusType SS_MLX90393_cmdExitMode(uint16_t deviceAddress);
-MLX_StatusType SS_MLX90393_cmdReset(uint16_t deviceAddress);
-uint8_t SS_MLX90393_checkStatus(uint16_t deviceAddress);
-MLX_StatusType SS_MLX90393_handleError(uint16_t deviceAddress, MLX_StatusType status);
+MLX_StatusType SS_MLX90393_cmdReadRegister(MLX_HandleType *mlx, uint8_t regAddress, uint16_t *regData);
+MLX_StatusType SS_MLX90393_cmdWriteRegister(MLX_HandleType *mlx, uint8_t regAddress, uint16_t regData);
+MLX_StatusType SS_MLX90393_resetDevice(MLX_HandleType *mlx);
+MLX_StatusType SS_MLX90393_cmdExitMode(MLX_HandleType *mlx);
+MLX_StatusType SS_MLX90393_cmdReset(MLX_HandleType *mlx);
+MLX_StatusType SS_MLX90393_checkStatus(MLX_HandleType *mlx, uint8_t *status);
+MLX_StatusType SS_MLX90393_handleError(MLX_HandleType *mlx);
 
 #ifdef __cplusplus
 }

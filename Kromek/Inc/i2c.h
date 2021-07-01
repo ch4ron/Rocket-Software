@@ -1,6 +1,13 @@
+#ifndef i2c_H
+#define i2c_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
   ******************************************************************************
-  * File Name          : I2C.h
+  * File Name          : i2c.h
   * Description        : This file provides code for the configuration
   *                      of the I2C instances.
   ******************************************************************************
@@ -16,24 +23,29 @@
   *
   ******************************************************************************
   */
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __i2c_H
-#define __i2c_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/* ==================================================================== */
+/* ============================= Includes ============================= */
+/* ==================================================================== */
 
-/* Includes ------------------------------------------------------------------*/
 #include "main.h"
+
+/* ==================================================================== */
+/* ==================== Exported object definitions =================== */
+/* ==================================================================== */
 
 extern I2C_HandleTypeDef hi2c1;
 
+/* ==================================================================== */
+/* ==================== Public function prototypes ==================== */
+/* ==================================================================== */
+
 void MX_I2C1_Init(void);
+uint8_t I2C_Transmit(uint16_t deviceAddress, uint8_t *writeData, uint8_t writeLen);
+uint8_t I2C_Receive(uint16_t deviceAddress, uint8_t *readData, uint8_t readLen);
 
 #ifdef __cplusplus
 }
 #endif
-#endif /*__i2c_H */
 
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+#endif /*i2c_H */

@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * File Name          : I2C.c
+  * File Name          : i2c.c
   * Description        : This file provides code for the configuration
   *                      of the I2C instances.
   ******************************************************************************
@@ -17,69 +17,102 @@
   ******************************************************************************
   */
 
-/* Includes ------------------------------------------------------------------*/
+/* ==================================================================== */
+/* ============================= Includes ============================= */
+/* ==================================================================== */
+
 #include "i2c.h"
 
+/* ==================================================================== */
+/* ==================== Exported object definitions =================== */
+/* ==================================================================== */
+
 I2C_HandleTypeDef hi2c1;
+
+/* ==================================================================== */
+/* ===================== Local preprocessor macros ==================== */
+/* ==================================================================== */
+
+#define I2C_DEFAULT_TIMEOUT ((uint32_t)300u)
+
+/* ==================================================================== */
+/* ========================= Public functions ========================= */
+/* ==================================================================== */
 
 /**
   * @brief Performs initialization of i2c peripheral
   */ 
 void MX_I2C1_Init(void)
 {
-  hi2c1.Instance = I2C1;
-  hi2c1.Init.ClockSpeed = 100000;
-  hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
-  hi2c1.Init.OwnAddress1 = 0;
-  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-  hi2c1.Init.OwnAddress2 = 0;
-  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-  
-  if (HAL_OK != HAL_I2C_Init(&hi2c1))
-  {
-    Error_Handler();
-  }
+    hi2c1.Instance = I2C1;
+    hi2c1.Init.ClockSpeed = 100000;
+    hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
+    hi2c1.Init.OwnAddress1 = 0;
+    hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+    hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+    hi2c1.Init.OwnAddress2 = 0;
+    hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+    hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+    
+    if (HAL_OK != HAL_I2C_Init(&hi2c1))
+    {
+        Error_Handler();
+    }
 }
 
 void HAL_I2C_MspInit(I2C_HandleTypeDef* i2cHandle)
 {
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
 
-  if(I2C1 == i2cHandle->Instance)
-  {
-    __HAL_RCC_GPIOB_CLK_ENABLE();
+    if(I2C1 == i2cHandle->Instance)
+    {
+        __HAL_RCC_GPIOB_CLK_ENABLE();
 
-    /**I2C1 GPIO Configuration    
-    PB4     ------> I2C1_SCL
-    PB3     ------> I2C1_SDA 
-    */
-    GPIO_InitStruct.Pin = I2C_SDA_Pin | I2C_SCL_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
-    GPIO_InitStruct.Pull = GPIO_PULLUP;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF4_I2C1;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+        /**I2C1 GPIO Configuration    
+        PB4     ------> I2C1_SCL
+        PB3     ------> I2C1_SDA 
+        */
+        GPIO_InitStruct.Pin = I2C_SDA_Pin | I2C_SCL_Pin;
+        GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
+        GPIO_InitStruct.Pull = GPIO_PULLUP;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+        GPIO_InitStruct.Alternate = GPIO_AF4_I2C1;
+        HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-    /* I2C1 clock enable */
-    __HAL_RCC_I2C1_CLK_ENABLE();
-  }
+        /* I2C1 clock enable */
+        __HAL_RCC_I2C1_CLK_ENABLE();
+    }
 }
 
 void HAL_I2C_MspDeInit(I2C_HandleTypeDef* i2cHandle)
 {
-  if(I2C1 == i2cHandle->Instance)
-  {
-    /* Peripheral clock disable */
-    __HAL_RCC_I2C1_CLK_DISABLE();
-  
-    /**I2C1 GPIO Configuration    
-    PB4     ------> I2C1_SCL
-    PB3     ------> I2C1_SDA 
-    */
-    HAL_GPIO_DeInit(GPIOB, I2C_SDA_Pin | I2C_SCL_Pin);
-  }
+    if(I2C1 == i2cHandle->Instance)
+    {
+        /* Peripheral clock disable */
+        __HAL_RCC_I2C1_CLK_DISABLE();
+    
+        /**I2C1 GPIO Configuration    
+        PB4     ------> I2C1_SCL
+        PB3     ------> I2C1_SDA 
+        */
+        HAL_GPIO_DeInit(GPIOB, I2C_SDA_Pin | I2C_SCL_Pin);
+    }
 } 
 
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+uint8_t I2C_Transmit(uint16_t deviceAddress, uint8_t *writeData, uint8_t writeLen)
+{
+    HAL_StatusTypeDef retValue = HAL_ERROR;
+
+    retValue = HAL_I2C_Master_Transmit(&hi2c1, deviceAddress, writeData, writeLen, I2C_DEFAULT_TIMEOUT);
+
+    return retValue;
+}
+
+uint8_t I2C_Receive(uint16_t deviceAddress, uint8_t *readData, uint8_t readLen)
+{
+    HAL_StatusTypeDef retValue = HAL_ERROR;
+
+    retValue = HAL_I2C_Master_Receive(&hi2c1, deviceAddress, readData, readLen, I2C_DEFAULT_TIMEOUT);
+
+    return retValue;
+}

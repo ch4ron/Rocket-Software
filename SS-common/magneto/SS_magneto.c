@@ -10,12 +10,25 @@
 /* ==================================================================== */
 
 #include "SS_magneto.h"
+#include "i2c.h"
+
+/* ==================================================================== */
+/* ============================== Macros ============================== */
+/* ==================================================================== */
+
+#define MLX_MODULES_QUANTITY 11u
 
 /* ==================================================================== */
 /* ========================= Public functions ========================= */
 /* ==================================================================== */
-
-#define MLX_MODULES_QUANTITY 11u
+/* TODO */
+/* Test MLX driver and correct errors if there are any
+ * Draw a big picture of a system with help from Jaca
+ * Implement algorithm for calculating piston position
+ * Choose suitable configuration values
+ * Add error logging
+ * Look for other TODOs in code
+ */
 
 void SS_magneto_handler_task(void *pvParameters)
 {
@@ -42,6 +55,8 @@ void SS_magneto_init(MLX_HandleType *mlx)
         //TODO These values are not configured properly yet, determine what configuration we need for
         // our use case
         mlx[i].deviceAddress = addresses[i];
+        mlx[i].write = I2C_Transmit;
+        mlx[i].read = I2C_Receive;
         mlx[i].measuredValues = MLX_AXIS_ALL;
         mlx[i].settings.resolutions.x = MLX_RESOLUTION_0;
         mlx[i].settings.resolutions.y = MLX_RESOLUTION_0;
