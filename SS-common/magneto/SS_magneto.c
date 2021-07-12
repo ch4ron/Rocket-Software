@@ -67,6 +67,7 @@ void SS_magneto_init(MLX_HandleType *mlx)
         mlx[i].settings.digitalFiltering = MLX_DIGITAL_FILTER_0;
         mlx[i].settings.burstDatarateMs = 100u;
         mlx[i].settings.tempCompensation = MLX_TCMP_DISABLED;
+        mlx[i].mode = MLX_BURST_MODE;
 
         // initialization on a driver layer
         SS_MLX90393_init(&mlx[i]);

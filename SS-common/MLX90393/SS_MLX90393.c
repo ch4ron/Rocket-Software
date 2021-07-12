@@ -64,6 +64,8 @@ static const float mlx90393_sensitivity_lookup[2][8][4][2] =
 /* ==================================================================== */
 
 static MLX_StatusType SS_MLX90393_transceive(MLX_HandleType *mlx, uint8_t *writeData, uint8_t writeLen, uint8_t *readData, uint8_t readLen);
+static MLX_StatusType SS_MLX90393_cmdStartBurstMode(MLX_HandleType *mlx);
+static MLX_StatusType SS_MLX90393_cmdStartSingleMeasurementMode(MLX_HandleType *mlx);
 
 /* ==================================================================== */
 /* ========================= Public functions ========================= */
@@ -119,6 +121,11 @@ MLX_StatusType SS_MLX90393_init(MLX_HandleType *mlx)
     if(MLX_OK == retValue)
     {
         retValue = SS_MLX90393_setTempCompensation(mlx);
+    }
+
+    if(MLX_OK == retValue)
+    {
+        retValue = SS_MLX90393_setMode(mlx);
     }
 
     return retValue;
@@ -500,7 +507,35 @@ MLX_StatusType SS_MLX90393_readAxisMeasurements(MLX_HandleType *mlx, uint8_t rea
     return retValue;
 }
 
-MLX_StatusType SS_MLX90393_cmdStartBurstMode(MLX_HandleType *mlx)
+MLX_StatusType SS_MLX90393_setMode(MLX_HandleType *mlx)
+{
+    MLX_StatusType retValue = MLX_ERROR;
+
+    switch(mlx->mode)
+    {
+        case MLX_BURST_MODE:
+        {
+            retValue = SS_MLX90393_cmdStartBurstMode(mlx);
+            break;
+        }
+
+        case MLX_SINGLE_MEASUREMENT_MODE:
+        {
+            retValue = SS_MLX90393_cmdStartSingleMeasurementMode(mlx);
+            break;
+        }
+
+        case MLX_WAKEUP_ON_CHANGE_MODE:
+        default:
+        {
+            retValue = MLX_PRE_CONDITION;
+        }
+    }
+
+    return retValue;
+}
+
+static MLX_StatusType SS_MLX90393_cmdStartBurstMode(MLX_HandleType *mlx)
 {
     MLX_StatusType retValue = MLX_ERROR;
     uint8_t cmd = MLX_CMD_START_BURST_MODE | mlx->measuredValues;
@@ -526,7 +561,7 @@ MLX_StatusType SS_MLX90393_cmdStartBurstMode(MLX_HandleType *mlx)
     return retValue;
 }
 
-MLX_StatusType SS_MLX90393_cmdStartSingleMeasurementMode(MLX_HandleType *mlx)
+static MLX_StatusType SS_MLX90393_cmdStartSingleMeasurementMode(MLX_HandleType *mlx)
 {
     MLX_StatusType retValue = MLX_ERROR;
     uint8_t cmd = MLX_CMD_START_SINGLE_MODE | mlx->measuredValues;
