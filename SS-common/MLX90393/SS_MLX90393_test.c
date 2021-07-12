@@ -17,7 +17,6 @@ void Handle_Wrong_Values(void)
 void test_resolution(MLX_HandleType *mlx)
 {
     MLX_StatusType retValue = MLX_ERROR;
-
     uint8_t res_x = mlx->settings.resolutions.x;
     uint8_t res_y = mlx->settings.resolutions.y;
     uint8_t res_z = mlx->settings.resolutions.z;
@@ -65,7 +64,6 @@ void test_resolution(MLX_HandleType *mlx)
 void test_hallconf(MLX_HandleType *mlx)
 {
     MLX_StatusType retValue = MLX_ERROR;
-
     uint16_t hallconf = mlx->settings.hallconf;
 
     retValue = SS_MLX90393_getHallconf(mlx);
@@ -103,7 +101,6 @@ void test_hallconf(MLX_HandleType *mlx)
 void test_gain(MLX_HandleType *mlx)
 {
     MLX_StatusType retValue = MLX_ERROR;
-
     uint16_t gain = mlx->settings.gain;
 
     retValue = SS_MLX90393_getGain(mlx);
@@ -141,7 +138,6 @@ void test_gain(MLX_HandleType *mlx)
 void test_oversampling(MLX_HandleType *mlx)
 {
     MLX_StatusType retValue = MLX_ERROR;
-
     uint16_t oversampling = mlx->settings.gain;
 
     retValue = SS_MLX90393_getOversampling(mlx);
@@ -179,7 +175,6 @@ void test_oversampling(MLX_HandleType *mlx)
 void test_digitalFiltering(MLX_HandleType *mlx)
 {
     MLX_StatusType retValue = MLX_ERROR;
-
     uint16_t digitalFiltering = mlx->settings.digitalFiltering;
 
     retValue = SS_MLX90393_getDigitalFiltering(mlx);
@@ -217,7 +212,6 @@ void test_digitalFiltering(MLX_HandleType *mlx)
 void test_burstDatarateMs(MLX_HandleType *mlx)
 {
     MLX_StatusType retValue = MLX_ERROR;
-
     uint16_t burstDatarateMs = mlx->settings.burstDatarateMs;
 
     retValue = SS_MLX90393_getBurstDatarate(mlx);
@@ -255,7 +249,6 @@ void test_burstDatarateMs(MLX_HandleType *mlx)
 void test_tempCompensation(MLX_HandleType *mlx)
 {
     MLX_StatusType retValue = MLX_ERROR;
-
     uint16_t tempCompensation = mlx->settings.tempCompensation;
 
     retValue = SS_MLX90393_getTempCompensation(mlx);
@@ -293,7 +286,6 @@ void test_tempCompensation(MLX_HandleType *mlx)
 void test_resetDevice(MLX_HandleType *mlx)
 {
     MLX_StatusType retValue = MLX_ERROR;
-
     uint16_t gain = mlx->settings.gain;
     uint16_t hallconf = mlx->settings.hallconf;
 
@@ -339,6 +331,7 @@ int main()
     MLX_HandleType mlx;
 
     mlx.deviceAddress = MLX_ADDRESS;
+    /* TODO: Add i2c module */
     // mlx.write = I2C_Transmit;
     // mlx.read = I2C_Receive;
     mlx.measuredValues = MLX_AXIS_ALL;
@@ -351,6 +344,7 @@ int main()
     mlx.settings.digitalFiltering = MLX_DIGITAL_FILTER_0;
     mlx.settings.burstDatarateMs = 100u;
     mlx.settings.tempCompensation = MLX_TCMP_DISABLED;
+    mlx.mode = MLX_BURST_MODE;
 
     retValue = SS_MLX90393_init(&mlx);
 
