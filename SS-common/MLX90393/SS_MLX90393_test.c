@@ -290,14 +290,57 @@ void test_tempCompensation(MLX_HandleType *mlx)
     }
 }
 
+void test_resetDevice(MLX_HandleType *mlx)
+{
+    MLX_StatusType retValue = MLX_ERROR;
+
+    uint16_t gain = mlx->settings.gain;
+    uint16_t hallconf = mlx->settings.hallconf;
+
+    retValue = SS_MLX90393_resetDevice(mlx);
+    if (MLX_OK != retValue)
+    {
+        Handle_Driver_Error();
+    }
+
+    retValue = SS_MLX90393_getGain(mlx);
+    if (MLX_OK != retValue)
+    {
+        Handle_Driver_Error();
+    }
+
+    retValue = SS_MLX90393_getHallconf(mlx);
+    if (MLX_OK != retValue)
+    {
+        Handle_Driver_Error();
+    }
+
+    if (gain != mlx->settings.gain)
+    {
+        Handle_Wrong_Values();
+    }
+
+    if (hallconf != mlx->settings.hallconf)
+    {
+        Handle_Wrong_Values();
+    }
+
+    // restore values
+    retValue = SS_MLX90393_init(mlx);
+    if (MLX_OK != retValue)
+    {
+        Handle_Driver_Error();
+    }
+}
+
 int main()
 {
     MLX_StatusType retValue = MLX_ERROR;
     MLX_HandleType mlx;
 
     mlx.deviceAddress = MLX_ADDRESS;
-    // mlx.write = ((void *) 0);
-    // mlx.read = ((void *) 0);
+    // mlx.write = I2C_Transmit;
+    // mlx.read = I2C_Receive;
     mlx.measuredValues = MLX_AXIS_ALL;
     mlx.settings.resolutions.x = MLX_RESOLUTION_0;
     mlx.settings.resolutions.y = MLX_RESOLUTION_0;
@@ -323,6 +366,7 @@ int main()
     test_digitalFiltering(&mlx);
     test_burstDatarateMs(&mlx);
     test_tempCompensation(&mlx);
+    test_resetDevice(&mlx);
 
     return 0;
 }
