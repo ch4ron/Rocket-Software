@@ -36,6 +36,13 @@ typedef enum
     MLX_READ_ERROR
 } MLX_StatusType;
 
+typedef enum
+{
+    MLX_BURST_MODE,
+    MLX_SINGLE_MEASUREMENT_MODE,
+    MLX_WAKEUP_ON_CHANGE_MODE
+} MLX_ModeType;
+
 typedef struct
 {
     uint8_t x;
@@ -76,6 +83,8 @@ typedef struct
     MLX_ConvertedValues convertedData;
 
     MLX_StatusType status;
+
+    MLX_ModeType mode;
 
 } MLX_HandleType;
 
@@ -210,8 +219,7 @@ MLX_StatusType SS_MLX90393_getBurstDatarate(MLX_HandleType *mlx);
 MLX_StatusType SS_MLX90393_setTempCompensation(MLX_HandleType *mlx);
 MLX_StatusType SS_MLX90393_getTempCompensation(MLX_HandleType *mlx);
 MLX_StatusType SS_MLX90393_readAxisMeasurements(MLX_HandleType *mlx, uint8_t readLen);
-MLX_StatusType SS_MLX90393_cmdStartBurstMode(MLX_HandleType *mlx);
-MLX_StatusType SS_MLX90393_cmdStartSingleMeasurementMode(MLX_HandleType *mlx);
+MLX_StatusType SS_MLX90393_setMode(MLX_HandleType *mlx);
 MLX_StatusType SS_MLX90393_cmdReadMeasurement(MLX_HandleType *mlx, int16_t *readData, uint8_t readLen);
 MLX_StatusType SS_MLX90393_cmdReadRegister(MLX_HandleType *mlx, uint8_t regAddress, uint16_t *regData);
 MLX_StatusType SS_MLX90393_cmdWriteRegister(MLX_HandleType *mlx, uint8_t regAddress, uint16_t regData);
