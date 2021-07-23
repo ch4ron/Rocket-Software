@@ -79,6 +79,7 @@ void Error_Handler(void);
 #define MPU_MOSI_GPIO_Port GPIOA
 #define MPU_INT_Pin GPIO_PIN_4
 #define MPU_INT_GPIO_Port GPIOC
+#define MPU_INT_EXTI_IRQn EXTI4_IRQn
 #define BAT_VOLTAGE_Pin GPIO_PIN_5
 #define BAT_VOLTAGE_GPIO_Port GPIOC
 #define COM_RED_Pin GPIO_PIN_0

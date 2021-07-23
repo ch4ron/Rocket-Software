@@ -725,9 +725,9 @@ static void SS_MPU_spi_tx_rx_isr(MPU9250 *mpu9250) {
         data[4]= mpu9250->accel_raw_y;
         data[5]= mpu9250->accel_raw_z;
         if(data[0] !=0)
-            HAL_GPIO_TogglePin(LED_GREEN_1_GPIO_Port,LED_GREEN_1_Pin);
+            HAL_GPIO_TogglePin(GREEN_GPIO_Port,GREEN_Pin);
         else
-            HAL_GPIO_WritePin(LED_GREEN_1_GPIO_Port,LED_GREEN_1_Pin,GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(GREEN_GPIO_Port,GREEN_Pin,GPIO_PIN_RESET);
         SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 11, (uint8_t *) &data, 12, &hptw);
         SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 12, (uint8_t *) &mpu9250->accel_raw_x, 12, &hptw);
         counter = 0;
