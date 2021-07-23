@@ -49,6 +49,9 @@ typedef struct {
 
 
 void SS_SCD_task(void *pvParameters);
+int16_t  SS_SCD_start_periodic_measurement(uint16_t ambient_pressure_mbar);
+int16_t  SS_SCD_read_measurement(float32_t *co2_ppm, float32_t *temperature,float32_t *humidity);
+void SS_SCD_sleep_usec(uint32_t useconds);
 
 #define STATUS_OK 0
 #define STATUS_FAIL (-1)

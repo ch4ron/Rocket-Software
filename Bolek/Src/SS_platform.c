@@ -118,6 +118,6 @@ void SS_platform_init() {
     SS_platform_init_MS5X();
 #ifdef SS_USE_FLASH
     /* assert(SS_s25fl_init() == FLASH_STATUS_OK); */
-//    assert(SS_flash_init(&hqspi, FLASH_RESET_GPIO_Port, FLASH_RESET_Pin) == FLASH_STATUS_OK);
+    assert(SS_flash_init(&hqspi, FLASH_RESET_GPIO_Port, FLASH_RESET_Pin) == FLASH_STATUS_OK);
 #endif
 }

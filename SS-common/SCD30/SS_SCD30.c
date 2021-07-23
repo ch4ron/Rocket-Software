@@ -44,15 +44,15 @@ static int8_t  SS_SCD_i2c_write(uint8_t address, const uint8_t *data,uint16_t co
 static uint8_t SS_SCD_generate_crc(uint8_t *data, uint16_t count);
 static int8_t  SS_SCD_check_crc(uint8_t *data, uint16_t count,uint8_t checksum);
 
-static int16_t  SS_SCD_start_periodic_measurement(uint16_t ambient_pressure_mbar);
-static int16_t  SS_SCD_read_measurement(float32_t *co2_ppm, float32_t *temperature,float32_t *humidity);
+//int16_t  SS_SCD_start_periodic_measurement(uint16_t ambient_pressure_mbar);
+//int16_t  SS_SCD_read_measurement(float32_t *co2_ppm, float32_t *temperature,float32_t *humidity);
 static int16_t  SS_SCD_stop_periodic_measurement();
 static int16_t  SS_SCD_i2c_read_words_as_bytes(uint8_t address, uint8_t *data,uint16_t num_words);
 static int16_t  SS_SCD_i2c_write_cmd(uint8_t address, uint16_t command);
 static int16_t  SS_SCD_i2c_write_cmd_with_args(uint8_t address, uint16_t command,const uint16_t *data_words,uint16_t num_words);
 static uint16_t SS_SCD_fill_cmd_send_buf(uint8_t *buf, uint16_t cmd,const uint16_t *args, uint8_t num_args);
 
-static void SS_SCD_sleep_usec(uint32_t useconds);
+//void SS_SCD_sleep_usec(uint32_t useconds);
 
 /**
 *static uint8_t SS_SCD_get_configured_address();
@@ -72,22 +72,22 @@ static void SS_SCD_sleep_usec(uint32_t useconds);
 *static void SS_SCD_i2c_release(void);
 */
 
-SCD30 scd30;
+extern SCD30 scd30;
 
 void SS_SCD_task(void *pvParameters)
 {
-    SS_SCD_start_periodic_measurement(0); //rozpoczęcie pomiarów
-    scd30.hi2c = &hi2c3;
+    //SS_SCD_start_periodic_measurement(0); //rozpoczęcie pomiarów
+    //scd30.hi2c = &hi2c3;
     while(1){
-        scd30.error = SS_SCD_read_measurement(&scd30.co2_ppm, &scd30.temperature, &scd30.relative_humidity); //sczytanie wartosci pomiarow
-        if (scd30.error != STATUS_OK) {
+        //scd30.error = SS_SCD_read_measurement(&scd30.co2_ppm, &scd30.temperature, &scd30.relative_humidity); //sczytanie wartosci pomiarow
+        //if (scd30.error != STATUS_OK) {
             //SS_print("error reading measurement\r\n");
 
-        } else {
+        //} else {
             //SS_print("%0.2f %0.2f %0.2f\r\n", scd30.co2_ppm, scd30.temperature, scd30.relative_humidity);
-        }
+        //}
         //int32_t scd_co2_ppm = scd30.co2_ppm;
-        SS_SCD_sleep_usec(scd30.interval_in_seconds * 1000000u);
+        //SS_SCD_sleep_usec(scd30.interval_in_seconds * 1000000u);
         //print_data(scd_co2_ppm);
         vTaskDelay( 3000 / portTICK_RATE_MS );
     }
@@ -172,7 +172,7 @@ static int8_t SS_SCD_check_crc(uint8_t *data, uint16_t count,uint8_t checksum)
  * @param ambient_pressure_mbar
  * @return
  */
-static int16_t SS_SCD_start_periodic_measurement(uint16_t ambient_pressure_mbar)
+int16_t SS_SCD_start_periodic_measurement(uint16_t ambient_pressure_mbar)
 {
     if (ambient_pressure_mbar &&
         (ambient_pressure_mbar < 700 || ambient_pressure_mbar > 1400)) {
@@ -194,7 +194,7 @@ static int16_t SS_SCD_start_periodic_measurement(uint16_t ambient_pressure_mbar)
  * @return
  */
 
-static int16_t SS_SCD_read_measurement(float32_t *co2_ppm, float32_t *temperature,float32_t *humidity)
+int16_t SS_SCD_read_measurement(float32_t *co2_ppm, float32_t *temperature,float32_t *humidity)
 {
     int16_t ret;
     union {
@@ -334,7 +334,7 @@ static uint16_t SS_SCD_fill_cmd_send_buf(uint8_t *buf, uint16_t cmd,const uint16
  * @param useconds the sleep time in microseconds
  */
 
-static void SS_SCD_sleep_usec(uint32_t useconds)
+void SS_SCD_sleep_usec(uint32_t useconds)
 {
     uint32_t msec = useconds / 1000;
     if (useconds % 1000 > 0) {

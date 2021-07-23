@@ -24,6 +24,11 @@
 #include "SS_SCD30.h"
 
 #include "SS_MS5X.h"
+#include "SS_FreeRTOS.h"
+#include "semphr.h"
+#include "queue.h"
+#include "FreeRTOS.h"
+#include "task.h"
 extern struct MS5607 ms5607;
 /* ==================================================================== */
 /* =================== Private function prototypes ==================== */
@@ -684,6 +689,7 @@ static MPU_STATUS SS_MPU_self_test(MPU9250 *mpu9250) {  //Not tested
 /* ==================================================================== */
 
 extern SCD30 scd30;
+extern SemaphoreHandle_t xSemaphore;
 //extern int32_t scd_co2_ppm;
 extern struct MS5607 ms5607;
 int32_t data[6];
@@ -728,8 +734,14 @@ static void SS_MPU_spi_tx_rx_isr(MPU9250 *mpu9250) {
             HAL_GPIO_TogglePin(GREEN_GPIO_Port,GREEN_Pin);
         else
             HAL_GPIO_WritePin(GREEN_GPIO_Port,GREEN_Pin,GPIO_PIN_RESET);
-        SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 11, (uint8_t *) &data, 12, &hptw);
-        SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 12, (uint8_t *) &mpu9250->accel_raw_x, 12, &hptw);
+        BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+        if(xSemaphoreTakeFromISR( xSemaphore, &xHigherPriorityTaskWoken) == pdTRUE){
+            SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 11, (uint8_t *) &data, 12, &hptw);
+            SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 12, (uint8_t *) &mpu9250->accel_raw_x, 12, &hptw);
+        }
+        else {
+
+        }
         counter = 0;
 /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 12, array, 6, &hptw); */
         /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 13, array, 6, &hptw); */

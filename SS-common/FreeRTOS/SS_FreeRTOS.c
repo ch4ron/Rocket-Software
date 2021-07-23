@@ -42,12 +42,14 @@
 #include "SS_grazyna.h"
 #endif
 #include "SS_MPU9250.h"
+#include "SS_SCD30.h"
 /* ==================================================================== */
 /* =================== Private function prototypes ==================== */
 /* ==================================================================== */
 
 static void vLEDFlashTask(void *pvParameters);
 static void SS_FreeRTOS_create_tasks(void);
+SemaphoreHandle_t xSemaphore = NULL;
 
 /* ==================================================================== */
 /* ========================= Public functions ========================= */
@@ -77,6 +79,7 @@ void SS_run_tests_task(void *pvParameters) {
 #include "SS_MPU9250.h"
 
 extern MPU9250 mpu;
+SCD30 scd30;
 extern uint32_t flash_counter;
 static void vLEDFlashTask(void *pvParameters) {
     /* TODO Temporary fix */
@@ -85,18 +88,25 @@ static void vLEDFlashTask(void *pvParameters) {
     SS_flash_ctrl_start_logging();
     SS_MPU_set_is_logging(true);
 #endif
+    xSemaphore = xSemaphoreCreateBinary();
     while(1) {
-        vTaskDelay(500);
+        //TaskDelay(500);
         /* SS_println("%d, %d, %d", mpu.accel_raw_x, mpu.accel_raw_y, mpu.accel_raw_z); */
         SS_platform_toggle_loop_led();
         SS_MS56_read_convert(&ms5607);
+        scd30.error = SS_SCD_read_measurement(&scd30.co2_ppm, &scd30.temperature, &scd30.relative_humidity);
+        SS_SCD_start_periodic_measurement(0);
         print_data(ms5607.temp,ms5607.press);
+        xSemaphoreGive(xSemaphore);
         //SS_print("%d,", ms5607.temp);
         /* SS_MPU_math_scaled_accel(&mpu); */
         /* SS_println("%f, %f, %f", mpu.accel_scaled_x, mpu.accel_scaled_y, mpu.accel_scaled_z); */
         /* SS_println("%d, %d, %d", mpu.accel_raw_x, mpu.accel_raw_y, mpu.accel_raw_z); */
         /* SS_println("%d", flash_counter); */
         /* flash_counter = 0; */
+
+        vTaskDelay( 3000 / portTICK_RATE_MS );
+
     }
 }
 
@@ -131,8 +141,8 @@ static void SS_FreeRTOS_create_tasks(void) {
     assert(res == pdTRUE);
 #endif /* SS_USE_FLASH */
 #ifdef SS_USE_SCD30
-    res = xTaskCreate(SS_SCD_task, "SCD30 Task", 256, NULL, 6, NULL);
-    assert(res == pdTRUE);
+    //res = xTaskCreate(SS_SCD_task, "SCD30 Task", 256, NULL, 6, NULL);
+    //assert(res == pdTRUE);
 #endif /* SS_USE_SCD30 */
 #ifdef SS_USE_MS5Xs
     res = xTaskCreate(SS_MS5X_task, "MS5X Task", 256, NULL, 6, NULL);

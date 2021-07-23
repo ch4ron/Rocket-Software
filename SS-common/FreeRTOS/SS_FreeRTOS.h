@@ -1,6 +1,10 @@
 #ifndef SS_FREERTOS_H
 #define SS_FREERTOS_H
 
+#include "FreeRTOS.h"
+#include "semphr.h"
+#include "queue.h"
+
 /* ==================================================================== */
 /* ==================== Public function prototypes ==================== */
 /* ==================================================================== */
