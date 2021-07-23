@@ -105,7 +105,9 @@ static void vLEDFlashTask(void *pvParameters) {
         print_data(ms5607.temp,ms5607.press);
         if(flaga){
             PomiarADC = HAL_ADC_GetValue(&hadc3);              // Pobranie zmierzonej wartosci
-            Vsense = (PomiarADC * przelicznik) + 10;           // Przeliczenie wartosci zmierzonej na napiecie
+
+            Vsense = (PomiarADC * 3.0) / 4095.0;           // Przeliczenie wartosci zmierzonej na napiecie
+            Vsense = (Vsense - 0.5) * 100;
             HAL_ADC_Start(&hadc3);
              flaga = false;
         }
@@ -132,6 +134,14 @@ static void SS_adc_Task(void *pvParameters)
             flaga = true;                   // Rozpoczecie nowej konwersji
         }
         SS_print("%f,", Vsense);
+        if(Vsense < 36)
+        {
+            HAL_GPIO_WritePin(GRZALKA_GPIO_Port, GRZALKA_Pin, GPIO_PIN_SET);
+        }
+        else if (Vsense > 38)
+        {
+            HAL_GPIO_WritePin(GRZALKA_GPIO_Port, GRZALKA_Pin, GPIO_PIN_RESET);
+        }
         vTaskDelay( 1000);
     }
 }
