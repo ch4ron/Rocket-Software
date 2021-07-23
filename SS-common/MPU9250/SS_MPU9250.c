@@ -721,7 +721,7 @@ static void SS_MPU_spi_tx_rx_isr(MPU9250 *mpu9250) {
     }
     counter++;
 
-    if (is_logging && counter >= 5) {
+    if (is_logging && counter >= 7) {
         /* uint8_t array[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32}; */
         /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 11, array, 12, &hptw); */
         data[0]= (int32_t)scd30.co2_ppm;
@@ -730,19 +730,18 @@ static void SS_MPU_spi_tx_rx_isr(MPU9250 *mpu9250) {
         data[3]= mpu9250->accel_raw_x;
         data[4]= mpu9250->accel_raw_y;
         data[5]= mpu9250->accel_raw_z;
+        SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 11, (uint8_t *) &data, 12, &hptw);
+        SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 12, (uint8_t *) &mpu9250->accel_raw_x, 12, &hptw);
         if(data[0] !=0)
             HAL_GPIO_TogglePin(GREEN_GPIO_Port,GREEN_Pin);
         else
             HAL_GPIO_WritePin(GREEN_GPIO_Port,GREEN_Pin,GPIO_PIN_RESET);
-        BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-        if(xSemaphoreTakeFromISR( xSemaphore, &xHigherPriorityTaskWoken) == pdTRUE){
-            SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 11, (uint8_t *) &data, 12, &hptw);
-            SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 12, (uint8_t *) &mpu9250->accel_raw_x, 12, &hptw);
-        }
-        else {
-
-        }
         counter = 0;
+        BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+        xSemaphoreGiveFromISR( xSemaphore, &xHigherPriorityTaskWoken);
+        portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
+
+
 /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 12, array, 6, &hptw); */
         /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 13, array, 6, &hptw); */
         /* SS_flash_log_var_from_isr(FLASH_STREAM_VAR, 0x01, (uint8_t *)&mpu9250->accel_raw_x, 18, &hptw); */

@@ -92,26 +92,27 @@ static void vLEDFlashTask(void *pvParameters) {
     SS_MPU_set_is_logging(true);
     uint16_t PomiarADC;
     //const float ADCResolution = 4095.0;
-    const float przelicznik = 115/4095.0;
+    //const float przelicznik = 115/4095.0;
 #endif
     xSemaphore = xSemaphoreCreateBinary();
     while(1) {
         //TaskDelay(500);
         /* SS_println("%d, %d, %d", mpu.accel_raw_x, mpu.accel_raw_y, mpu.accel_raw_z); */
-        SS_platform_toggle_loop_led();
-        SS_MS56_read_convert(&ms5607);
-        scd30.error = SS_SCD_read_measurement(&scd30.co2_ppm, &scd30.temperature, &scd30.relative_humidity);
-        SS_SCD_start_periodic_measurement(0);
-        print_data(ms5607.temp,ms5607.press);
-        if(flaga){
-            PomiarADC = HAL_ADC_GetValue(&hadc3);              // Pobranie zmierzonej wartosci
+        if ( xSemaphoreTake( xSemaphore, 1000 / portTICK_RATE_MS ) == pdTRUE) {
+            SS_platform_toggle_loop_led();
+            SS_MS56_read_convert(&ms5607);
+            scd30.error = SS_SCD_read_measurement(&scd30.co2_ppm, &scd30.temperature, &scd30.relative_humidity);
+            SS_SCD_start_periodic_measurement(0);
+            print_data(ms5607.temp, ms5607.press);
+            if(flaga) {
+                PomiarADC = HAL_ADC_GetValue(&hadc3);  // Pobranie zmierzonej wartosci
 
-            Vsense = (PomiarADC * 3.0) / 4095.0;           // Przeliczenie wartosci zmierzonej na napiecie
-            Vsense = (Vsense - 0.5) * 100;
-            HAL_ADC_Start(&hadc3);
-             flaga = false;
+                Vsense = (PomiarADC * 3.0) / 4095.0;  // Przeliczenie wartosci zmierzonej na napiecie
+                Vsense = (Vsense - 0.5) * 100;
+                HAL_ADC_Start(&hadc3);
+                flaga = false;
+            }
         }
-        xSemaphoreGive(xSemaphore);
         //SS_print("%d,", ms5607.temp);
         /* SS_MPU_math_scaled_accel(&mpu); */
         /* SS_println("%f, %f, %f", mpu.accel_scaled_x, mpu.accel_scaled_y, mpu.accel_scaled_z); */
@@ -152,7 +153,7 @@ static void SS_FreeRTOS_create_tasks(void) {
     res = xTaskCreate(SS_run_tests_task, "Tests task", 512, NULL, 4, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
 #endif /* defined(SS_RUN_TESTS) && !defined(SS_RUN_TESTS_FROM_CONSOLE) */
-    res = xTaskCreate(vLEDFlashTask, "LED Task", 256, NULL, 2, (TaskHandle_t *) NULL);
+    res = xTaskCreate(vLEDFlashTask, "LED Task", 256, NULL, 7, (TaskHandle_t *) NULL);
     assert(res == pdTRUE);
 #ifdef SS_USE_COM
     res = xTaskCreate(SS_com_rx_handler_task, "Com Rx Task", 256, NULL, 5, NULL);
