@@ -43,12 +43,14 @@
 #endif
 #include "SS_MPU9250.h"
 #include "SS_SCD30.h"
+#include "adc.h"
 /* ==================================================================== */
 /* =================== Private function prototypes ==================== */
 /* ==================================================================== */
 
 static void vLEDFlashTask(void *pvParameters);
 static void SS_FreeRTOS_create_tasks(void);
+static void SS_adc_Task(void *pvParameters);
 SemaphoreHandle_t xSemaphore = NULL;
 
 /* ==================================================================== */
@@ -77,7 +79,8 @@ void SS_run_tests_task(void *pvParameters) {
 /* ======================== Private functions ========================= */
 /* ==================================================================== */
 #include "SS_MPU9250.h"
-
+bool flaga = false;
+float Vsense;
 extern MPU9250 mpu;
 SCD30 scd30;
 extern uint32_t flash_counter;
@@ -87,6 +90,9 @@ static void vLEDFlashTask(void *pvParameters) {
     vTaskDelay(10000);
     SS_flash_ctrl_start_logging();
     SS_MPU_set_is_logging(true);
+    uint16_t PomiarADC;
+    //const float ADCResolution = 4095.0;
+    const float przelicznik = 115/4095.0;
 #endif
     xSemaphore = xSemaphoreCreateBinary();
     while(1) {
@@ -97,6 +103,12 @@ static void vLEDFlashTask(void *pvParameters) {
         scd30.error = SS_SCD_read_measurement(&scd30.co2_ppm, &scd30.temperature, &scd30.relative_humidity);
         SS_SCD_start_periodic_measurement(0);
         print_data(ms5607.temp,ms5607.press);
+        if(flaga){
+            PomiarADC = HAL_ADC_GetValue(&hadc3);              // Pobranie zmierzonej wartosci
+            Vsense = (PomiarADC * przelicznik) + 10;           // Przeliczenie wartosci zmierzonej na napiecie
+            HAL_ADC_Start(&hadc3);
+            flaga = false;
+        }
         xSemaphoreGive(xSemaphore);
         //SS_print("%d,", ms5607.temp);
         /* SS_MPU_math_scaled_accel(&mpu); */
@@ -107,6 +119,20 @@ static void vLEDFlashTask(void *pvParameters) {
 
         vTaskDelay( 3000 / portTICK_RATE_MS );
 
+    }
+}
+
+
+static void SS_adc_Task(void *pvParameters)
+{
+
+    HAL_ADC_Start(&hadc3);
+    while(1) {
+        if (HAL_ADC_PollForConversion(&hadc3, 10) == HAL_OK) {  // Oczekiwanie na zakonczenie konwersji
+            flaga = true;                   // Rozpoczecie nowej konwersji
+        }
+        SS_print("%f,", Vsense);
+        vTaskDelay( 1000);
     }
 }
 
@@ -149,6 +175,8 @@ static void SS_FreeRTOS_create_tasks(void) {
     assert(res == pdTRUE);
 #endif /* SS_USE_SCD30 */
     res = xTaskCreate(SS_console_task, "Console Task", 256, NULL, 3, (TaskHandle_t *) NULL);
+    assert(res == pdTRUE);
+    res = xTaskCreate(SS_adc_Task, "adc Task", 256, NULL, 4, NULL);
     assert(res == pdTRUE);
 }
 
