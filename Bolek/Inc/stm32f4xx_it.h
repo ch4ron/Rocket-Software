@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under BSD 3-Clause license,
@@ -52,20 +52,17 @@ void HardFault_Handler(void);
 void MemManage_Handler(void);
 void BusFault_Handler(void);
 void UsageFault_Handler(void);
+void SVC_Handler(void);
 void DebugMon_Handler(void);
-void EXTI4_IRQHandler(void);
-void DMA1_Stream0_IRQHandler(void);
-void DMA1_Stream5_IRQHandler(void);
+void PendSV_Handler(void);
+void SysTick_Handler(void);
 void SPI1_IRQHandler(void);
 void USART2_IRQHandler(void);
 void TIM8_UP_TIM13_IRQHandler(void);
 void TIM8_TRG_COM_TIM14_IRQHandler(void);
-void SPI3_IRQHandler(void);
 void DMA2_Stream0_IRQHandler(void);
 void DMA2_Stream3_IRQHandler(void);
 void DMA2_Stream7_IRQHandler(void);
-void I2C3_EV_IRQHandler(void);
-void I2C3_ER_IRQHandler(void);
 void QUADSPI_IRQHandler(void);
 /* USER CODE BEGIN EFP */
 

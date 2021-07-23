@@ -7,9 +7,9 @@ set(MCU STM32F446VE)
 project(bolek C ASM)
 
 file(GLOB_RECURSE SOURCES
-  "Inc/*.*"
-  "Src/*.*"
-  "startup/*.*")
+        "Inc/*.*"
+        "Src/*.*"
+        "startup/*.*")
 
 add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
 

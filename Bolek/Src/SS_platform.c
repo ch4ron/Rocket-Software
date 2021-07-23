@@ -53,7 +53,7 @@ void SS_platform_set_adc_led(bool red, bool green, bool blue) {
 }
 */
 void SS_platform_toggle_loop_led(void) {
-    HAL_GPIO_TogglePin(LED_BLUE_1_GPIO_Port, LED_BLUE_1_Pin);
+    HAL_GPIO_TogglePin(LOOP_LED_GPIO_Port, LOOP_LED_Pin);
 }
 
 /********** ADC *********/

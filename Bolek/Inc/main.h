@@ -7,7 +7,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under BSD 3-Clause license,
@@ -59,6 +59,16 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define SD_CARD_MOSI_Pin GPIO_PIN_1
+#define SD_CARD_MOSI_GPIO_Port GPIOC
+#define GRZALKA_Pin GPIO_PIN_3
+#define GRZALKA_GPIO_Port GPIOC
+#define VIBRATION_SENSOR_Pin GPIO_PIN_0
+#define VIBRATION_SENSOR_GPIO_Port GPIOA
+#define TEMPERATURE_SENSOR_Pin GPIO_PIN_1
+#define TEMPERATURE_SENSOR_GPIO_Port GPIOA
+#define OXYGEN_SENSOR_Pin GPIO_PIN_2
+#define OXYGEN_SENSOR_GPIO_Port GPIOA
 #define MPU_CS_Pin GPIO_PIN_4
 #define MPU_CS_GPIO_Port GPIOA
 #define MPU_SCK_Pin GPIO_PIN_5
@@ -69,37 +79,54 @@ void Error_Handler(void);
 #define MPU_MOSI_GPIO_Port GPIOA
 #define MPU_INT_Pin GPIO_PIN_4
 #define MPU_INT_GPIO_Port GPIOC
-#define MPU_INT_EXTI_IRQn EXTI4_IRQn
-#define LED_GREEN_1_Pin GPIO_PIN_8
-#define LED_GREEN_1_GPIO_Port GPIOE
-#define LED_ORANGE_Pin GPIO_PIN_9
-#define LED_ORANGE_GPIO_Port GPIOE
-#define LED_BLUE_1_Pin GPIO_PIN_10
-#define LED_BLUE_1_GPIO_Port GPIOE
-#define LED_GREEN_2_Pin GPIO_PIN_11
-#define LED_GREEN_2_GPIO_Port GPIOE
-#define LED_BLUE_2_Pin GPIO_PIN_12
-#define LED_BLUE_2_GPIO_Port GPIOE
-#define LED_RGB_GREEN_LOWonly_DO_NOT_USE_Pin GPIO_PIN_13
-#define LED_RGB_GREEN_LOWonly_DO_NOT_USE_GPIO_Port GPIOE
-#define LED_RGB_DO_NOT_WORK_DO_NOT_USE_Pin GPIO_PIN_14
-#define LED_RGB_DO_NOT_WORK_DO_NOT_USE_GPIO_Port GPIOE
-#define LED_RGB_HIGH_only_DO_NOT_USE_Pin GPIO_PIN_15
-#define LED_RGB_HIGH_only_DO_NOT_USE_GPIO_Port GPIOE
-#define LED_RGB_GREEN_DO_NOT_USE_Pin GPIO_PIN_12
-#define LED_RGB_GREEN_DO_NOT_USE_GPIO_Port GPIOB
-#define LED_RGB_HIGHONLY_DO_NOT_USE_Pin GPIO_PIN_13
-#define LED_RGB_HIGHONLY_DO_NOT_USE_GPIO_Port GPIOB
-#define LED_RGB_BLUE_DO_NOT_USE_Pin GPIO_PIN_14
-#define LED_RGB_BLUE_DO_NOT_USE_GPIO_Port GPIOB
+#define BAT_VOLTAGE_Pin GPIO_PIN_5
+#define BAT_VOLTAGE_GPIO_Port GPIOC
+#define COM_RED_Pin GPIO_PIN_0
+#define COM_RED_GPIO_Port GPIOB
+#define COM_GREEN_Pin GPIO_PIN_1
+#define COM_GREEN_GPIO_Port GPIOB
+#define COM_BLUE_Pin GPIO_PIN_7
+#define COM_BLUE_GPIO_Port GPIOE
+#define RED_Pin GPIO_PIN_8
+#define RED_GPIO_Port GPIOE
+#define GREEN_Pin GPIO_PIN_9
+#define GREEN_GPIO_Port GPIOE
+#define BLUE_Pin GPIO_PIN_10
+#define BLUE_GPIO_Port GPIOE
+#define LOOP_LED_Pin GPIO_PIN_11
+#define LOOP_LED_GPIO_Port GPIOE
+#define IND_LED_Pin GPIO_PIN_12
+#define IND_LED_GPIO_Port GPIOE
+#define COM_RED2_Pin GPIO_PIN_13
+#define COM_RED2_GPIO_Port GPIOE
+#define COM_GREEN2_Pin GPIO_PIN_14
+#define COM_GREEN2_GPIO_Port GPIOE
+#define COM_BLUE2_Pin GPIO_PIN_15
+#define COM_BLUE2_GPIO_Port GPIOE
+#define SENSOR_D_SCL_Pin GPIO_PIN_10
+#define SENSOR_D_SCL_GPIO_Port GPIOB
+#define SD_CARD_CS_Pin GPIO_PIN_12
+#define SD_CARD_CS_GPIO_Port GPIOB
+#define SD_CARD_SCK_Pin GPIO_PIN_13
+#define SD_CARD_SCK_GPIO_Port GPIOB
+#define SD_CARD_MISO_Pin GPIO_PIN_14
+#define SD_CARD_MISO_GPIO_Port GPIOB
 #define FLASH_RESET_Pin GPIO_PIN_8
 #define FLASH_RESET_GPIO_Port GPIOD
-#define SCD_SDA_Pin GPIO_PIN_9
-#define SCD_SDA_GPIO_Port GPIOC
-#define SCD_SCL_Pin GPIO_PIN_8
-#define SCD_SCL_GPIO_Port GPIOA
-#define SCD_DRDY_Pin GPIO_PIN_10
-#define SCD_DRDY_GPIO_Port GPIOA
+#define SD_CARD_DETECT_Pin GPIO_PIN_9
+#define SD_CARD_DETECT_GPIO_Port GPIOD
+#define SENSOR_C_DRDY_Pin GPIO_PIN_8
+#define SENSOR_C_DRDY_GPIO_Port GPIOC
+#define SENSOR_C_SDA_Pin GPIO_PIN_9
+#define SENSOR_C_SDA_GPIO_Port GPIOC
+#define SENSOR_C_SCL_Pin GPIO_PIN_8
+#define SENSOR_C_SCL_GPIO_Port GPIOA
+#define BUZZER_Pin GPIO_PIN_15
+#define BUZZER_GPIO_Port GPIOA
+#define SENSOR_D_SDA_Pin GPIO_PIN_12
+#define SENSOR_D_SDA_GPIO_Port GPIOC
+#define SENSOR_D_DRDY_Pin GPIO_PIN_0
+#define SENSOR_D_DRDY_GPIO_Port GPIOD
 #define MS56_CS_Pin GPIO_PIN_7
 #define MS56_CS_GPIO_Port GPIOD
 #define MS56_SCK_Pin GPIO_PIN_3
