@@ -53,7 +53,7 @@ void SS_platform_set_adc_led(bool red, bool green, bool blue) {
 }
 */
 void SS_platform_toggle_loop_led(void) {
-    HAL_GPIO_TogglePin(LOOP_LED_GPIO_Port, LOOP_LED_Pin);
+    HAL_GPIO_TogglePin(BLUE_GPIO_Port, BLUE_Pin);
 }
 
 /********** ADC *********/
@@ -118,6 +118,6 @@ void SS_platform_init() {
     SS_platform_init_MS5X();
 #ifdef SS_USE_FLASH
     /* assert(SS_s25fl_init() == FLASH_STATUS_OK); */
-    assert(SS_flash_init(&hqspi, FLASH_RESET_GPIO_Port, FLASH_RESET_Pin) == FLASH_STATUS_OK);
+//    assert(SS_flash_init(&hqspi, FLASH_RESET_GPIO_Port, FLASH_RESET_Pin) == FLASH_STATUS_OK);
 #endif
 }

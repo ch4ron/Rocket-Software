@@ -32,7 +32,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "SS_platform.h"
+#include "SS_common.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -103,12 +104,12 @@ int main(void)
   MX_SPI1_Init();
   MX_SPI2_Init();
   MX_SPI3_Init();
-  MX_TIM4_Init();
   MX_TIM14_Init();
   MX_USART2_UART_Init();
   MX_USB_OTG_FS_HCD_Init();
   /* USER CODE BEGIN 2 */
-
+    SS_platform_init();
+    SS_init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
