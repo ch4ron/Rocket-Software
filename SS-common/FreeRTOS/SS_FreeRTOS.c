@@ -107,7 +107,7 @@ static void vLEDFlashTask(void *pvParameters) {
             PomiarADC = HAL_ADC_GetValue(&hadc3);              // Pobranie zmierzonej wartosci
             Vsense = (PomiarADC * przelicznik) + 10;           // Przeliczenie wartosci zmierzonej na napiecie
             HAL_ADC_Start(&hadc3);
-            flaga = false;
+             flaga = false;
         }
         xSemaphoreGive(xSemaphore);
         //SS_print("%d,", ms5607.temp);
