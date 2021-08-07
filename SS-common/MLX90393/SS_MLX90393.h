@@ -38,6 +38,7 @@ typedef enum
 
 typedef enum
 {
+    MLX_EXIT_MODE,
     MLX_BURST_MODE,
     MLX_SINGLE_MEASUREMENT_MODE,
     MLX_WAKEUP_ON_CHANGE_MODE

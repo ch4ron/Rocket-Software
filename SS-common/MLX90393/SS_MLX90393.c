@@ -141,7 +141,11 @@ MLX_StatusType SS_MLX90393_init(MLX_HandleType *mlx)
 
     if(MLX_OK == retValue)
     {
-        retValue = SS_MLX90393_setMode(mlx);
+        /* Single measurement mode must be set just before reading the measurement */
+        if (MLX_SINGLE_MEASUREMENT_MODE != mlx->mode)
+        {
+            retValue = SS_MLX90393_setMode(mlx);
+        }
     }
 
     return retValue;
@@ -471,6 +475,11 @@ MLX_StatusType SS_MLX90393_readAxisMeasurements(MLX_HandleType *mlx)
         return MLX_PRE_CONDITION;
     }
 
+    if (MLX_SINGLE_MEASUREMENT_MODE == mlx->mode)
+    {
+        (void)SS_MLX90393_setMode(mlx);
+    }
+
     retValue = SS_MLX90393_cmdReadMeasurement(mlx, readData, valuesCount);
 
     if(MLX_OK == retValue)
@@ -559,6 +568,11 @@ MLX_StatusType SS_MLX90393_setMode(MLX_HandleType *mlx)
 
     switch(mlx->mode)
     {
+        case MLX_EXIT_MODE:
+        {
+            SS_MLX90393_cmdExitMode(mlx);
+            break;
+        }
         case MLX_BURST_MODE:
         {
             retValue = SS_MLX90393_cmdStartBurstMode(mlx);
@@ -575,6 +589,7 @@ MLX_StatusType SS_MLX90393_setMode(MLX_HandleType *mlx)
         default:
         {
             retValue = MLX_PRE_CONDITION;
+            break;
         }
     }
 
