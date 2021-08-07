@@ -15,6 +15,9 @@
 /* =========================== Local macros ============================ */
 /* ==================================================================== */
 
+/* This macro will prevent optimization in the delay function */
+#define NO_OPERATION(x)          (x)
+
 /* Bytes quantity in status byte */
 #define STATUS_BYTE_SIZE         1u
 
@@ -82,6 +85,7 @@ static MLX_StatusType SS_MLX90393_cmdExitMode(MLX_HandleType *mlx);
 static MLX_StatusType SS_MLX90393_cmdReset(MLX_HandleType *mlx);
 static MLX_StatusType SS_MLX90393_transceive(MLX_HandleType *mlx, uint8_t *writeData, uint8_t writeLen, uint8_t *readData, uint8_t readLen);
 static uint8_t ValuesToRead(uint8_t measuredValues);
+static void afterResetDelay(void);
 
 /* ==================================================================== */
 /* ========================= Public functions ========================= */
@@ -141,11 +145,7 @@ MLX_StatusType SS_MLX90393_init(MLX_HandleType *mlx)
 
     if(MLX_OK == retValue)
     {
-        /* Single measurement mode must be set just before reading the measurement */
-        if (MLX_SINGLE_MEASUREMENT_MODE != mlx->mode)
-        {
-            retValue = SS_MLX90393_setMode(mlx);
-        }
+        retValue = SS_MLX90393_setMode(mlx);
     }
 
     return retValue;
@@ -558,6 +558,9 @@ MLX_StatusType SS_MLX90393_resetDevice(MLX_HandleType *mlx)
     {
         retValue = SS_MLX90393_cmdReset(mlx);
     }
+
+    /* Small delay for stability */
+    afterResetDelay();
     
     return retValue;
 }
@@ -892,4 +895,13 @@ static uint8_t ValuesToRead(uint8_t measuredValues)
     }
 
     return valuesToRead;
+}
+
+static void afterResetDelay(void)
+{
+    /* Value "5000" is calibrated for 200MHz clock speed, and takes only ~300us on 16MHz clock */
+    for (volatile uint16_t i = 0; i < 5000u; ++i)
+    {
+    	NO_OPERATION(i);
+    }
 }
