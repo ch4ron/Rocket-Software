@@ -71,20 +71,20 @@ typedef struct
 typedef struct
 {
     uint16_t deviceAddress;
-    
-    MLX_Write write;
-    
-    MLX_Read read;
 
     uint8_t measuredValues;
 
+    MLX_ModeType mode;
+
+    MLX_StatusType status;
+    
     MLX_Settings settings;
 
     MLX_ConvertedValues convertedData;
 
-    MLX_StatusType status;
-
-    MLX_ModeType mode;
+    MLX_Write write;
+    
+    MLX_Read read;
 
 } MLX_HandleType;
 
@@ -122,7 +122,7 @@ typedef struct
 #define MLX_STATUS_BURST_MODE       ((uint8_t)0x80u)
 #define MLX_STATUS_ALL_MODES        ((uint8_t)0xE0u)
 
-#define MLX_BYTES_TO_READ(x)        ((2 * x) + 2)
+#define MLX_STATUS_BYTES_TO_READ(x) ((2 * x) + 2)
 
 /* MLX90393 register addresses */
 #define MLX_REG_ADDRESS_0           ((uint8_t)0x00u)
@@ -189,9 +189,7 @@ typedef struct
 #define MLX_RESOLUTION_3              ((uint8_t)0x03u)
 
 /* Other macros */
-#define MLX_INDEX_X_AXIS              0u
-#define MLX_INDEX_Y_AXIS              1u
-#define MLX_INDEX_Z_AXIS              2u
+
 
 /* Macros used in mlx90393_sensitivity_lookup table */
 #define MLX_LOOKUP_HALLCONF_0x0       ((uint8_t)0x00u)
@@ -218,14 +216,12 @@ MLX_StatusType SS_MLX90393_setBurstDatarate(MLX_HandleType *mlx);
 MLX_StatusType SS_MLX90393_getBurstDatarate(MLX_HandleType *mlx);
 MLX_StatusType SS_MLX90393_setTempCompensation(MLX_HandleType *mlx);
 MLX_StatusType SS_MLX90393_getTempCompensation(MLX_HandleType *mlx);
-MLX_StatusType SS_MLX90393_readAxisMeasurements(MLX_HandleType *mlx, uint8_t readLen);
+MLX_StatusType SS_MLX90393_readAxisMeasurements(MLX_HandleType *mlx);
+MLX_StatusType SS_MLX90393_resetDevice(MLX_HandleType *mlx);
 MLX_StatusType SS_MLX90393_setMode(MLX_HandleType *mlx);
 MLX_StatusType SS_MLX90393_cmdReadMeasurement(MLX_HandleType *mlx, int16_t *readData, uint8_t readLen);
 MLX_StatusType SS_MLX90393_cmdReadRegister(MLX_HandleType *mlx, uint8_t regAddress, uint16_t *regData);
 MLX_StatusType SS_MLX90393_cmdWriteRegister(MLX_HandleType *mlx, uint8_t regAddress, uint16_t regData);
-MLX_StatusType SS_MLX90393_resetDevice(MLX_HandleType *mlx);
-MLX_StatusType SS_MLX90393_cmdExitMode(MLX_HandleType *mlx);
-MLX_StatusType SS_MLX90393_cmdReset(MLX_HandleType *mlx);
 MLX_StatusType SS_MLX90393_checkStatus(MLX_HandleType *mlx, uint8_t *status);
 MLX_StatusType SS_MLX90393_handleError(MLX_HandleType *mlx);
 

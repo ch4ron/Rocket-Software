@@ -12,6 +12,19 @@
 #include "SS_MLX90393.h"
 
 /* ==================================================================== */
+/* =========================== Local macros ============================ */
+/* ==================================================================== */
+
+/* Bytes quantity in status byte */
+#define STATUS_BYTE_SIZE         1u
+
+/* Bytes quantity per one measured value */
+#define BYTES_PER_VALUE          2u
+
+/* Macro for converting values count to be measured into bytes */
+#define VALUES_COUNT_TO_BYTES(x) ((x * BYTES_PER_VALUE) + STATUS_BYTE_SIZE)
+
+/* ==================================================================== */
 /* ========================= Local datatypes ========================== */
 /* ==================================================================== */
 
@@ -63,9 +76,12 @@ static const float mlx90393_sensitivity_lookup[2][8][4][2] =
 /* =================== Private function prototypes ==================== */
 /* ==================================================================== */
 
-static MLX_StatusType SS_MLX90393_transceive(MLX_HandleType *mlx, uint8_t *writeData, uint8_t writeLen, uint8_t *readData, uint8_t readLen);
 static MLX_StatusType SS_MLX90393_cmdStartBurstMode(MLX_HandleType *mlx);
 static MLX_StatusType SS_MLX90393_cmdStartSingleMeasurementMode(MLX_HandleType *mlx);
+static MLX_StatusType SS_MLX90393_cmdExitMode(MLX_HandleType *mlx);
+static MLX_StatusType SS_MLX90393_cmdReset(MLX_HandleType *mlx);
+static MLX_StatusType SS_MLX90393_transceive(MLX_HandleType *mlx, uint8_t *writeData, uint8_t writeLen, uint8_t *readData, uint8_t readLen);
+static uint8_t ValuesToRead(uint8_t measuredValues);
 
 /* ==================================================================== */
 /* ========================= Public functions ========================= */
@@ -76,10 +92,10 @@ static MLX_StatusType SS_MLX90393_cmdStartSingleMeasurementMode(MLX_HandleType *
  * Write e-mail to Melexis and ask when exactly ERROR status bit is set - DONE
  * Implement MLX initialization using Method 2 to investigate error repairing feature of MLX90393
  * Choose proper method for SS_MLX90393_init function, based on investigation
- * Move new functions to proper places in code - DONE
 
    Less important:
  * Check other TODOs in code
+ * Refactor existing code, especially some "if" conditions
  */
 
 MLX_StatusType SS_MLX90393_init(MLX_HandleType *mlx)
@@ -441,69 +457,99 @@ MLX_StatusType SS_MLX90393_getTempCompensation(MLX_HandleType *mlx)
     return retValue;
 }
 
-//TODO Decide whether the readLen parameter is needed, maybe it should be chosen based on measuredValues?
-// Maybe refactor this function to be more informative, as it is only used for Axis measurements, not the temperature
-MLX_StatusType SS_MLX90393_readAxisMeasurements(MLX_HandleType *mlx, uint8_t readLen)
+MLX_StatusType SS_MLX90393_readAxisMeasurements(MLX_HandleType *mlx)
 {
     MLX_StatusType retValue = MLX_ERROR;
     uint16_t hallconf = (mlx->settings.hallconf == MLX_HALLCONF_0x0) ? MLX_LOOKUP_HALLCONF_0x0 : MLX_LOOKUP_HALLCONF_0xC;
+    uint8_t valuesCount = ValuesToRead(mlx->measuredValues);
+    uint8_t currentIndex = 0u;
     int16_t readData[3];
 
-    if((MLX_AXIS_ALL & mlx->measuredValues) == 0u)
+    /* Check if any values are to be measured */
+    if(0u == valuesCount)
     {
         return MLX_PRE_CONDITION;
     }
 
-    retValue = SS_MLX90393_cmdReadMeasurement(mlx, readData, readLen);
+    retValue = SS_MLX90393_cmdReadMeasurement(mlx, readData, valuesCount);
 
     if(MLX_OK == retValue)
     {
         if((mlx->measuredValues & MLX_AXIS_X) != 0u)
         {
+            /* Substract a value which indicates 0G in a specific resolution */
             if(MLX_RESOLUTION_3 == mlx->settings.resolutions.x)
             {
-                readData[MLX_INDEX_X_AXIS] -= 0x4000;
+                readData[currentIndex] -= 0x4000;
             }
             else if(MLX_RESOLUTION_2 == mlx->settings.resolutions.x)
             {
-                readData[MLX_INDEX_X_AXIS] -= 0x8000;
+                readData[currentIndex] -= 0x8000;
             }
 
-            mlx->convertedData.x = (float)readData[MLX_INDEX_X_AXIS] * 
+            /* Convert signed data into float basing on the lookup table */
+            mlx->convertedData.x = (float)readData[currentIndex] * 
                 mlx90393_sensitivity_lookup[hallconf][mlx->settings.gain][mlx->settings.resolutions.x][MLX_LOOKUP_AXIS_XY];
+
+            /* Increment index of readData buffer for next measured value */
+            ++currentIndex;
         }
         
         if((mlx->measuredValues & MLX_AXIS_Y) != 0u)
         {
+            /* Substract a value which indicates 0G in a specific resolution */
             if(MLX_RESOLUTION_3 == mlx->settings.resolutions.y)
             {
-                readData[MLX_INDEX_Y_AXIS] -= 0x4000;
+                readData[currentIndex] -= 0x4000;
             }
             else if(MLX_RESOLUTION_2 == mlx->settings.resolutions.y)
             {
-                readData[MLX_INDEX_Y_AXIS] -= 0x8000;
+                readData[currentIndex] -= 0x8000;
             }
 
-            mlx->convertedData.y = (float)readData[MLX_INDEX_Y_AXIS] * 
+            /* Convert signed data into float basing on the lookup table */
+            mlx->convertedData.y = (float)readData[currentIndex] * 
                 mlx90393_sensitivity_lookup[hallconf][mlx->settings.gain][mlx->settings.resolutions.y][MLX_LOOKUP_AXIS_XY];
+
+            /* Increment index of readData buffer for next measured value */
+            ++currentIndex;
         }
 
         if((mlx->measuredValues & MLX_AXIS_Z) != 0u)
         {
+            /* Substract a value which indicates 0G in a specific resolution */
             if(MLX_RESOLUTION_3 == mlx->settings.resolutions.z)
             {
-                readData[MLX_INDEX_Z_AXIS] -= 0x4000;
+                readData[currentIndex] -= 0x4000;
             }
             else if(MLX_RESOLUTION_2 == mlx->settings.resolutions.z)
             {
-                readData[MLX_INDEX_Z_AXIS] -= 0x8000;
+                readData[currentIndex] -= 0x8000;
             }
 
-            mlx->convertedData.z = (float)readData[MLX_INDEX_Z_AXIS] * 
+            /* Convert signed data into float basing on the lookup table */
+            mlx->convertedData.z = (float)readData[currentIndex] * 
                 mlx90393_sensitivity_lookup[hallconf][mlx->settings.gain][mlx->settings.resolutions.z][MLX_LOOKUP_AXIS_Z];
+
+            /* Increment index of readData buffer for next measured value */
+            ++currentIndex;
         }
     }
 
+    return retValue;
+}
+
+MLX_StatusType SS_MLX90393_resetDevice(MLX_HandleType *mlx)
+{
+    MLX_StatusType retValue = MLX_ERROR;
+
+    retValue = SS_MLX90393_cmdExitMode(mlx);
+
+    if(MLX_OK == retValue)
+    {
+        retValue = SS_MLX90393_cmdReset(mlx);
+    }
+    
     return retValue;
 }
 
@@ -535,62 +581,11 @@ MLX_StatusType SS_MLX90393_setMode(MLX_HandleType *mlx)
     return retValue;
 }
 
-static MLX_StatusType SS_MLX90393_cmdStartBurstMode(MLX_HandleType *mlx)
-{
-    MLX_StatusType retValue = MLX_ERROR;
-    uint8_t cmd = MLX_CMD_START_BURST_MODE | mlx->measuredValues;
-    uint8_t status = 0u;
-
-    retValue = SS_MLX90393_transceive(mlx, &cmd, sizeof(cmd), &status, sizeof(status));
-
-    if(MLX_OK == retValue)
-    {
-        if((MLX_STATUS_ERROR & status) != 0u)
-        {
-            retValue = MLX_ERROR;
-        }
-        else
-        {
-            if((MLX_STATUS_BURST_MODE & status) == 0u)
-            {
-                retValue = MLX_CMD_REJECTED;
-            }
-        }  
-    }
-
-    return retValue;
-}
-
-static MLX_StatusType SS_MLX90393_cmdStartSingleMeasurementMode(MLX_HandleType *mlx)
-{
-    MLX_StatusType retValue = MLX_ERROR;
-    uint8_t cmd = MLX_CMD_START_SINGLE_MODE | mlx->measuredValues;
-    uint8_t status = 0u;
-
-    retValue = SS_MLX90393_transceive(mlx, &cmd, sizeof(cmd), &status, sizeof(status));
-
-    if(MLX_OK == retValue)
-    {
-        if((MLX_STATUS_ERROR & status) != 0u)
-        {
-            retValue = MLX_ERROR;
-        }
-        else
-        {
-            if((MLX_STATUS_SINGLE_MODE & status) == 0u)
-            {
-                retValue = MLX_CMD_REJECTED;
-            }
-        }  
-    }
-
-    return retValue;
-}
-
-MLX_StatusType SS_MLX90393_cmdReadMeasurement(MLX_HandleType *mlx, int16_t *readData, uint8_t readLen)
+MLX_StatusType SS_MLX90393_cmdReadMeasurement(MLX_HandleType *mlx, int16_t *readData, uint8_t valuesCount)
 {
     MLX_StatusType retValue = MLX_ERROR;
     uint8_t cmd = MLX_CMD_READ_MEASUREMENT | mlx->measuredValues;
+    uint8_t readLen = VALUES_COUNT_TO_BYTES(valuesCount);
     uint8_t readBuffer[9];
 
     retValue = SS_MLX90393_transceive(mlx, &cmd, sizeof(cmd), readBuffer, readLen);
@@ -605,7 +600,8 @@ MLX_StatusType SS_MLX90393_cmdReadMeasurement(MLX_HandleType *mlx, int16_t *read
         }
         else
         {
-            if(MLX_BYTES_TO_READ(MLX_STATUS_DATALEN & status) == readLen)
+            /* TODO: Maybe small refactor of this condition? */
+            if(MLX_STATUS_BYTES_TO_READ(((valuesCount - 1) & status)) == (readLen - 1))
             {
                 for(int i = 0, j = 1; j < readLen; ++i, j += 2)
                 {
@@ -661,72 +657,6 @@ MLX_StatusType SS_MLX90393_cmdWriteRegister(MLX_HandleType *mlx, uint8_t regAddr
         {
             retValue = MLX_ERROR;
         }
-    }
-
-    return retValue;
-}
-
-MLX_StatusType SS_MLX90393_resetDevice(MLX_HandleType *mlx)
-{
-    MLX_StatusType retValue = MLX_ERROR;
-
-    retValue = SS_MLX90393_cmdExitMode(mlx);
-
-    if(MLX_OK == retValue)
-    {
-        retValue = SS_MLX90393_cmdReset(mlx);
-    }
-    
-    return retValue;
-}
-
-MLX_StatusType SS_MLX90393_cmdExitMode(MLX_HandleType *mlx)
-{
-    MLX_StatusType retValue = MLX_ERROR;
-    uint8_t cmd = MLX_CMD_EXIT_MODE;
-    uint8_t status = 0u;
-
-    retValue = SS_MLX90393_transceive(mlx, &cmd, sizeof(cmd), &status, sizeof(status));
-
-    if(MLX_OK == retValue)
-    {
-        if((MLX_STATUS_ERROR & status) != 0u)
-        {
-            retValue = MLX_ERROR;
-        }
-        else
-        {
-            if((MLX_STATUS_ALL_MODES & status) != 0u)
-            {
-                retValue = MLX_CMD_REJECTED;
-            }
-        }  
-    }
-
-    return retValue;
-}
-
-MLX_StatusType SS_MLX90393_cmdReset(MLX_HandleType *mlx)
-{
-    MLX_StatusType retValue = MLX_ERROR;
-    uint8_t cmd = MLX_CMD_RESET;
-    uint8_t status = 0u;
-
-    retValue = SS_MLX90393_transceive(mlx, &cmd, sizeof(cmd), &status, sizeof(status));
-
-    if(MLX_OK == retValue)
-    {
-        if((MLX_STATUS_ERROR & status) != 0u)
-        {
-            retValue = MLX_ERROR;
-        }
-        else
-        {
-            if((MLX_STATUS_RESET & status) != 0u)
-            {
-                retValue = MLX_CMD_REJECTED;
-            }
-        } 
     }
 
     return retValue;
@@ -798,6 +728,110 @@ MLX_StatusType SS_MLX90393_handleError(MLX_HandleType *mlx)
 /* ======================== Private functions ========================= */
 /* ==================================================================== */
 
+static MLX_StatusType SS_MLX90393_cmdStartBurstMode(MLX_HandleType *mlx)
+{
+    MLX_StatusType retValue = MLX_ERROR;
+    uint8_t cmd = MLX_CMD_START_BURST_MODE | mlx->measuredValues;
+    uint8_t status = 0u;
+
+    retValue = SS_MLX90393_transceive(mlx, &cmd, sizeof(cmd), &status, sizeof(status));
+
+    if(MLX_OK == retValue)
+    {
+        if((MLX_STATUS_ERROR & status) != 0u)
+        {
+            retValue = MLX_ERROR;
+        }
+        else
+        {
+            if((MLX_STATUS_BURST_MODE & status) == 0u)
+            {
+                retValue = MLX_CMD_REJECTED;
+            }
+        }  
+    }
+
+    return retValue;
+}
+
+static MLX_StatusType SS_MLX90393_cmdStartSingleMeasurementMode(MLX_HandleType *mlx)
+{
+    MLX_StatusType retValue = MLX_ERROR;
+    uint8_t cmd = MLX_CMD_START_SINGLE_MODE | mlx->measuredValues;
+    uint8_t status = 0u;
+
+    retValue = SS_MLX90393_transceive(mlx, &cmd, sizeof(cmd), &status, sizeof(status));
+
+    if(MLX_OK == retValue)
+    {
+        if((MLX_STATUS_ERROR & status) != 0u)
+        {
+            retValue = MLX_ERROR;
+        }
+        else
+        {
+            if((MLX_STATUS_SINGLE_MODE & status) == 0u)
+            {
+                retValue = MLX_CMD_REJECTED;
+            }
+        }  
+    }
+
+    return retValue;
+}
+
+static MLX_StatusType SS_MLX90393_cmdExitMode(MLX_HandleType *mlx)
+{
+    MLX_StatusType retValue = MLX_ERROR;
+    uint8_t cmd = MLX_CMD_EXIT_MODE;
+    uint8_t status = 0u;
+
+    retValue = SS_MLX90393_transceive(mlx, &cmd, sizeof(cmd), &status, sizeof(status));
+
+    if(MLX_OK == retValue)
+    {
+        if((MLX_STATUS_ERROR & status) != 0u)
+        {
+            retValue = MLX_ERROR;
+        }
+        else
+        {
+            if((MLX_STATUS_ALL_MODES & status) != 0u)
+            {
+                retValue = MLX_CMD_REJECTED;
+            }
+        }  
+    }
+
+    return retValue;
+}
+
+static MLX_StatusType SS_MLX90393_cmdReset(MLX_HandleType *mlx)
+{
+    MLX_StatusType retValue = MLX_ERROR;
+    uint8_t cmd = MLX_CMD_RESET;
+    uint8_t status = 0u;
+
+    retValue = SS_MLX90393_transceive(mlx, &cmd, sizeof(cmd), &status, sizeof(status));
+
+    if(MLX_OK == retValue)
+    {
+        if((MLX_STATUS_ERROR & status) != 0u)
+        {
+            retValue = MLX_ERROR;
+        }
+        else
+        {
+            if((MLX_STATUS_RESET & status) == 0u)
+            {
+                retValue = MLX_CMD_REJECTED;
+            }
+        } 
+    }
+
+    return retValue;
+}
+
 //TODO Check if blocking versions of I2C functions are fast enough, if not, replace them with the ones
 // that use interrupts
 static MLX_StatusType SS_MLX90393_transceive(MLX_HandleType *mlx, uint8_t *writeData, uint8_t writeLen,
@@ -828,4 +862,19 @@ static MLX_StatusType SS_MLX90393_transceive(MLX_HandleType *mlx, uint8_t *write
     }
 
     return retValue;
+}
+
+static uint8_t ValuesToRead(uint8_t measuredValues)
+{
+    uint8_t valuesToRead = 0;
+
+    for (uint8_t i = 0; i < 4; ++i)
+    {
+        if (((measuredValues >> i) & 1u) == 1u)
+        {
+            ++valuesToRead;
+        }
+    }
+
+    return valuesToRead;
 }
