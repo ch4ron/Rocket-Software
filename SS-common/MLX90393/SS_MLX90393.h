@@ -49,7 +49,8 @@ typedef struct
     uint8_t x;
     uint8_t y;
     uint8_t z;
-} MLX_Resolutions;
+} 
+MLX_Resolutions;
 
 typedef struct
 {
@@ -60,34 +61,36 @@ typedef struct
     uint16_t digitalFiltering;
     uint16_t burstDatarateMs;
     uint16_t tempCompensation;
-} MLX_Settings;
+} 
+MLX_Settings;
 
 typedef struct
 {
     float x;
     float y;
     float z;
-} MLX_ConvertedValues;
+} 
+MLX_ConvertedValues;
+
+typedef struct
+{
+    int16_t x;
+    int16_t y;
+    int16_t z;
+} 
+MLX_RawValues;
 
 typedef struct
 {
     uint16_t deviceAddress;
-
     uint8_t measuredValues;
-
     MLX_ModeType mode;
-
     MLX_StatusType status;
-    
     MLX_Settings settings;
-
-    MLX_ConvertedValues convertedData;
-
     MLX_Write write;
-    
     MLX_Read read;
-
-} MLX_HandleType;
+} 
+MLX_HandleType;
 
 /* ==================================================================== */
 /* ============================== Macros ============================== */
@@ -217,7 +220,8 @@ MLX_StatusType SS_MLX90393_setBurstDatarate(MLX_HandleType *mlx);
 MLX_StatusType SS_MLX90393_getBurstDatarate(MLX_HandleType *mlx);
 MLX_StatusType SS_MLX90393_setTempCompensation(MLX_HandleType *mlx);
 MLX_StatusType SS_MLX90393_getTempCompensation(MLX_HandleType *mlx);
-MLX_StatusType SS_MLX90393_readAxisMeasurements(MLX_HandleType *mlx);
+MLX_StatusType SS_MLX90393_getRawData(MLX_HandleType *mlx, MLX_RawValues *rawData);
+MLX_StatusType SS_MLX90393_getConvertedData(MLX_HandleType *mlx, MLX_ConvertedValues *convertedData);
 MLX_StatusType SS_MLX90393_resetDevice(MLX_HandleType *mlx);
 MLX_StatusType SS_MLX90393_setMode(MLX_HandleType *mlx);
 MLX_StatusType SS_MLX90393_cmdReadMeasurement(MLX_HandleType *mlx, int16_t *readData, uint8_t readLen);

@@ -96,6 +96,11 @@ static void afterResetDelay(void);
  * Write e-mail to Melexis and ask when exactly ERROR status bit is set - DONE
  * Implement MLX initialization using Method 2 to investigate error repairing feature of MLX90393
  * Choose proper method for SS_MLX90393_init function, based on investigation
+ * 
+ * BUG 1 - The first measurement we make is not marked as an "error" by the status received from MLX
+ *         in case the measurement is not ready, which results the data to be some default value.
+ *         The rest of measurements are handled correctly, no matter the time needed to complete 
+ *         the measurement.
 
    Less important:
  * Check other TODOs in code
@@ -461,10 +466,9 @@ MLX_StatusType SS_MLX90393_getTempCompensation(MLX_HandleType *mlx)
     return retValue;
 }
 
-MLX_StatusType SS_MLX90393_readAxisMeasurements(MLX_HandleType *mlx)
+MLX_StatusType SS_MLX90393_getRawData(MLX_HandleType *mlx, MLX_RawValues *rawData)
 {
     MLX_StatusType retValue = MLX_ERROR;
-    uint16_t hallconf = (mlx->settings.hallconf == MLX_HALLCONF_0x0) ? MLX_LOOKUP_HALLCONF_0x0 : MLX_LOOKUP_HALLCONF_0xC;
     uint8_t valuesCount = ValuesToRead(mlx->measuredValues);
     uint8_t currentIndex = 0u;
     int16_t readData[3];
@@ -496,14 +500,11 @@ MLX_StatusType SS_MLX90393_readAxisMeasurements(MLX_HandleType *mlx)
                 readData[currentIndex] -= 0x8000;
             }
 
-            /* Convert signed data into float basing on the lookup table */
-            mlx->convertedData.x = (float)readData[currentIndex] * 
-                mlx90393_sensitivity_lookup[hallconf][mlx->settings.gain][mlx->settings.resolutions.x][MLX_LOOKUP_AXIS_XY];
+            rawData->x = readData[currentIndex];
 
-            /* Increment index of readData buffer for next measured value */
             ++currentIndex;
         }
-        
+
         if((mlx->measuredValues & MLX_AXIS_Y) != 0u)
         {
             /* Substract a value which indicates 0G in a specific resolution */
@@ -516,11 +517,8 @@ MLX_StatusType SS_MLX90393_readAxisMeasurements(MLX_HandleType *mlx)
                 readData[currentIndex] -= 0x8000;
             }
 
-            /* Convert signed data into float basing on the lookup table */
-            mlx->convertedData.y = (float)readData[currentIndex] * 
-                mlx90393_sensitivity_lookup[hallconf][mlx->settings.gain][mlx->settings.resolutions.y][MLX_LOOKUP_AXIS_XY];
+            rawData->y = readData[currentIndex];
 
-            /* Increment index of readData buffer for next measured value */
             ++currentIndex;
         }
 
@@ -536,12 +534,44 @@ MLX_StatusType SS_MLX90393_readAxisMeasurements(MLX_HandleType *mlx)
                 readData[currentIndex] -= 0x8000;
             }
 
-            /* Convert signed data into float basing on the lookup table */
-            mlx->convertedData.z = (float)readData[currentIndex] * 
-                mlx90393_sensitivity_lookup[hallconf][mlx->settings.gain][mlx->settings.resolutions.z][MLX_LOOKUP_AXIS_Z];
+            rawData->z = readData[currentIndex];
 
-            /* Increment index of readData buffer for next measured value */
             ++currentIndex;
+        }
+    }
+    
+    return retValue;
+}
+
+MLX_StatusType SS_MLX90393_getConvertedData(MLX_HandleType *mlx, MLX_ConvertedValues *convertedData)
+{
+    MLX_StatusType retValue = MLX_ERROR;
+    uint16_t hallconf = (mlx->settings.hallconf == MLX_HALLCONF_0x0) ? MLX_LOOKUP_HALLCONF_0x0 : MLX_LOOKUP_HALLCONF_0xC;
+    MLX_RawValues rawData;
+
+    retValue = SS_MLX90393_getRawData(mlx, &rawData);
+
+    if(MLX_OK == retValue)
+    {
+        if((mlx->measuredValues & MLX_AXIS_X) != 0u)
+        {
+            /* Convert signed data into float basing on the lookup table */
+            convertedData->x = (float)rawData.x *
+                mlx90393_sensitivity_lookup[hallconf][mlx->settings.gain][mlx->settings.resolutions.x][MLX_LOOKUP_AXIS_XY];
+        }
+        
+        if((mlx->measuredValues & MLX_AXIS_Y) != 0u)
+        {
+            /* Convert signed data into float basing on the lookup table */
+            convertedData->y = (float)rawData.y *
+                mlx90393_sensitivity_lookup[hallconf][mlx->settings.gain][mlx->settings.resolutions.y][MLX_LOOKUP_AXIS_XY];
+        }
+
+        if((mlx->measuredValues & MLX_AXIS_Z) != 0u)
+        {
+            /* Convert signed data into float basing on the lookup table */
+            convertedData->z = (float)rawData.z *
+                mlx90393_sensitivity_lookup[hallconf][mlx->settings.gain][mlx->settings.resolutions.z][MLX_LOOKUP_AXIS_Z];
         }
     }
 
