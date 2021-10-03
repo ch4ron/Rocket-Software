@@ -32,7 +32,6 @@ def parse_magneto_data(data):
     parsed_data = parsed_data[1].split("\\n'")
     return parsed_data[0]
 
-# TODO: Add support for multiple (11) magnetometers
 def main():
     with open("magneto_data.txt", "w") as file:
         # Write header into the file
