@@ -42,6 +42,7 @@ extern "C" {
 void SS_magneto_handler_task(void *pvParameters);
 void SS_magneto_init(void);
 void SS_magneto_calculate_piston_position(void);
+uint16_t SS_magneto_get_current_piston_position(void);
 
 #ifdef __cplusplus
 }
