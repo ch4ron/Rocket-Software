@@ -32,6 +32,7 @@
 /* ==================================================================== */
 
 /* Lookup table to convert raw values to uT based on [HALLCONF][GAIN_SEL][RES][AXIS] */
+#ifdef MLX_USE_CONVERSION
 static const float Mlx90393_Sensitivity_Lookup[2][8][4][2] =
 {
     /* HALLCONF = 0x0 */
@@ -74,6 +75,7 @@ static const float Mlx90393_Sensitivity_Lookup[2][8][4][2] =
         {{0.150, 0.242}, {0.300, 0.484}, {0.601, 0.968}, {1.202, 1.936}},
     }
 };
+#endif /* MLX_USE_CONVERSION */
 
 /* ==================================================================== */
 /* =================== Private function prototypes ==================== */
@@ -544,6 +546,7 @@ MLX_StatusType SS_MLX90393_getRawData(MLX_HandleType *mlx, MLX_RawValues *rawDat
     return retValue;
 }
 
+#ifdef MLX_USE_CONVERSION
 MLX_StatusType SS_MLX90393_getConvertedData(MLX_HandleType *mlx, MLX_ConvertedValues *convertedData)
 {
     MLX_StatusType retValue = MLX_ERROR;
@@ -578,6 +581,7 @@ MLX_StatusType SS_MLX90393_getConvertedData(MLX_HandleType *mlx, MLX_ConvertedVa
 
     return retValue;
 }
+#endif /* MLX_USE_CONVERSION */
 
 MLX_StatusType SS_MLX90393_resetDevice(MLX_HandleType *mlx)
 {
