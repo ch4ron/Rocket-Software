@@ -4,6 +4,23 @@
   *  Created on: Nov 27, 2020
   *      Author: Wojtas5
  **/
+/* TODO */
+/* Implement function for reading status - DONE
+ * Use this function in SS_MLX90393_handleError to properly handle ERROR and CMD_REJECTED statuses - DONE
+ * Write e-mail to Melexis and ask when exactly ERROR status bit is set - DONE
+ * 
+ * Refactor function names (static - delete SS_MLX90393 suffix, rest - add "_" between words)
+ * Implement a function that will send multiple configuration parameters at once to one register
+ * 
+ * BUG 1 - The first measurement we make is not marked as an "error" by the status received from MLX
+ *         in case the measurement is not ready, which results the data to be some default value.
+ *         The rest of measurements are handled correctly, no matter the time needed to complete 
+ *         the measurement.
+
+   Less important:
+ * Check other TODOs in code
+ * Refactor existing code, especially some "if" conditions
+ */
 
 /* ==================================================================== */
 /* ============================= Includes ============================= */
@@ -92,23 +109,6 @@ static void afterResetDelay(void);
 /* ==================================================================== */
 /* ========================= Public functions ========================= */
 /* ==================================================================== */
-/* TODO */
-/* Implement function for reading status - DONE
- * Use this function in SS_MLX90393_handleError to properly handle ERROR and CMD_REJECTED statuses - DONE
- * Write e-mail to Melexis and ask when exactly ERROR status bit is set - DONE
- * 
- * Refactor function names (static - delete SS_MLX90393 suffix, rest - add "_" between words)
- * Implement a function that will send multiple configuration parameters at once to one register
- * 
- * BUG 1 - The first measurement we make is not marked as an "error" by the status received from MLX
- *         in case the measurement is not ready, which results the data to be some default value.
- *         The rest of measurements are handled correctly, no matter the time needed to complete 
- *         the measurement.
-
-   Less important:
- * Check other TODOs in code
- * Refactor existing code, especially some "if" conditions
- */
 
 MLX_StatusType SS_MLX90393_init(MLX_HandleType *mlx)
 {
