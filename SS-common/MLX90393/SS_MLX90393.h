@@ -192,9 +192,6 @@ MLX_HandleType;
 #define MLX_RESOLUTION_2              ((uint8_t)0x02u)
 #define MLX_RESOLUTION_3              ((uint8_t)0x03u)
 
-/* Other macros */
-
-
 /* Macros used in mlx90393_sensitivity_lookup table */
 #define MLX_LOOKUP_HALLCONF_0x0       ((uint8_t)0x00u)
 #define MLX_LOOKUP_HALLCONF_0xC       ((uint8_t)0x01u)
@@ -222,6 +219,8 @@ MLX_StatusType SS_MLX90393_setTempCompensation(MLX_HandleType *mlx);
 MLX_StatusType SS_MLX90393_getTempCompensation(MLX_HandleType *mlx);
 MLX_StatusType SS_MLX90393_getRawData(MLX_HandleType *mlx, MLX_RawValues *rawData);
 MLX_StatusType SS_MLX90393_getConvertedData(MLX_HandleType *mlx, MLX_ConvertedValues *convertedData);
+float SS_MLX90393_getConversionTimeMs(MLX_HandleType *mlx);
+uint8_t SS_MLX90393_getConversionTimeMsInt(MLX_HandleType *mlx);
 MLX_StatusType SS_MLX90393_resetDevice(MLX_HandleType *mlx);
 MLX_StatusType SS_MLX90393_setMode(MLX_HandleType *mlx);
 MLX_StatusType SS_MLX90393_cmdReadMeasurement(MLX_HandleType *mlx, int16_t *readData, uint8_t readLen);

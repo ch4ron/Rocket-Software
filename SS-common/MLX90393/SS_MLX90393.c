@@ -36,10 +36,10 @@
 #define NO_OPERATION(x)          (x)
 
 /* Bytes quantity in status byte */
-#define STATUS_BYTE_SIZE         1u
+#define STATUS_BYTE_SIZE         ((uint8_t)1)
 
 /* Bytes quantity per one measured value */
-#define BYTES_PER_VALUE          2u
+#define BYTES_PER_VALUE          ((uint8_t)2)
 
 /* Macro for converting values count to be measured into bytes */
 #define VALUES_COUNT_TO_BYTES(x) ((x * BYTES_PER_VALUE) + STATUS_BYTE_SIZE)
@@ -47,6 +47,27 @@
 /* ==================================================================== */
 /* ========================= Local datatypes ========================== */
 /* ==================================================================== */
+
+/* Lookup table for conversion time based on [DIF_FILT][OSR] in [ms] */
+static const float Mlx90393_Tconv[8][4] =
+{
+    /* DIG_FILT = 0 */
+    {1.27, 1.84, 3.00, 5.30},
+    /* DIG_FILT = 1 */
+    {1.46, 2.23, 3.76, 6.84},
+    /* DIG_FILT = 2 */
+    {1.84, 3.00, 5.30, 9.91},
+    /* DIG_FILT = 3 */
+    {2.61, 4.53, 8.37, 16.05},
+    /* DIG_FILT = 4 */
+    {4.15, 7.60, 14.52, 28.34},
+    /* DIG_FILT = 5 */
+    {7.22, 13.75, 26.80, 52.92},
+    /* DIG_FILT = 6 */
+    {13.36, 26.04, 51.38, 102.07},
+    /* DIF_FILT = 7 */
+    {25.65, 50.61, 100.53, 200.37},
+};
 
 /* Lookup table to convert raw values to uT based on [HALLCONF][GAIN_SEL][RES][AXIS] */
 #ifdef MLX_USE_CONVERSION
@@ -110,6 +131,8 @@ static void afterResetDelay(void);
 /* ========================= Public functions ========================= */
 /* ==================================================================== */
 
+/* TODO: Rethink error handling in this function, maybe more beneficial will be to "retValue |=" the results and 
+        initialize what can be initialized? In this case values of MLX_StatusType needs to be changed to 0, 1, 2, 4, 8 .... */
 MLX_StatusType SS_MLX90393_init(MLX_HandleType *mlx)
 {
     MLX_StatusType retValue = MLX_ERROR;
@@ -482,11 +505,6 @@ MLX_StatusType SS_MLX90393_getRawData(MLX_HandleType *mlx, MLX_RawValues *rawDat
         return MLX_PRE_CONDITION;
     }
 
-    if (MLX_SINGLE_MEASUREMENT_MODE == mlx->mode)
-    {
-        (void)SS_MLX90393_setMode(mlx);
-    }
-
     retValue = SS_MLX90393_cmdReadMeasurement(mlx, readData, valuesCount);
 
     if(MLX_OK == retValue)
@@ -583,6 +601,16 @@ MLX_StatusType SS_MLX90393_getConvertedData(MLX_HandleType *mlx, MLX_ConvertedVa
 }
 #endif /* MLX_USE_CONVERSION */
 
+float SS_MLX90393_getConversionTimeMs(MLX_HandleType *mlx)
+{
+    return Mlx90393_Tconv[mlx->settings.digitalFiltering][mlx->settings.oversampling];
+}
+
+uint8_t SS_MLX90393_getConversionTimeMsInt(MLX_HandleType *mlx)
+{
+    return (uint8_t)(Mlx90393_Tconv[mlx->settings.digitalFiltering][mlx->settings.oversampling] + 1);
+}
+
 MLX_StatusType SS_MLX90393_resetDevice(MLX_HandleType *mlx)
 {
     MLX_StatusType retValue = MLX_ERROR;
@@ -611,6 +639,7 @@ MLX_StatusType SS_MLX90393_setMode(MLX_HandleType *mlx)
             SS_MLX90393_cmdExitMode(mlx);
             break;
         }
+
         case MLX_BURST_MODE:
         {
             retValue = SS_MLX90393_cmdStartBurstMode(mlx);
