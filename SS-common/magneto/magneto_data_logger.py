@@ -35,8 +35,12 @@ def parse_magneto_data(data):
 def main():
     with open("magneto_data.txt", "w") as file:
         # Write header into the file
-        file.write("X1   Y1   Z1   X2   Y2   Z2   X3   Y3   Z3   X4   Y4   Z4   X5   Y5   Z5")
-        file.write("X6   Y6   Z6   X7   Y7   Z7   X8   Y8   Z8   X9   Y9   Z9   X10  Y10  Z10  X11  Y11  Z11\n")
+        # Variant 1 - retrieving measurement one magnetometer at a time
+        # file.write("time1 X1")
+
+        # Variant 2 - retrieving measurements for all magnetometers at one iteration
+        file.write("time1 X1 Y1 Z1 time2 X2 Y2 Z2 time3 X3 Y3 Z3 time4 X4 Y4 Z4 time5 X5 Y5 Z5 time6 X6 Y6 Z6")
+        file.write("time7 X7 Y7 Z7 time8 X8 Y8 Z8 time9 X9 Y9 Z9 time10 X10 Y10 Z10 time11 X11 Y11 Z11\n")
 
         # Get the data and save it to the file
         while(1):
