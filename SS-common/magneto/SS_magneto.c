@@ -90,14 +90,40 @@ void SS_magneto_init(void)
     Current_Piston_Position = INVALID_PISTON_POSITION;
 }
 
-void SS_magneto_calculate_piston_position(void)
+void SS_magneto_main(void)
 {
-    MLX_StatusType retValue = MLX_ERROR;
-    MLX_RawValues rawData = {0};
+    // MLX_StatusType ret_value = MLX_ERROR;
+    // MLX_RawValues raw_data = {0};
+    // uint16_t searched_position = INVALID_PISTON_POSITION;
 
-    /* TODO: We are only receiving values for X axis, check if everything works correctly, when
-             measuring just one axis */
-    retValue = SS_MLX90393_getRawData(&Magnetometers[Last_Read_Magnetometer_Index], &rawData);
+    // ret_value = SS_MLX90393_getRawData(&Magnetometers[Last_Read_Magnetometer_Index], &raw_data);
+
+    // if (MLX_OK == ret_value)
+    // {
+    //     searched_position = SS_magneto_calculate_position_one_axis(raw_data.x);
+
+
+    //     uint16_t second_mag_searched_position = INVALID_PISTON_POSITION;
+
+    //     ret_value = SS_MLX90393_getRawData(&Magnetometers[MAG_TO_THE_RIGHT_OF(Last_Read_Magnetometer_Index)], &raw_data);
+
+    //     if (MLX_OK == ret_value)
+    //     {
+    //         second_mag_searched_position = SS_magneto_calculate_position_one_axis(raw_data.x);
+    //     }
+
+    //     if (INVALID_PISTON_POSITION != second_mag_searched_position &&
+    //         searched_position == second_mag_searched_position)
+    //     {
+
+
+    //     Current_Piston_Position = searched_position;
+    // }
+    // else
+    // {
+    //     /* TODO: At this point error emerged or measurement is not ready yet, think what to do with that */
+    // }
+}
 
 void SS_magneto_calculate_position_one_axis(void)
 {
